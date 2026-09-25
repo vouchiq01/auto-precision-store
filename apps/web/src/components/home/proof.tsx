@@ -32,29 +32,29 @@ const FACTS = [
 
 export function Proof() {
   return (
-    <section className="relative overflow-hidden bg-bone py-24 text-ink md:py-32">
+    <section className="relative overflow-hidden bg-surface py-24 text-content md:py-32">
       <div className="shell">
         <div className="flex items-end justify-between gap-8">
           <div>
-            <p className="eyebrow text-ink/50!">Why buy here</p>
+            <p className="eyebrow text-content/50!">Why buy here</p>
             <h2 className="display-md mt-4 max-w-2xl">
               Nobody buys a ₹60,000 table on a whim.
             </h2>
           </div>
-          <SectionNumber value="04" className="hidden text-ink/10! md:block" />
+          <SectionNumber value="04" className="hidden text-content/10! md:block" />
         </div>
 
         <Reveal stagger={0.12} className="mt-16 grid gap-10 md:grid-cols-3 md:gap-8">
           {FACTS.map((fact) => (
-            <div key={fact.label} className="border-t border-bone-line pt-7">
+            <div key={fact.label} className="border-t border-line-strong pt-7">
               <p className="font-display leading-none">
                 <span className="numeric text-[clamp(3.5rem,7vw,5.5rem)] font-semibold tracking-[-0.04em]">
                   {fact.stat}
                 </span>
-                <span className="ml-2 text-lg font-medium text-ink/50">{fact.unit}</span>
+                <span className="ml-2 text-lg font-medium text-content/50">{fact.unit}</span>
               </p>
               <h3 className="mt-4 text-base font-medium">{fact.label}</h3>
-              <p className="mt-2 max-w-xs text-sm leading-relaxed text-ink/60">{fact.body}</p>
+              <p className="mt-2 max-w-xs text-sm leading-relaxed text-content/60">{fact.body}</p>
             </div>
           ))}
         </Reveal>

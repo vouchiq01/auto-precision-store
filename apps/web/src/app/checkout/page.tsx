@@ -163,13 +163,13 @@ export default function CheckoutPage() {
   }
 
   if (loading) {
-    return <div className="shell grid min-h-[50vh] place-items-center pt-28"><Spinner className="text-steel" /></div>;
+    return <div className="shell grid min-h-[50vh] place-items-center pt-28"><Spinner className="text-muted" /></div>;
   }
 
   if (!cart || cart.itemCount === 0) {
     return (
       <div className="shell pt-28 md:pt-36">
-        <h1 className="display-md text-bone">Your cart is empty</h1>
+        <h1 className="display-md text-content">Your cart is empty</h1>
         <p className="lede mt-4">Add a table before checking out.</p>
       </div>
     );
@@ -182,13 +182,13 @@ export default function CheckoutPage() {
         value={address[name]}
         onChange={(e) => setAddress((prev) => ({ ...prev, [name]: e.target.value }))}
         className={cn(
-          'h-12 w-full rounded-xl border bg-ink px-4 text-bone outline-none placeholder:text-steel-dim',
-          fieldErrors[`shippingAddress.${name}`] ? 'border-crimson' : 'border-ink-line focus:border-bone',
+          'h-12 w-full rounded-xl border bg-canvas px-4 text-content outline-none placeholder:text-faint',
+          fieldErrors[`shippingAddress.${name}`] ? 'border-crimson' : 'border-line focus:border-line-strong',
         )}
         {...props}
       />
       {fieldErrors[`shippingAddress.${name}`] && (
-        <span className="mt-1 block text-xs text-crimson-bright">{fieldErrors[`shippingAddress.${name}`]?.[0]}</span>
+        <span className="mt-1 block text-xs text-crimson">{fieldErrors[`shippingAddress.${name}`]?.[0]}</span>
       )}
     </label>
   );
@@ -196,7 +196,7 @@ export default function CheckoutPage() {
   return (
     <div className="shell pt-28 md:pt-36">
       <Eyebrow>Checkout</Eyebrow>
-      <h1 className="display-lg mt-4 text-bone">Where is it going<span className="text-crimson">?</span></h1>
+      <h1 className="display-lg mt-4 text-content">Where is it going<span className="text-crimson">?</span></h1>
 
       <form onSubmit={placeOrder} className="mt-12 grid gap-12 lg:grid-cols-[1fr_24rem] lg:gap-16">
         <div className="space-y-8">
@@ -218,7 +218,7 @@ export default function CheckoutPage() {
                 <select
                   value={address.state}
                   onChange={(e) => setAddress((prev) => ({ ...prev, state: e.target.value }))}
-                  className="h-12 w-full rounded-xl border border-ink-line bg-ink px-4 text-bone outline-none focus:border-bone"
+                  className="h-12 w-full rounded-xl border border-line bg-canvas px-4 text-content outline-none focus:border-line-strong"
                 >
                   {INDIAN_STATES.map((state) => <option key={state} value={state}>{state}</option>)}
                 </select>
@@ -229,7 +229,7 @@ export default function CheckoutPage() {
 
           <fieldset className="rule space-y-4 pt-8">
             <legend className="eyebrow">GST invoice</legend>
-            <label className="flex items-start gap-3 text-sm text-steel">
+            <label className="flex items-start gap-3 text-sm text-muted">
               <input
                 type="checkbox"
                 checked={wantsInvoice}
@@ -238,7 +238,7 @@ export default function CheckoutPage() {
               />
               <span>
                 I am buying for a business and need a GST invoice
-                <span className="mt-0.5 block text-xs text-steel-dim">
+                <span className="mt-0.5 block text-xs text-faint">
                   Lets you claim input credit on the GST portion.
                 </span>
               </span>
@@ -253,11 +253,11 @@ export default function CheckoutPage() {
                   maxLength={15}
                   placeholder="29AAACR5055K1Z3"
                   className={cn(
-                    'numeric h-12 w-full rounded-xl border bg-ink px-4 uppercase tracking-wide text-bone outline-none placeholder:text-steel-dim',
-                    fieldErrors.gstin ? 'border-crimson' : 'border-ink-line focus:border-bone',
+                    'numeric h-12 w-full rounded-xl border bg-canvas px-4 uppercase tracking-wide text-content outline-none placeholder:text-faint',
+                    fieldErrors.gstin ? 'border-crimson' : 'border-line focus:border-line-strong',
                   )}
                 />
-                {fieldErrors.gstin && <span className="mt-1 block text-xs text-crimson-bright">{fieldErrors.gstin[0]}</span>}
+                {fieldErrors.gstin && <span className="mt-1 block text-xs text-crimson">{fieldErrors.gstin[0]}</span>}
               </label>
             )}
           </fieldset>
@@ -270,34 +270,34 @@ export default function CheckoutPage() {
               rows={3}
               maxLength={500}
               placeholder="Gate code, best time to deliver, anything the courier should know."
-              className="w-full rounded-xl border border-ink-line bg-ink px-4 py-3 text-bone outline-none focus:border-bone placeholder:text-steel-dim"
+              className="w-full rounded-xl border border-line bg-canvas px-4 py-3 text-content outline-none focus:border-line-strong placeholder:text-faint"
             />
           </fieldset>
         </div>
 
         {/* Live totals */}
         <aside className="lg:sticky lg:top-28 lg:h-fit">
-          <div className="rounded-2xl border border-ink-line p-6">
+          <div className="rounded-2xl border border-line p-6">
             <h2 className="eyebrow mb-5">Order summary</h2>
 
-            <ul className="mb-5 space-y-3 border-b border-ink-line pb-5">
+            <ul className="mb-5 space-y-3 border-b border-line pb-5">
               {cart.lines.map((line) => (
                 <li key={line.id} className="flex justify-between gap-4 text-sm">
-                  <span className="min-w-0 text-steel">
-                    <span className="block truncate text-bone">{line.product.name}</span>
-                    <span className="numeric text-xs text-steel-dim">
+                  <span className="min-w-0 text-muted">
+                    <span className="block truncate text-content">{line.product.name}</span>
+                    <span className="numeric text-xs text-faint">
                       {line.variant.optionValue} × {line.quantity}
                     </span>
                   </span>
-                  <span className="numeric shrink-0 text-bone">{formatINR(line.lineTotal)}</span>
+                  <span className="numeric shrink-0 text-content">{formatINR(line.lineTotal)}</span>
                 </li>
               ))}
             </ul>
 
             <dl className={cn('space-y-2.5 text-sm transition-opacity', quoting && 'opacity-50')}>
               <div className="flex justify-between">
-                <dt className="text-steel">Subtotal</dt>
-                <dd className="numeric text-bone">{formatINR(quote?.subtotal ?? cart.subtotal)}</dd>
+                <dt className="text-muted">Subtotal</dt>
+                <dd className="numeric text-content">{formatINR(quote?.subtotal ?? cart.subtotal)}</dd>
               </div>
 
               {(quote?.discountTotal ?? cart.discountTotal) > 0 && (
@@ -308,32 +308,32 @@ export default function CheckoutPage() {
               )}
 
               <div className="flex justify-between">
-                <dt className="text-steel">
+                <dt className="text-muted">
                   Freight
-                  {quote?.shippingEta && <span className="block text-xs text-steel-dim">{quote.shippingEta}</span>}
+                  {quote?.shippingEta && <span className="block text-xs text-faint">{quote.shippingEta}</span>}
                 </dt>
-                <dd className="numeric text-bone">
+                <dd className="numeric text-content">
                   {quote ? (quote.shippingIsFree ? 'Free' : formatINR(quote.shippingTotal)) : '—'}
                 </dd>
               </div>
 
               {quote && (
                 <>
-                  <div className="flex justify-between text-xs text-steel-dim">
+                  <div className="flex justify-between text-xs text-faint">
                     <dt>Taxable value</dt>
                     <dd className="numeric">{formatINR(quote.taxableValue)}</dd>
                   </div>
                   {quote.intraState ? (
                     <>
-                      <div className="flex justify-between text-xs text-steel-dim">
+                      <div className="flex justify-between text-xs text-faint">
                         <dt>CGST</dt><dd className="numeric">{formatINR(quote.cgst)}</dd>
                       </div>
-                      <div className="flex justify-between text-xs text-steel-dim">
+                      <div className="flex justify-between text-xs text-faint">
                         <dt>SGST</dt><dd className="numeric">{formatINR(quote.sgst)}</dd>
                       </div>
                     </>
                   ) : (
-                    <div className="flex justify-between text-xs text-steel-dim">
+                    <div className="flex justify-between text-xs text-faint">
                       <dt>IGST</dt><dd className="numeric">{formatINR(quote.igst)}</dd>
                     </div>
                   )}
@@ -341,20 +341,20 @@ export default function CheckoutPage() {
               )}
 
               <div className="rule flex justify-between pt-3 text-base">
-                <dt className="font-medium text-bone">Total</dt>
-                <dd className="numeric font-medium text-bone">
+                <dt className="font-medium text-content">Total</dt>
+                <dd className="numeric font-medium text-content">
                   {quote ? formatINR(quote.grandTotal) : formatINR(cart.estimatedTotal)}
                 </dd>
               </div>
             </dl>
 
             {!quote && canQuote && quoting && (
-              <p className="mt-3 text-xs text-steel-dim">Calculating freight…</p>
+              <p className="mt-3 text-xs text-faint">Calculating freight…</p>
             )}
             {!canQuote && (
-              <p className="mt-3 text-xs text-steel-dim">Enter a pincode to see freight and tax.</p>
+              <p className="mt-3 text-xs text-faint">Enter a pincode to see freight and tax.</p>
             )}
-            {error && <p role="alert" className="mt-4 text-sm text-crimson-bright">{error}</p>}
+            {error && <p role="alert" className="mt-4 text-sm text-crimson">{error}</p>}
             {razorpay.failed && (
               <p className="mt-4 text-sm text-warning">
                 The payment window could not load. Check any ad blocker and refresh.
@@ -365,7 +365,7 @@ export default function CheckoutPage() {
               {quote ? `Pay ${formatINR(quote.grandTotal)}` : 'Enter your address'}
             </Button>
 
-            <p className="mt-3 text-center text-xs text-steel-dim">
+            <p className="mt-3 text-center text-xs text-faint">
               Secured by Razorpay · UPI, cards, net banking and EMI
             </p>
           </div>

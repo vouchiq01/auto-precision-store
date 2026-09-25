@@ -101,24 +101,24 @@ export default function AdminBannersPage() {
         </Card>
       )}
 
-      {error && <p role="alert" className="mb-4 text-sm text-crimson-bright">{error}</p>}
+      {error && <p role="alert" className="mb-4 text-sm text-crimson">{error}</p>}
       {loading ? (
-        <div className="grid h-48 place-items-center"><Spinner className="text-steel" /></div>
+        <div className="grid h-48 place-items-center"><Spinner className="text-muted" /></div>
       ) : (
         <Table head={['Preview', 'Headline', 'Placement', 'Schedule', 'Status', '']}>
           {data?.items.map((banner) => (
             <tr key={banner.id}>
               <td className="px-4 py-3">
-                <div className="relative h-12 w-24 overflow-hidden rounded-lg border border-ink-line bg-ink">
+                <div className="relative h-12 w-24 overflow-hidden rounded-lg border border-line bg-canvas">
                   <Image src={banner.imageDesktop} alt="" fill sizes="96px" className="object-cover" />
                 </div>
               </td>
               <td className="px-4 py-3">
-                {banner.eyebrow && <span className="block text-xs text-steel-dim">{banner.eyebrow}</span>}
-                <span className="text-bone">{banner.title}</span>
+                {banner.eyebrow && <span className="block text-xs text-faint">{banner.eyebrow}</span>}
+                <span className="text-content">{banner.title}</span>
               </td>
-              <td className="px-4 py-3 text-steel">{banner.placement}</td>
-              <td className="px-4 py-3 text-xs text-steel-dim">
+              <td className="px-4 py-3 text-muted">{banner.placement}</td>
+              <td className="px-4 py-3 text-xs text-faint">
                 {banner.startsAt || banner.endsAt
                   ? `${banner.startsAt ? formatDate(banner.startsAt) : 'now'} → ${banner.endsAt ? formatDate(banner.endsAt) : 'no end'}`
                   : 'Always on'}
@@ -131,7 +131,7 @@ export default function AdminBannersPage() {
                   type="button"
                   disabled={busy}
                   onClick={() => void mutate('DELETE', `/api/admin/banners/${banner.id}`)}
-                  className="text-xs text-steel transition-colors hover:text-crimson-bright"
+                  className="text-xs text-muted transition-colors hover:text-crimson"
                 >
                   Delete
                 </button>

@@ -34,9 +34,9 @@ export default function AdminLoginPage() {
   return (
     <div className="grid min-h-dvh place-items-center px-5">
       <div className="w-full max-w-sm">
-        <div className="text-bone"><Logo /></div>
+        <div className="text-content"><Logo /></div>
         <Eyebrow className="mt-6">Admin</Eyebrow>
-        <h1 className="font-[family-name:--font-display] mt-2 text-3xl font-semibold tracking-[-0.02em] text-bone">
+        <h1 className="font-[family-name:--font-display] mt-2 text-3xl font-semibold tracking-[-0.02em] text-content">
           Sign in
         </h1>
 
@@ -62,7 +62,7 @@ export default function AdminLoginPage() {
             />
           </Field>
 
-          {error && <p role="alert" className="text-sm text-crimson-bright">{error}</p>}
+          {error && <p role="alert" className="text-sm text-crimson">{error}</p>}
 
           <Button type="submit" size="lg" loading={busy} className="w-full">Sign in</Button>
         </form>

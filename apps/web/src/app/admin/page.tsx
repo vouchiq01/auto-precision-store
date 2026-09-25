@@ -21,8 +21,8 @@ export default function AdminDashboard() {
       .finally(() => setLoading(false));
   }, [token]);
 
-  if (loading) return <div className="grid h-64 place-items-center"><Spinner className="text-steel" /></div>;
-  if (!stats) return <p className="text-sm text-steel">Could not load the dashboard.</p>;
+  if (loading) return <div className="grid h-64 place-items-center"><Spinner className="text-muted" /></div>;
+  if (!stats) return <p className="text-sm text-muted">Could not load the dashboard.</p>;
 
   const peak = Math.max(...stats.revenueSeries.map((point) => point.revenue), 1);
 
@@ -54,7 +54,7 @@ export default function AdminDashboard() {
         <Card>
           <h2 className="eyebrow mb-6">Revenue</h2>
           {stats.revenueSeries.every((p) => p.revenue === 0) ? (
-            <p className="py-12 text-center text-sm text-steel-dim">No revenue in this period yet.</p>
+            <p className="py-12 text-center text-sm text-faint">No revenue in this period yet.</p>
           ) : (
             <div className="flex h-48 items-end gap-[3px]" role="img" aria-label="Daily revenue over the last 30 days">
               {stats.revenueSeries.map((point) => (
@@ -63,7 +63,7 @@ export default function AdminDashboard() {
                     className="w-full rounded-t bg-crimson/70 transition-colors group-hover:bg-crimson"
                     style={{ height: `${Math.max((point.revenue / peak) * 176, point.revenue > 0 ? 3 : 1)}px` }}
                   />
-                  <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-ink-panel px-2 py-1 text-[0.6875rem] text-bone group-hover:block">
+                  <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-sand px-2 py-1 text-[0.6875rem] text-content group-hover:block">
                     {point.date}: {formatINR(point.revenue)}
                   </span>
                 </div>
@@ -75,19 +75,19 @@ export default function AdminDashboard() {
         <Card>
           <h2 className="eyebrow mb-5">Top products</h2>
           {stats.topProducts.length === 0 ? (
-            <p className="text-sm text-steel-dim">Nothing sold in this period yet.</p>
+            <p className="text-sm text-faint">Nothing sold in this period yet.</p>
           ) : (
             <ol className="space-y-3.5">
               {stats.topProducts.map((product, i) => (
                 <li key={product.id} className="flex items-baseline justify-between gap-3">
                   <span className="min-w-0">
-                    <span className="numeric mr-2 text-xs text-steel-dim">{String(i + 1).padStart(2, '0')}</span>
-                    <Link href={`/products/${product.slug}`} className="text-sm text-bone hover:underline">
+                    <span className="numeric mr-2 text-xs text-faint">{String(i + 1).padStart(2, '0')}</span>
+                    <Link href={`/products/${product.slug}`} className="text-sm text-content hover:underline">
                       {product.name}
                     </Link>
-                    <span className="numeric block pl-6 text-xs text-steel-dim">{product.unitsSold} sold</span>
+                    <span className="numeric block pl-6 text-xs text-faint">{product.unitsSold} sold</span>
                   </span>
-                  <span className="numeric shrink-0 text-sm text-bone">{formatINR(product.revenue)}</span>
+                  <span className="numeric shrink-0 text-sm text-content">{formatINR(product.revenue)}</span>
                 </li>
               ))}
             </ol>

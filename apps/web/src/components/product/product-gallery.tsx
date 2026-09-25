@@ -30,7 +30,7 @@ export function ProductGallery({
   return (
     <div className="lg:sticky lg:top-28 lg:self-start">
       {spinSlug && spinFrames && spinFrames.length > 1 && (
-        <div className="mb-3 inline-flex rounded-full border border-ink-line p-1" role="tablist" aria-label="View mode">
+        <div className="mb-3 inline-flex rounded-full border border-line p-1" role="tablist" aria-label="View mode">
           {([['stills', 'Photos'], ['spin', '360° view']] as const).map(([value, label]) => (
             <button
               key={value}
@@ -40,7 +40,7 @@ export function ProductGallery({
               onClick={() => setMode(value)}
               className={cn(
                 'rounded-full px-4 py-1.5 text-xs transition-colors duration-300',
-                mode === value ? 'bg-bone text-ink' : 'text-steel hover:text-bone',
+                mode === value ? 'bg-surface text-content' : 'text-muted hover:text-content',
               )}
             >
               {label}
@@ -53,7 +53,7 @@ export function ProductGallery({
         <SpinViewer slug={spinSlug} frameFiles={spinFrames} alt={name} />
       ) : (
       <>
-      <div className="relative aspect-square overflow-hidden rounded-3xl border border-ink-line bg-ink-raised">
+      <div className="relative aspect-square overflow-hidden rounded-3xl border border-line bg-surface">
         {current ? (
           <Image
             key={current.id}
@@ -65,7 +65,7 @@ export function ProductGallery({
             className="animate-[fadeIn_0.5s_var(--ease-out-expo)] object-cover"
           />
         ) : (
-          <div className="grid h-full place-items-center text-steel-dim">No image</div>
+          <div className="grid h-full place-items-center text-faint">No image</div>
         )}
       </div>
 
@@ -82,8 +82,8 @@ export function ProductGallery({
               className={cn(
                 'relative size-20 overflow-hidden rounded-xl border transition-colors duration-300',
                 i === active
-                  ? 'border-bone'
-                  : 'border-ink-line opacity-60 hover:opacity-100',
+                  ? 'border-line-strong'
+                  : 'border-line opacity-60 hover:opacity-100',
               )}
             >
               <Image src={image.url} alt="" fill sizes="80px" className="object-cover" />

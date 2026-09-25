@@ -42,18 +42,18 @@ export function AdminShell({ children }: { children: ReactNode }) {
   if (pathname === '/admin/login') return <>{children}</>;
 
   if (loading) {
-    return <div className="grid min-h-dvh place-items-center"><Spinner className="text-steel" /></div>;
+    return <div className="grid min-h-dvh place-items-center"><Spinner className="text-muted" /></div>;
   }
 
   if (!isAdmin) {
-    return <div className="grid min-h-dvh place-items-center text-sm text-steel">Redirecting to sign in…</div>;
+    return <div className="grid min-h-dvh place-items-center text-sm text-muted">Redirecting to sign in…</div>;
   }
 
   return (
     <div className="flex min-h-dvh">
-      <aside className="hidden w-60 shrink-0 border-r border-ink-line lg:block">
+      <aside className="hidden w-60 shrink-0 border-r border-line lg:block">
         <div className="sticky top-0 flex h-dvh flex-col p-5">
-          <Link href="/admin" className="text-bone"><Logo /></Link>
+          <Link href="/admin" className="text-content"><Logo /></Link>
           <p className="eyebrow mt-1.5">Admin</p>
 
           <nav className="mt-8 flex-1 space-y-0.5" aria-label="Admin sections">
@@ -65,7 +65,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                   href={item.href}
                   className={cn(
                     'block rounded-lg px-3 py-2 text-sm transition-colors',
-                    active ? 'bg-ink-panel text-bone' : 'text-steel hover:bg-ink-raised hover:text-bone',
+                    active ? 'bg-sand text-content' : 'text-muted hover:bg-surface hover:text-content',
                   )}
                 >
                   {item.label}
@@ -75,10 +75,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </nav>
 
           <div className="rule pt-4">
-            <p className="truncate text-xs text-steel-dim">{user?.email}</p>
+            <p className="truncate text-xs text-faint">{user?.email}</p>
             <div className="mt-2 flex gap-3 text-xs">
-              <Link href="/" className="text-steel transition-colors hover:text-bone">View store</Link>
-              <button type="button" onClick={() => void logout()} className="text-steel transition-colors hover:text-crimson-bright">
+              <Link href="/" className="text-muted transition-colors hover:text-content">View store</Link>
+              <button type="button" onClick={() => void logout()} className="text-muted transition-colors hover:text-crimson">
                 Sign out
               </button>
             </div>
@@ -88,7 +88,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
       <div className="min-w-0 flex-1">
         {/* Mobile nav */}
-        <div className="flex gap-1 overflow-x-auto border-b border-ink-line px-4 py-3 lg:hidden">
+        <div className="flex gap-1 overflow-x-auto border-b border-line px-4 py-3 lg:hidden">
           {NAV.map((item) => {
             const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
             return (
@@ -97,7 +97,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 href={item.href}
                 className={cn(
                   'shrink-0 rounded-full px-3 py-1.5 text-xs transition-colors',
-                  active ? 'bg-bone text-ink' : 'text-steel',
+                  active ? 'bg-surface text-content' : 'text-muted',
                 )}
               >
                 {item.label}

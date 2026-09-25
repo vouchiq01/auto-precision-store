@@ -14,16 +14,16 @@ export function ProductFaq({ faqs }: { faqs: Faq[] }) {
       <div className="flex items-end justify-between gap-8">
         <div>
           <Eyebrow>Questions</Eyebrow>
-          <h2 className="display-md mt-4 text-bone">The things people ask.</h2>
+          <h2 className="display-md mt-4 text-content">The things people ask.</h2>
         </div>
         <SectionNumber value="04" className="hidden md:block" />
       </div>
 
-      <dl className="mt-12 border-t border-ink-line">
+      <dl className="mt-12 border-t border-line">
         {faqs.map((faq) => {
           const expanded = open === faq.id;
           return (
-            <div key={faq.id} className="border-b border-ink-line">
+            <div key={faq.id} className="border-b border-line">
               <dt>
                 <button
                   type="button"
@@ -32,13 +32,13 @@ export function ProductFaq({ faqs }: { faqs: Faq[] }) {
                   aria-controls={`faq-${faq.id}`}
                   className="flex w-full items-start justify-between gap-6 py-6 text-left"
                 >
-                  <span className="font-display text-lg font-medium tracking-[-0.015em] text-bone">
+                  <span className="font-display text-lg font-medium tracking-[-0.015em] text-content">
                     {faq.question}
                   </span>
                   <span
                     aria-hidden="true"
                     className={cn(
-                      'mt-1 grid size-7 shrink-0 place-items-center rounded-full border border-ink-line text-steel',
+                      'mt-1 grid size-7 shrink-0 place-items-center rounded-full border border-line text-muted',
                       'transition-transform duration-500 ease-out-expo',
                       expanded && 'rotate-45 border-crimson text-crimson',
                     )}
@@ -57,7 +57,7 @@ export function ProductFaq({ faqs }: { faqs: Faq[] }) {
                 )}
               >
                 <div className="overflow-hidden">
-                  <p className="max-w-3xl pb-6 leading-relaxed text-steel">{faq.answer}</p>
+                  <p className="max-w-3xl pb-6 leading-relaxed text-muted">{faq.answer}</p>
                 </div>
               </dd>
             </div>

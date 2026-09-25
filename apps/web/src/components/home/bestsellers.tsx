@@ -12,7 +12,7 @@ export function Bestsellers({ products }: { products: ProductSummary[] }) {
       <div className="flex items-end justify-between gap-8">
         <div>
           <Eyebrow>Most bought</Eyebrow>
-          <h2 className="display-md mt-4 max-w-xl text-bone">
+          <h2 className="display-md mt-4 max-w-xl text-content">
             What people actually buy.
           </h2>
         </div>

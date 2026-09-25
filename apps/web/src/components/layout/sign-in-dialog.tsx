@@ -102,15 +102,15 @@ export function SignInDialog({ open, onClose }: { open: boolean; onClose: () => 
       <div
         ref={dialogRef}
         className={cn(
-          'relative w-full max-w-md rounded-t-3xl border border-ink-line bg-ink-raised p-7 sm:rounded-3xl sm:p-9',
+          'relative w-full max-w-md rounded-t-3xl border border-line bg-surface p-7 sm:rounded-3xl sm:p-9',
           'animate-[slideUp_0.45s_var(--ease-out-expo)]',
         )}
       >
         <Eyebrow>{step === 'phone' ? 'Sign in' : 'Verify'}</Eyebrow>
-        <h2 id="signin-title" className="display-sm mt-3 text-bone">
+        <h2 id="signin-title" className="display-sm mt-3 text-content">
           {step === 'phone' ? 'Your phone number' : 'Enter the code'}
         </h2>
-        <p className="mt-2 text-sm text-steel">
+        <p className="mt-2 text-sm text-muted">
           {step === 'phone'
             ? 'We will text you a six-digit code. No password to remember.'
             : `Sent to ${phone}.`}
@@ -120,8 +120,8 @@ export function SignInDialog({ open, onClose }: { open: boolean; onClose: () => 
           <form onSubmit={submitPhone} className="mt-7 space-y-4">
             <label className="block">
               <span className="eyebrow mb-2 block">Mobile number</span>
-              <div className="flex items-center gap-2 rounded-xl border border-ink-line bg-ink px-4 focus-within:border-bone">
-                <span className="numeric text-sm text-steel">+91</span>
+              <div className="flex items-center gap-2 rounded-xl border border-line bg-canvas px-4 focus-within:border-line-strong">
+                <span className="numeric text-sm text-muted">+91</span>
                 <input
                   ref={firstFieldRef}
                   type="tel"
@@ -131,12 +131,12 @@ export function SignInDialog({ open, onClose }: { open: boolean; onClose: () => 
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="98765 43210"
-                  className="numeric h-12 w-full bg-transparent text-bone outline-none placeholder:text-steel-dim"
+                  className="numeric h-12 w-full bg-transparent text-content outline-none placeholder:text-faint"
                 />
               </div>
             </label>
 
-            {error && <p role="alert" className="text-sm text-crimson-bright">{error}</p>}
+            {error && <p role="alert" className="text-sm text-crimson">{error}</p>}
 
             <Button type="submit" size="lg" loading={busy} className="w-full">
               Send code
@@ -162,37 +162,37 @@ export function SignInDialog({ open, onClose }: { open: boolean; onClose: () => 
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
                 placeholder="000000"
-                className="numeric h-12 w-full rounded-xl border border-ink-line bg-ink px-4 text-center text-2xl tracking-[0.5em] text-bone outline-none focus:border-bone placeholder:text-steel-dim"
+                className="numeric h-12 w-full rounded-xl border border-line bg-canvas px-4 text-center text-2xl tracking-[0.5em] text-content outline-none focus:border-line-strong placeholder:text-faint"
               />
             </label>
 
             <label className="block">
-              <span className="eyebrow mb-2 block">Your name <span className="normal-case tracking-normal text-steel-dim">(first time only)</span></span>
+              <span className="eyebrow mb-2 block">Your name <span className="normal-case tracking-normal text-faint">(first time only)</span></span>
               <input
                 type="text"
                 autoComplete="name"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Priya Raghavan"
-                className="h-12 w-full rounded-xl border border-ink-line bg-ink px-4 text-bone outline-none focus:border-bone placeholder:text-steel-dim"
+                className="h-12 w-full rounded-xl border border-line bg-canvas px-4 text-content outline-none focus:border-line-strong placeholder:text-faint"
               />
             </label>
 
-            {error && <p role="alert" className="text-sm text-crimson-bright">{error}</p>}
+            {error && <p role="alert" className="text-sm text-crimson">{error}</p>}
 
             <Button type="submit" size="lg" loading={busy} className="w-full">
               Verify and continue
             </Button>
 
             <div className="flex items-center justify-between text-sm">
-              <button type="button" onClick={() => setStep('phone')} className="text-steel transition-colors hover:text-bone">
+              <button type="button" onClick={() => setStep('phone')} className="text-muted transition-colors hover:text-content">
                 Change number
               </button>
               <button
                 type="button"
                 disabled={secondsLeft > 0 || busy}
                 onClick={() => { void submitPhone(new Event('submit') as unknown as React.FormEvent); }}
-                className="text-steel transition-colors hover:text-bone disabled:opacity-40"
+                className="text-muted transition-colors hover:text-content disabled:opacity-40"
               >
                 {secondsLeft > 0 ? `Resend in ${secondsLeft}s` : 'Resend code'}
               </button>
@@ -204,7 +204,7 @@ export function SignInDialog({ open, onClose }: { open: boolean; onClose: () => 
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-5 top-5 grid size-9 place-items-center rounded-full text-steel transition-colors hover:bg-white/5 hover:text-bone"
+          className="absolute right-5 top-5 grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-sand hover:text-content"
         >
           ✕
         </button>

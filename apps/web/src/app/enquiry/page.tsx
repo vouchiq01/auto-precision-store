@@ -49,12 +49,12 @@ export default function EnquiryPage() {
         value={form[name]}
         onChange={(e) => setForm((prev) => ({ ...prev, [name]: e.target.value }))}
         className={cn(
-          'h-12 w-full rounded-xl border bg-ink px-4 text-bone outline-none placeholder:text-steel-dim',
-          fieldErrors[name] ? 'border-crimson' : 'border-ink-line focus:border-bone',
+          'h-12 w-full rounded-xl border bg-canvas px-4 text-content outline-none placeholder:text-faint',
+          fieldErrors[name] ? 'border-crimson' : 'border-line focus:border-line-strong',
         )}
         {...props}
       />
-      {fieldErrors[name] && <span className="mt-1 block text-xs text-crimson-bright">{fieldErrors[name]?.[0]}</span>}
+      {fieldErrors[name] && <span className="mt-1 block text-xs text-crimson">{fieldErrors[name]?.[0]}</span>}
     </label>
   );
 
@@ -63,7 +63,7 @@ export default function EnquiryPage() {
       <div className="shell pt-28 md:pt-36">
         <div className="mx-auto max-w-2xl text-center">
           <Eyebrow>Received</Eyebrow>
-          <h1 className="display-lg mt-4 text-bone">Thank you<span className="text-crimson">.</span></h1>
+          <h1 className="display-lg mt-4 text-content">Thank you<span className="text-crimson">.</span></h1>
           <p className="lede mx-auto mt-6">
             We will call you back within one working day. If it is urgent, ring us directly —
             the number is in the footer.
@@ -77,7 +77,7 @@ export default function EnquiryPage() {
     <div className="shell pt-28 md:pt-36">
       <div className="mx-auto max-w-2xl">
         <Eyebrow>Bulk & dealer enquiry</Eyebrow>
-        <h1 className="display-lg mt-4 text-bone">Tell us what you are fitting out<span className="text-crimson">.</span></h1>
+        <h1 className="display-lg mt-4 text-content">Tell us what you are fitting out<span className="text-crimson">.</span></h1>
         <p className="lede mt-6">
           Trade pricing starts at two stations. The more you tell us about what you groom and the
           room you have, the more useful our answer will be — including when the cheaper table is
@@ -107,14 +107,14 @@ export default function EnquiryPage() {
               onChange={(e) => setForm((prev) => ({ ...prev, message: e.target.value }))}
               placeholder="Four stations for a new salon in Koramangala. Mostly small breeds, one large. Room is 4 × 5 m."
               className={cn(
-                'w-full rounded-xl border bg-ink px-4 py-3 text-bone outline-none placeholder:text-steel-dim',
-                fieldErrors.message ? 'border-crimson' : 'border-ink-line focus:border-bone',
+                'w-full rounded-xl border bg-canvas px-4 py-3 text-content outline-none placeholder:text-faint',
+                fieldErrors.message ? 'border-crimson' : 'border-line focus:border-line-strong',
               )}
             />
-            {fieldErrors.message && <span className="mt-1 block text-xs text-crimson-bright">{fieldErrors.message[0]}</span>}
+            {fieldErrors.message && <span className="mt-1 block text-xs text-crimson">{fieldErrors.message[0]}</span>}
           </label>
 
-          {error && <p role="alert" className="text-sm text-crimson-bright">{error}</p>}
+          {error && <p role="alert" className="text-sm text-crimson">{error}</p>}
 
           <Button type="submit" size="lg" loading={busy} className="w-full sm:w-auto">
             Send enquiry

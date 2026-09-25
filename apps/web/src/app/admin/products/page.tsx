@@ -56,37 +56,37 @@ export default function AdminProductsPage() {
         }
       />
 
-      {error && <p role="alert" className="mb-4 text-sm text-crimson-bright">{error}</p>}
+      {error && <p role="alert" className="mb-4 text-sm text-crimson">{error}</p>}
       {loading ? (
-        <div className="grid h-48 place-items-center"><Spinner className="text-steel" /></div>
+        <div className="grid h-48 place-items-center"><Spinner className="text-muted" /></div>
       ) : !data || data.items.length === 0 ? (
-        <p className="text-sm text-steel">No products match that.</p>
+        <p className="text-sm text-muted">No products match that.</p>
       ) : (
         <Table head={['Product', 'Category', 'Price', 'Variants', 'Stock', 'Status', '']}>
           {data.items.map(({ product, category, stock, variantCount }) => (
             <tr key={product.id}>
               <td className="px-4 py-3">
-                <span className="block text-bone">{product.name}</span>
-                <span className="numeric text-xs text-steel-dim">{product.sku}</span>
+                <span className="block text-content">{product.name}</span>
+                <span className="numeric text-xs text-faint">{product.sku}</span>
               </td>
-              <td className="px-4 py-3 text-steel">{category.name}</td>
-              <td className="numeric whitespace-nowrap px-4 py-3 text-bone">
+              <td className="px-4 py-3 text-muted">{category.name}</td>
+              <td className="numeric whitespace-nowrap px-4 py-3 text-content">
                 {formatINR(product.basePrice)}
                 {product.compareAtPrice && (
-                  <span className="block text-xs text-steel-dim line-through">{formatINR(product.compareAtPrice)}</span>
+                  <span className="block text-xs text-faint line-through">{formatINR(product.compareAtPrice)}</span>
                 )}
               </td>
-              <td className="numeric px-4 py-3 text-steel">{variantCount}</td>
+              <td className="numeric px-4 py-3 text-muted">{variantCount}</td>
               <td className="numeric px-4 py-3">
-                <span className={stock === 0 ? 'text-crimson-bright' : 'text-steel'}>{stock}</span>
+                <span className={stock === 0 ? 'text-crimson' : 'text-muted'}>{stock}</span>
               </td>
               <td className="px-4 py-3">
                 <Badge tone={product.status === 'active' ? 'success' : 'neutral'}>{product.status}</Badge>
                 {product.isFeatured && <Badge tone="accent" className="ml-1">Featured</Badge>}
               </td>
               <td className="whitespace-nowrap px-4 py-3">
-                <Link href={`/admin/products/${product.id}`} className="text-xs text-steel hover:text-bone">Edit</Link>
-                <Link href={`/products/${product.slug}`} className="ml-3 text-xs text-steel-dim hover:text-bone">View</Link>
+                <Link href={`/admin/products/${product.id}`} className="text-xs text-muted hover:text-content">Edit</Link>
+                <Link href={`/products/${product.slug}`} className="ml-3 text-xs text-faint hover:text-content">View</Link>
               </td>
             </tr>
           ))}

@@ -57,12 +57,12 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
         className={cn(
           'fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,backdrop-filter] duration-500',
           scrolled
-            ? 'border-b border-ink-line bg-ink/80 backdrop-blur-xl'
+            ? 'border-b border-line bg-canvas/85 backdrop-blur-xl'
             : 'border-b border-transparent bg-transparent',
         )}
       >
         <div className="shell flex h-16 items-center justify-between gap-6 md:h-20">
-          <Link href="/" aria-label="Auto Precision — home" className="text-bone transition-opacity hover:opacity-70">
+          <Link href="/" aria-label="Auto Precision — home" className="text-content transition-opacity hover:opacity-70">
             <Logo />
           </Link>
 
@@ -75,7 +75,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
                   href={item.href}
                   className={cn(
                     'relative rounded-full px-4 py-2 text-[0.8125rem] transition-colors duration-300',
-                    active ? 'text-bone' : 'text-steel hover:text-bone',
+                    active ? 'text-content' : 'text-muted hover:text-content',
                   )}
                 >
                   {item.label}
@@ -89,7 +89,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
             {user ? (
               <Link
                 href="/account"
-                className="hidden rounded-full px-4 py-2 text-[0.8125rem] text-steel transition-colors hover:text-bone sm:block"
+                className="hidden rounded-full px-4 py-2 text-[0.8125rem] text-muted transition-colors hover:text-content sm:block"
               >
                 {user.fullName?.split(' ')[0] ?? 'Account'}
               </Link>
@@ -97,7 +97,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
               <button
                 type="button"
                 onClick={onSignIn}
-                className="hidden rounded-full px-4 py-2 text-[0.8125rem] text-steel transition-colors hover:text-bone sm:block"
+                className="hidden rounded-full px-4 py-2 text-[0.8125rem] text-muted transition-colors hover:text-content sm:block"
               >
                 Sign in
               </button>
@@ -106,14 +106,14 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
             <button
               type="button"
               onClick={openCart}
-              className="group relative flex h-10 items-center gap-2 rounded-full border border-ink-line px-4 text-[0.8125rem] text-bone transition-colors hover:border-bone"
+              className="group relative flex h-10 items-center gap-2 rounded-full border border-line px-4 text-[0.8125rem] text-content transition-colors hover:border-line-strong"
               aria-label={`Cart, ${itemCount} ${itemCount === 1 ? 'item' : 'items'}`}
             >
               <span>Cart</span>
               <span
                 className={cn(
                   'numeric grid size-5 place-items-center rounded-full text-[0.6875rem] font-medium transition-colors',
-                  itemCount > 0 ? 'bg-crimson text-white' : 'bg-ink-line text-steel',
+                  itemCount > 0 ? 'bg-crimson text-white' : 'bg-line text-muted',
                 )}
               >
                 {itemCount}
@@ -123,7 +123,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
             <button
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
-              className="ml-1 grid size-10 place-items-center rounded-full border border-ink-line lg:hidden"
+              className="ml-1 grid size-10 place-items-center rounded-full border border-line lg:hidden"
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
             >
@@ -141,7 +141,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
       {/* Mobile navigation */}
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-ink transition-[opacity,visibility] duration-500 lg:hidden',
+          'fixed inset-0 z-40 bg-canvas transition-[opacity,visibility] duration-500 lg:hidden',
           mobileOpen ? 'visible opacity-100' : 'invisible opacity-0',
         )}
         aria-hidden={!mobileOpen}
@@ -152,7 +152,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
               key={item.href}
               href={item.href}
               tabIndex={mobileOpen ? 0 : -1}
-              className="display-md border-b border-ink-line py-5 text-bone transition-[transform,opacity] duration-500"
+              className="display-md border-b border-line py-5 text-content transition-[transform,opacity] duration-500"
               style={{
                 transitionDelay: mobileOpen ? `${i * 60 + 80}ms` : '0ms',
                 transform: mobileOpen ? 'translateY(0)' : 'translateY(18px)',
@@ -164,11 +164,11 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
           ))}
           <div className="mt-8 flex gap-3">
             {user ? (
-              <Link href="/account" tabIndex={mobileOpen ? 0 : -1} className="text-sm text-steel">
+              <Link href="/account" tabIndex={mobileOpen ? 0 : -1} className="text-sm text-muted">
                 Your account
               </Link>
             ) : (
-              <button type="button" onClick={onSignIn} tabIndex={mobileOpen ? 0 : -1} className="text-sm text-steel">
+              <button type="button" onClick={onSignIn} tabIndex={mobileOpen ? 0 : -1} className="text-sm text-muted">
                 Sign in
               </button>
             )}

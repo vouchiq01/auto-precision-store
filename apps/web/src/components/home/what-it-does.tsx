@@ -68,12 +68,12 @@ const CAPABILITIES = [
 
 export function WhatItDoes() {
   return (
-    <section className="rule bg-ink-raised py-24 md:py-32">
+    <section className="rule bg-surface py-24 md:py-32">
       <div className="shell">
         <div className="flex items-end justify-between gap-8">
           <div className="max-w-2xl">
             <Eyebrow>What a grooming table does</Eyebrow>
-            <h2 className="display-md mt-4 text-bone">
+            <h2 className="display-md mt-4 text-content">
               It lifts, it turns, it holds the dog still<span className="text-crimson">.</span>
             </h2>
             <p className="lede mt-6">
@@ -91,7 +91,7 @@ export function WhatItDoes() {
               className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16"
             >
               <div
-                className={`relative aspect-[4/3] overflow-hidden rounded-3xl border border-ink-line ${
+                className={`relative aspect-[4/3] overflow-hidden rounded-3xl border border-line ${
                   index % 2 === 1 ? 'lg:order-2' : ''
                 }`}
               >
@@ -102,7 +102,7 @@ export function WhatItDoes() {
                   sizes="(min-width: 1024px) 50vw, 100vw"
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-ink/25" />
+                <div className="absolute inset-0 bg-content/5" />
               </div>
 
               <div className={index % 2 === 1 ? 'lg:order-1' : ''}>
@@ -110,17 +110,17 @@ export function WhatItDoes() {
                   {item.n}
                 </span>
                 <Eyebrow className="mt-3">{item.eyebrow}</Eyebrow>
-                <h3 className="display-sm mt-3 text-bone">{item.title}</h3>
-                <p className="mt-5 max-w-md leading-relaxed text-steel">{item.body}</p>
+                <h3 className="display-sm mt-3 text-content">{item.title}</h3>
+                <p className="mt-5 max-w-md leading-relaxed text-muted">{item.body}</p>
 
                 <dl className="mt-8 grid grid-cols-3 gap-5">
                   {item.stats.map((stat) => (
                     <div key={stat.label}>
                       <dt className="sr-only">{stat.label}</dt>
-                      <dd className="numeric font-display text-xl font-semibold text-bone md:text-2xl">
+                      <dd className="numeric font-display text-xl font-semibold text-content md:text-2xl">
                         {stat.value}
                       </dd>
-                      <p className="mt-1 text-[0.625rem] uppercase tracking-[0.14em] text-steel-dim">
+                      <p className="mt-1 text-[0.625rem] uppercase tracking-[0.14em] text-faint">
                         {stat.label}
                       </p>
                     </div>

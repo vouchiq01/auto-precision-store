@@ -6,7 +6,7 @@ export default function NotFound() {
     <div className="shell grid min-h-[70svh] place-items-center pt-28">
       <div className="max-w-lg text-center">
         <Eyebrow>404</Eyebrow>
-        <h1 className="display-lg mt-4 text-bone">Not here<span className="text-crimson">.</span></h1>
+        <h1 className="display-lg mt-4 text-content">Not here<span className="text-crimson">.</span></h1>
         <p className="lede mx-auto mt-6">
           That page does not exist. It may have been a product we no longer stock.
         </p>

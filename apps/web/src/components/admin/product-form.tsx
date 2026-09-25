@@ -155,7 +155,7 @@ export function ProductForm({ productId }: { productId?: string }) {
     }
   }
 
-  if (loading) return <div className="grid h-64 place-items-center"><Spinner className="text-steel" /></div>;
+  if (loading) return <div className="grid h-64 place-items-center"><Spinner className="text-muted" /></div>;
 
   const text = (key: keyof typeof form, label: string, props: Partial<React.InputHTMLAttributes<HTMLInputElement>> = {}) => (
     <Field label={label} error={fieldErrors[key]?.[0]}>
@@ -180,7 +180,7 @@ export function ProductForm({ productId }: { productId?: string }) {
         }
       />
 
-      {error && <p role="alert" className="mb-4 rounded-xl border border-crimson/30 bg-crimson/5 px-4 py-3 text-sm text-crimson-bright">{error}</p>}
+      {error && <p role="alert" className="mb-4 rounded-xl border border-crimson/30 bg-crimson/5 px-4 py-3 text-sm text-crimson">{error}</p>}
 
       <div className="space-y-6">
         <Card>
@@ -208,15 +208,15 @@ export function ProductForm({ productId }: { productId?: string }) {
           <div className="mt-4 grid gap-4">
             <Field label="Summary" hint="One paragraph, used on cards and in search results">
               <textarea rows={2} value={form.summary} onChange={(e) => setForm({ ...form, summary: e.target.value })}
-                className="w-full rounded-xl border border-ink-line bg-ink px-4 py-3 text-sm text-bone outline-none focus:border-bone" />
+                className="w-full rounded-xl border border-line bg-canvas px-4 py-3 text-sm text-content outline-none focus:border-line-strong" />
             </Field>
             <Field label="Description" hint="Blank line between paragraphs">
               <textarea rows={6} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="w-full rounded-xl border border-ink-line bg-ink px-4 py-3 text-sm leading-relaxed text-bone outline-none focus:border-bone" />
+                className="w-full rounded-xl border border-line bg-canvas px-4 py-3 text-sm leading-relaxed text-content outline-none focus:border-line-strong" />
             </Field>
           </div>
 
-          <label className="mt-4 flex items-center gap-2 text-sm text-steel">
+          <label className="mt-4 flex items-center gap-2 text-sm text-muted">
             <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="size-4 accent-[#CE2B2B]" />
             Feature on the homepage
           </label>
@@ -235,7 +235,7 @@ export function ProductForm({ productId }: { productId?: string }) {
               </select>
             </Field>
           </div>
-          <p className="mt-2 text-xs text-steel-dim">Prices are GST-inclusive, as shown to the customer.</p>
+          <p className="mt-2 text-xs text-faint">Prices are GST-inclusive, as shown to the customer.</p>
         </Card>
 
         <Card>
@@ -252,7 +252,7 @@ export function ProductForm({ productId }: { productId?: string }) {
             {text('warrantyMonths', 'Warranty (months)', { type: 'number', min: 0 })}
             {text('badges', 'Badges', { placeholder: 'Flagship, 3-year frame' })}
           </div>
-          <p className="mt-2 text-xs text-steel-dim">Weight drives the freight slab, so keep it accurate.</p>
+          <p className="mt-2 text-xs text-faint">Weight drives the freight slab, so keep it accurate.</p>
         </Card>
 
         <Card>
@@ -265,7 +265,7 @@ export function ProductForm({ productId }: { productId?: string }) {
 
           <div className="space-y-3">
             {variants.map((variant, i) => (
-              <div key={i} className="grid gap-3 rounded-xl border border-ink-line p-3 sm:grid-cols-6">
+              <div key={i} className="grid gap-3 rounded-xl border border-line p-3 sm:grid-cols-6">
                 <input placeholder="SKU" value={variant.sku}
                   onChange={(e) => setVariants(variants.map((v, j) => j === i ? { ...v, sku: e.target.value } : v))} className={inputClass} />
                 <input placeholder="Option name" value={variant.optionName}
@@ -280,7 +280,7 @@ export function ProductForm({ productId }: { productId?: string }) {
                   <input placeholder="#RRGGBB" value={variant.hexColour}
                     onChange={(e) => setVariants(variants.map((v, j) => j === i ? { ...v, hexColour: e.target.value } : v))} className={inputClass} />
                   <button type="button" onClick={() => setVariants(variants.filter((_, j) => j !== i))}
-                    aria-label="Remove variant" className="shrink-0 px-2 text-steel hover:text-crimson-bright">✕</button>
+                    aria-label="Remove variant" className="shrink-0 px-2 text-muted hover:text-crimson">✕</button>
                 </div>
               </div>
             ))}
@@ -292,7 +292,7 @@ export function ProductForm({ productId }: { productId?: string }) {
             <h2 className="eyebrow">Images</h2>
             <Button type="button" size="sm" variant="secondary" onClick={() => setImages([...images, { url: '', alt: '' }])}>Add image</Button>
           </div>
-          <p className="mb-3 text-xs text-steel-dim">The first image is the one used on cards and in search results.</p>
+          <p className="mb-3 text-xs text-faint">The first image is the one used on cards and in search results.</p>
           <div className="space-y-2">
             {images.map((image, i) => (
               <div key={i} className="flex gap-2">
@@ -301,7 +301,7 @@ export function ProductForm({ productId }: { productId?: string }) {
                 <input placeholder="Alt text" value={image.alt}
                   onChange={(e) => setImages(images.map((img, j) => j === i ? { ...img, alt: e.target.value } : img))} className={inputClass} />
                 <button type="button" onClick={() => setImages(images.filter((_, j) => j !== i))}
-                  aria-label="Remove image" className="shrink-0 px-2 text-steel hover:text-crimson-bright">✕</button>
+                  aria-label="Remove image" className="shrink-0 px-2 text-muted hover:text-crimson">✕</button>
               </div>
             ))}
           </div>
@@ -322,7 +322,7 @@ export function ProductForm({ productId }: { productId?: string }) {
                 <input placeholder="Value" value={spec.value}
                   onChange={(e) => setSpecs(specs.map((s, j) => j === i ? { ...s, value: e.target.value } : s))} className={inputClass} />
                 <button type="button" onClick={() => setSpecs(specs.filter((_, j) => j !== i))}
-                  aria-label="Remove spec" className="px-2 text-steel hover:text-crimson-bright">✕</button>
+                  aria-label="Remove spec" className="px-2 text-muted hover:text-crimson">✕</button>
               </div>
             ))}
           </div>
@@ -335,13 +335,13 @@ export function ProductForm({ productId }: { productId?: string }) {
               setFeatures([...features, { eyebrow: '', title: '', body: '', mediaUrl: '', layout: 'media_right', stats: [] }])
             }>Add block</Button>
           </div>
-          <p className="mb-3 text-xs text-steel-dim">
+          <p className="mb-3 text-xs text-faint">
             These are the scrolling sections down the product page. Order here is the order on the page.
           </p>
 
           <div className="space-y-3">
             {features.map((feature, i) => (
-              <div key={i} className="rounded-xl border border-ink-line p-3">
+              <div key={i} className="rounded-xl border border-line p-3">
                 <div className="grid gap-2 sm:grid-cols-[8rem_1fr_10rem_auto]">
                   <input placeholder="Eyebrow" value={feature.eyebrow}
                     onChange={(e) => setFeatures(features.map((f, j) => j === i ? { ...f, eyebrow: e.target.value } : f))} className={inputClass} />
@@ -357,24 +357,24 @@ export function ProductForm({ productId }: { productId?: string }) {
                     <option value="quote">Pull quote</option>
                   </select>
                   <button type="button" onClick={() => setFeatures(features.filter((_, j) => j !== i))}
-                    aria-label="Remove block" className="px-2 text-steel hover:text-crimson-bright">✕</button>
+                    aria-label="Remove block" className="px-2 text-muted hover:text-crimson">✕</button>
                 </div>
 
                 <textarea placeholder="Body copy" rows={3} value={feature.body}
                   onChange={(e) => setFeatures(features.map((f, j) => j === i ? { ...f, body: e.target.value } : f))}
-                  className="mt-2 w-full rounded-xl border border-ink-line bg-ink px-4 py-3 text-sm text-bone outline-none focus:border-bone" />
+                  className="mt-2 w-full rounded-xl border border-line bg-canvas px-4 py-3 text-sm text-content outline-none focus:border-line-strong" />
 
                 <input placeholder="Image URL" value={feature.mediaUrl}
                   onChange={(e) => setFeatures(features.map((f, j) => j === i ? { ...f, mediaUrl: e.target.value } : f))}
                   className={`${inputClass} mt-2`} />
 
-                <div className="mt-3 rounded-lg border border-ink-line p-2.5">
+                <div className="mt-3 rounded-lg border border-line p-2.5">
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs text-steel-dim">Numbers (up to 4)</span>
+                    <span className="text-xs text-faint">Numbers (up to 4)</span>
                     {feature.stats.length < 4 && (
                       <button type="button"
                         onClick={() => setFeatures(features.map((f, j) => j === i ? { ...f, stats: [...f.stats, { value: '', label: '' }] } : f))}
-                        className="text-xs text-steel hover:text-bone">+ add</button>
+                        className="text-xs text-muted hover:text-content">+ add</button>
                     )}
                   </div>
                   {feature.stats.map((stat, k) => (
@@ -389,7 +389,7 @@ export function ProductForm({ productId }: { productId?: string }) {
                         className={`${inputClass} h-9`} />
                       <button type="button"
                         onClick={() => setFeatures(features.map((f, j) => j === i ? { ...f, stats: f.stats.filter((_, m) => m !== k) } : f))}
-                        aria-label="Remove number" className="px-2 text-steel hover:text-crimson-bright">✕</button>
+                        aria-label="Remove number" className="px-2 text-muted hover:text-crimson">✕</button>
                     </div>
                   ))}
                 </div>
@@ -405,16 +405,16 @@ export function ProductForm({ productId }: { productId?: string }) {
           </div>
           <div className="space-y-3">
             {faqs.map((faq, i) => (
-              <div key={i} className="rounded-xl border border-ink-line p-3">
+              <div key={i} className="rounded-xl border border-line p-3">
                 <div className="flex gap-2">
                   <input placeholder="Question" value={faq.question}
                     onChange={(e) => setFaqs(faqs.map((f, j) => j === i ? { ...f, question: e.target.value } : f))} className={inputClass} />
                   <button type="button" onClick={() => setFaqs(faqs.filter((_, j) => j !== i))}
-                    aria-label="Remove FAQ" className="shrink-0 px-2 text-steel hover:text-crimson-bright">✕</button>
+                    aria-label="Remove FAQ" className="shrink-0 px-2 text-muted hover:text-crimson">✕</button>
                 </div>
                 <textarea placeholder="Answer" rows={3} value={faq.answer}
                   onChange={(e) => setFaqs(faqs.map((f, j) => j === i ? { ...f, answer: e.target.value } : f))}
-                  className="mt-2 w-full rounded-xl border border-ink-line bg-ink px-4 py-3 text-sm text-bone outline-none focus:border-bone" />
+                  className="mt-2 w-full rounded-xl border border-line bg-canvas px-4 py-3 text-sm text-content outline-none focus:border-line-strong" />
               </div>
             ))}
           </div>

@@ -1,23 +1,30 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import type { Banner } from '@aps/shared';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { ButtonLink } from '@/components/ui/button';
 import { Eyebrow, VerticalLabel } from '@/components/ui/primitives';
+import { Dog } from '@/components/art/dog';
 
 /**
- * The hero, built on the Insta360 pattern: the product stays put while the page
- * moves past it, and the headline resolves word by word.
+ * The hero.
  *
- * The parallax is scrubbed against scroll rather than played on a timer, so it
- * tracks the reader exactly — including when they scroll back up.
+ * This was a full-bleed photograph under a black wash, which is the right shape
+ * for a glowing gadget and the wrong one for us. Two things were wrong with it:
+ * the headline's legibility depended entirely on how dark the photo happened to
+ * be behind it, and the wash existed to dim the very product we are asking
+ * people to buy. Splitting copy from image fixes both — the type sits on paper
+ * at ~16:1 whatever the photo does, and the photo is shown at full strength.
+ *
+ * The dog stands on a floor line at the foot of the section, because the
+ * headline is "Stop grooming on the floor." It is the same animal that gets up
+ * onto the table in the section below, so the two read as one sentence.
  */
 export function Hero({ banner, totalProducts }: { banner: Banner | null; totalProducts: number }) {
   const sectionRef = useRef<HTMLElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
-  const copyRef = useRef<HTMLDivElement>(null);
   const reduced = useReducedMotion();
 
   useEffect(() => {
@@ -36,22 +43,20 @@ export function Hero({ banner, totalProducts }: { banner: Banner | null; totalPr
       gsap.registerPlugin(ScrollTrigger);
 
       const context = gsap.context(() => {
-        // Entrance: headline words rise, then the product settles.
-        const intro = gsap.timeline({ defaults: { ease: 'expo.out' } });
-        intro
-          .fromTo('[data-hero-word] > span', { yPercent: 115 }, { yPercent: 0, duration: 1.2, stagger: 0.07 })
-          .fromTo('[data-hero-sub]', { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.9 }, '-=0.75')
-          .fromTo('[data-hero-cta]', { opacity: 0, y: 18 }, { opacity: 1, y: 0, duration: 0.8 }, '-=0.7')
-          .fromTo(mediaRef.current, { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 1.6 }, 0.1);
+        gsap.timeline({ defaults: { ease: 'expo.out' } })
+          .fromTo('[data-hero-word] > span', { yPercent: 115 }, { yPercent: 0, duration: 1.1, stagger: 0.07 })
+          .fromTo('[data-hero-sub]', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.85 }, '-=0.7')
+          .fromTo('[data-hero-cta]', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.75 }, '-=0.65')
+          .fromTo('[data-hero-trust] > li', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.08 }, '-=0.5')
+          .fromTo(mediaRef.current, { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1, duration: 1.4 }, 0.15)
+          /* The dog trots in last and from the left, so it reads as arriving
+             rather than as one more panel fading up. */
+          .fromTo('[data-hero-dog]', { opacity: 0, x: -70 }, { opacity: 1, x: 0, duration: 1.1 }, '-=0.9');
 
-        // Scrub: media drifts slower than the copy, copy fades as it leaves.
+        /* The photo drifts slower than the page. Scrubbed against scroll rather
+           than played on a timer, so it tracks the reader back up too. */
         gsap.to(mediaRef.current, {
-          yPercent: 14,
-          ease: 'none',
-          scrollTrigger: { trigger: section, start: 'top top', end: 'bottom top', scrub: 0.6 },
-        });
-        gsap.to(copyRef.current, {
-          yPercent: -18, opacity: 0.15,
+          yPercent: -7,
           ease: 'none',
           scrollTrigger: { trigger: section, start: 'top top', end: 'bottom top', scrub: 0.6 },
         });
@@ -75,101 +80,99 @@ export function Hero({ banner, totalProducts }: { banner: Banner | null; totalPr
   const ctaLabel = banner?.ctaLabel ?? 'See the Apex E9';
 
   return (
-    <section ref={sectionRef} className="relative min-h-[100svh] overflow-hidden pt-16 md:pt-20">
-      {/* Product artwork */}
-      <div ref={mediaRef} className="absolute inset-0 will-change-transform">
-        <Image
-          src={banner?.imageDesktop ?? '/banners/hero-apex.jpg'}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="hidden object-cover object-[30%_center] md:block"
-        />
-        <Image
-          src={banner?.imageMobile ?? banner?.imageDesktop ?? '/banners/hero-apex-mobile.jpg'}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center md:hidden"
-        />
-        {/* The crop is pushed left (object-position 30%) so the subject lands
-            in the right third, clear of the headline. That only works because
-            the source is a 2.5:1 crop against a ~1.6:1 container — a
-            matching aspect ratio leaves no horizontal room to slide. */}
-        {/* Readability wash.
+    <section ref={sectionRef} className="relative overflow-hidden pt-28 md:pt-32">
+      <div className="shell">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16">
+          <div className="relative">
+            <div className="absolute -left-14 top-1/2 hidden -translate-y-1/2 xl:block">
+              <VerticalLabel>Bengaluru · Est. 2026</VerticalLabel>
+            </div>
 
-            One directional gradient, not a flat veil over the whole frame.
-            The previous version stacked a 45% black veil under the gradient,
-            which guaranteed contrast but left the photograph almost invisible —
-            and a hero photograph nobody can see is doing no selling at all.
+            <Eyebrow>{eyebrow}</Eyebrow>
 
-            So: opaque where the headline sits, fully transparent by 78% across,
-            leaving the right of the frame completely clear. Plus a short fade up
-            from the bottom so the sub-copy and buttons stay legible over
-            whatever the photo happens to be doing down there. */}
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/70 via-45% to-ink/20 md:bg-gradient-to-r md:from-ink md:from-8% md:via-ink/72 md:via-46% md:to-transparent md:to-78%" />
-        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-ink/85 to-transparent" />
-      </div>
+            <h1 className="mt-5 font-display text-[clamp(2.75rem,5.6vw,5.25rem)] font-semibold leading-[0.92] tracking-[-0.035em] text-content">
+              <span className="sr-only">{headlineWords.join(' ')}</span>
+              <span aria-hidden="true">
+                {headlineWords.map((word, i) => (
+                  /* The separating space has to sit OUTSIDE the inline-block,
+                     or it collapses and the line renders as "onthe". */
+                  <Fragment key={i}>
+                    <span data-hero-word className="inline-block overflow-hidden align-bottom">
+                      <span className="inline-block will-change-transform">
+                        {/* The full stop is the one crimson mark on this screen. */}
+                        {word === 'floor.' ? (
+                          <>floor<span className="text-crimson">.</span></>
+                        ) : word}
+                      </span>
+                    </span>
+                    {i < headlineWords.length - 1 ? ' ' : ''}
+                  </Fragment>
+                ))}
+              </span>
+            </h1>
 
-      <div className="shell relative flex min-h-[calc(100svh-5rem)] items-end pb-16 md:items-center md:pb-0">
-        <div className="absolute left-0 top-1/2 hidden -translate-y-1/2 lg:block">
-          <VerticalLabel>Bengaluru · Est. 2026</VerticalLabel>
-        </div>
+            <p data-hero-sub className="lede mt-7">{subtitle}</p>
 
-        <div ref={copyRef} className="max-w-3xl">
-          <Eyebrow>{eyebrow}</Eyebrow>
+            <div data-hero-cta className="mt-9 flex flex-wrap items-center gap-3">
+              <ButtonLink href={ctaHref} size="lg">{ctaLabel}</ButtonLink>
+              <ButtonLink href="/collections/electric-lifting" variant="secondary" size="lg">
+                All {totalProducts} tables
+              </ButtonLink>
+            </div>
 
-          <h1 className="display-xl mt-5 text-bone">
-            <span className="sr-only">{headlineWords.join(' ')}</span>
-            <span aria-hidden="true">
-              {headlineWords.map((word, i) => (
-                <span key={i} data-hero-word className="inline-block overflow-hidden align-bottom">
-                  <span className="inline-block will-change-transform">
-                    {/* The full stop is the one crimson mark on this screen. */}
-                    {word === 'groomer.' ? (
-                      <>groomer<span className="text-crimson">.</span></>
-                    ) : word}
-                    {i < headlineWords.length - 1 ? ' ' : ''}
-                  </span>
-                </span>
+            {/* Only claims the platform can actually keep: freight is the
+                Karnataka rule, warranty is the per-product floor, and every
+                order really is invoiced with GST. */}
+            <ul data-hero-trust className="mt-10 flex flex-wrap gap-x-7 gap-y-3">
+              {[
+                'Free freight in Karnataka over ₹25,000',
+                '12-month warranty, minimum',
+                'GST invoice with every order',
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-2 text-[0.8125rem] text-muted">
+                  <svg viewBox="0 0 16 16" className="size-4 shrink-0 text-crimson" aria-hidden="true">
+                    <path
+                      d="M3.5 8.5l3 3 6-7"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  {item}
+                </li>
               ))}
-            </span>
-          </h1>
+            </ul>
+          </div>
 
-          <p data-hero-sub className="lede mt-7">{subtitle}</p>
-
-          <div data-hero-cta className="mt-10 flex flex-wrap items-center gap-3">
-            <ButtonLink href={ctaHref} size="lg">{ctaLabel}</ButtonLink>
-            <ButtonLink href="/collections/electric-lifting" variant="secondary" size="lg">
-              All {totalProducts} tables
-            </ButtonLink>
+          <div
+            ref={mediaRef}
+            className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-sand shadow-lift will-change-transform sm:aspect-[5/4] lg:aspect-[4/5]"
+          >
+            <Image
+              src={banner?.imageDesktop ?? '/banners/hero-apex-mobile.jpg'}
+              alt="A dog on a grooming table"
+              fill
+              priority
+              sizes="(min-width: 1024px) 46vw, 100vw"
+              className="object-cover object-center"
+            />
           </div>
         </div>
       </div>
 
-      {/* Scroll hint */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute bottom-7 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex"
-      >
-        <span className="eyebrow">Scroll</span>
-        <span className="relative block h-10 w-px overflow-hidden bg-ink-line">
-          <span className="absolute inset-x-0 top-0 h-4 animate-[scrollHint_2.2s_ease-in-out_infinite] bg-crimson" />
-        </span>
+      {/* The floor. The dog is on it; the headline is about getting off it. */}
+      <div className="shell relative mt-24 md:mt-20">
+        <div className="relative h-px bg-line-strong/70">
+          <Dog
+            data-hero-dog
+            wag
+            title="A dog waiting on the floor"
+            className="absolute bottom-0 left-[4%] h-20 w-auto text-content md:left-[8%] md:h-32"
+          />
+        </div>
       </div>
-
-      <style>{`
-        @keyframes scrollHint {
-          0%   { transform: translateY(-100%); }
-          100% { transform: translateY(1000%); }
-        }
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </section>
   );
 }

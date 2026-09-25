@@ -7,7 +7,7 @@ const CLAIMS = [
   'GST invoice on every order',
   'EMI from ₹2,199/mo',
   'Built and serviced in Bengaluru',
-  '36-month frame warranty',
+  'Warranty 12 to 36 months',
 ];
 
 /**
@@ -23,10 +23,10 @@ export function Marquee() {
 
   if (reduced) {
     return (
-      <div className="rule border-b border-ink-line py-4">
+      <div className="rule border-b border-line py-4">
         <ul className="shell flex flex-wrap items-center gap-x-8 gap-y-2">
           {CLAIMS.map((claim) => (
-            <li key={claim} className="text-[0.8125rem] text-steel">{claim}</li>
+            <li key={claim} className="text-[0.8125rem] text-muted">{claim}</li>
           ))}
         </ul>
       </div>
@@ -34,12 +34,12 @@ export function Marquee() {
   }
 
   return (
-    <div className="rule relative overflow-hidden border-b border-ink-line py-4">
+    <div className="rule relative overflow-hidden border-b border-line py-4">
       <div className="flex w-max animate-[marquee_38s_linear_infinite] gap-10 will-change-transform">
         {[0, 1].map((copy) => (
           <div key={copy} className="flex shrink-0 items-center gap-10" aria-hidden={copy === 1}>
             {CLAIMS.map((claim) => (
-              <span key={claim} className="flex items-center gap-10 whitespace-nowrap text-[0.8125rem] text-steel">
+              <span key={claim} className="flex items-center gap-10 whitespace-nowrap text-[0.8125rem] text-muted">
                 {claim}
                 <span className="size-1 rounded-full bg-crimson" aria-hidden="true" />
               </span>
@@ -49,8 +49,8 @@ export function Marquee() {
       </div>
 
       {/* Feather the edges so items enter and leave instead of being clipped */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-ink to-transparent" />
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-ink to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-canvas to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-canvas to-transparent" />
 
       <style>{`
         @keyframes marquee {

@@ -23,14 +23,14 @@ export default function AccountPage() {
   }, [authLoading, token]);
 
   if (authLoading || loading) {
-    return <div className="shell grid min-h-[50vh] place-items-center pt-28"><Spinner className="text-steel" /></div>;
+    return <div className="shell grid min-h-[50vh] place-items-center pt-28"><Spinner className="text-muted" /></div>;
   }
 
   if (!user) {
     return (
       <div className="shell pt-28 md:pt-36">
         <Eyebrow>Account</Eyebrow>
-        <h1 className="display-lg mt-4 text-bone">Not signed in<span className="text-crimson">.</span></h1>
+        <h1 className="display-lg mt-4 text-content">Not signed in<span className="text-crimson">.</span></h1>
         <p className="lede mt-5">
           Sign in with your phone number to see your orders, addresses and invoices.
         </p>
@@ -43,13 +43,13 @@ export default function AccountPage() {
     <div className="shell pt-28 md:pt-36">
       <Eyebrow>Account</Eyebrow>
       <div className="mt-4 flex flex-wrap items-end justify-between gap-6">
-        <h1 className="display-lg text-bone">
+        <h1 className="display-lg text-content">
           {user.fullName?.split(' ')[0] ?? 'Hello'}<span className="text-crimson">.</span>
         </h1>
         <Button variant="ghost" size="sm" onClick={() => void logout()}>Sign out</Button>
       </div>
 
-      <p className="numeric mt-3 text-sm text-steel">{user.phone}</p>
+      <p className="numeric mt-3 text-sm text-muted">{user.phone}</p>
 
       <section className="mt-16">
         <h2 className="eyebrow mb-6">Your orders</h2>
@@ -61,16 +61,16 @@ export default function AccountPage() {
             action={<ButtonLink href="/collections/electric-lifting" variant="secondary">Browse tables</ButtonLink>}
           />
         ) : (
-          <ul className="divide-y divide-ink-line border-y border-ink-line">
+          <ul className="divide-y divide-line border-y border-line">
             {orders.items.map((order) => {
               const invoiceAvailable = order.status !== 'pending_payment' && order.status !== 'cancelled';
               return (
                 <li key={order.id} className="flex flex-wrap items-center justify-between gap-4 py-5">
                   <div className="min-w-0">
-                    <Link href={`/order/${order.orderNumber}`} className="numeric font-medium text-bone transition-colors hover:text-white">
+                    <Link href={`/order/${order.orderNumber}`} className="numeric font-medium text-content transition-colors hover:text-crimson">
                       {order.orderNumber}
                     </Link>
-                    <p className="mt-1 text-sm text-steel">
+                    <p className="mt-1 text-sm text-muted">
                       {order.lines.length} {order.lines.length === 1 ? 'item' : 'items'} · {formatDate(order.createdAt)}
                     </p>
                   </div>
@@ -79,11 +79,11 @@ export default function AccountPage() {
                     <Badge tone={order.status === 'delivered' ? 'success' : order.status === 'cancelled' ? 'warning' : 'neutral'}>
                       {ORDER_STATUS_LABELS[order.status]}
                     </Badge>
-                    <span className="numeric text-bone">{formatINR(order.grandTotal)}</span>
+                    <span className="numeric text-content">{formatINR(order.grandTotal)}</span>
                     {invoiceAvailable && (
                       <a
                         href={`${API_URL}/api/account/orders/${order.orderNumber}/invoice`}
-                        className="text-sm text-steel underline-offset-4 transition-colors hover:text-bone hover:underline"
+                        className="text-sm text-muted underline-offset-4 transition-colors hover:text-content hover:underline"
                       >
                         Invoice
                       </a>

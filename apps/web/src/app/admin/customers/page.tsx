@@ -36,24 +36,24 @@ export default function AdminCustomersPage() {
         }
       />
 
-      {error && <p role="alert" className="mb-4 text-sm text-crimson-bright">{error}</p>}
+      {error && <p role="alert" className="mb-4 text-sm text-crimson">{error}</p>}
       {loading ? (
-        <div className="grid h-48 place-items-center"><Spinner className="text-steel" /></div>
+        <div className="grid h-48 place-items-center"><Spinner className="text-muted" /></div>
       ) : !data || data.items.length === 0 ? (
-        <p className="text-sm text-steel">No customers match that.</p>
+        <p className="text-sm text-muted">No customers match that.</p>
       ) : (
         <Table head={['Customer', 'Orders', 'Lifetime value', 'Joined', 'Last seen', '']}>
           {data.items.map((customer) => (
             <tr key={customer.id}>
               <td className="px-4 py-3">
-                <span className="block text-bone">{customer.fullName ?? 'Unnamed'}</span>
-                <span className="numeric text-xs text-steel-dim">{customer.phone ?? customer.email}</span>
+                <span className="block text-content">{customer.fullName ?? 'Unnamed'}</span>
+                <span className="numeric text-xs text-faint">{customer.phone ?? customer.email}</span>
                 {customer.isBlocked && <Badge tone="warning" className="ml-2">Blocked</Badge>}
               </td>
-              <td className="numeric px-4 py-3 text-steel">{customer.orderCount}</td>
-              <td className="numeric px-4 py-3 text-bone">{formatINR(customer.lifetimeValue)}</td>
-              <td className="px-4 py-3 text-xs text-steel-dim">{formatDate(customer.createdAt)}</td>
-              <td className="px-4 py-3 text-xs text-steel-dim">
+              <td className="numeric px-4 py-3 text-muted">{customer.orderCount}</td>
+              <td className="numeric px-4 py-3 text-content">{formatINR(customer.lifetimeValue)}</td>
+              <td className="px-4 py-3 text-xs text-faint">{formatDate(customer.createdAt)}</td>
+              <td className="px-4 py-3 text-xs text-faint">
                 {customer.lastLoginAt ? formatDate(customer.lastLoginAt) : '—'}
               </td>
               <td className="px-4 py-3">
@@ -61,7 +61,7 @@ export default function AdminCustomersPage() {
                   type="button"
                   disabled={busy}
                   onClick={() => void mutate('PATCH', `/api/admin/customers/${customer.id}/block`, { isBlocked: !customer.isBlocked })}
-                  className="text-xs text-steel transition-colors hover:text-crimson-bright"
+                  className="text-xs text-muted transition-colors hover:text-crimson"
                 >
                   {customer.isBlocked ? 'Unblock' : 'Block'}
                 </button>

@@ -54,7 +54,7 @@ export function FilterBar({ total }: { total: number }) {
 
   return (
     <div className={cn('rule flex flex-wrap items-center gap-3 py-5 transition-opacity', pending && 'opacity-50')}>
-      <p className="numeric mr-auto text-sm text-steel">
+      <p className="numeric mr-auto text-sm text-muted">
         {total} {total === 1 ? 'table' : 'tables'}
       </p>
 
@@ -72,7 +72,7 @@ export function FilterBar({ total }: { total: number }) {
               })}
               className={cn(
                 'rounded-full border px-3.5 py-1.5 text-xs transition-colors duration-300',
-                active ? 'border-bone bg-bone text-ink' : 'border-ink-line text-steel hover:border-steel',
+                active ? 'border-line-strong bg-surface text-content' : 'border-line text-muted hover:border-muted',
               )}
             >
               {band.label}
@@ -86,7 +86,7 @@ export function FilterBar({ total }: { total: number }) {
           onClick={() => setParams({ inStock: inStockOnly ? undefined : 'true' })}
           className={cn(
             'rounded-full border px-3.5 py-1.5 text-xs transition-colors duration-300',
-            inStockOnly ? 'border-bone bg-bone text-ink' : 'border-ink-line text-steel hover:border-steel',
+            inStockOnly ? 'border-line-strong bg-surface text-content' : 'border-line text-muted hover:border-muted',
           )}
         >
           In stock
@@ -96,7 +96,7 @@ export function FilterBar({ total }: { total: number }) {
           <button
             type="button"
             onClick={() => setParams({ minPrice: undefined, maxPrice: undefined, inStock: undefined })}
-            className="rounded-full px-3.5 py-1.5 text-xs text-crimson-bright transition-colors hover:text-crimson"
+            className="rounded-full px-3.5 py-1.5 text-xs text-crimson transition-colors hover:text-crimson"
           >
             Clear
           </button>
@@ -108,7 +108,7 @@ export function FilterBar({ total }: { total: number }) {
         <select
           value={activeSort}
           onChange={(event) => setParams({ sort: event.target.value })}
-          className="h-9 rounded-full border border-ink-line bg-ink px-3.5 text-xs text-bone outline-none focus:border-bone"
+          className="h-9 rounded-full border border-line bg-canvas px-3.5 text-xs text-content outline-none focus:border-line-strong"
         >
           {SORTS.map((sort) => (
             <option key={sort.value} value={sort.value}>{sort.label}</option>

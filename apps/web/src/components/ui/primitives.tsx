@@ -16,7 +16,7 @@ export function SectionNumber({ value, className }: { value: string; className?:
     <span
       aria-hidden="true"
       className={cn(
-        'font-display text-ink-line select-none leading-none',
+        'font-display text-line select-none leading-none',
         'text-[clamp(4rem,12vw,11rem)] font-semibold tracking-[-0.06em]',
         className,
       )}
@@ -30,8 +30,8 @@ export function Badge({
   children, tone = 'neutral', className,
 }: { children: ReactNode; tone?: 'neutral' | 'accent' | 'success' | 'warning'; className?: string }) {
   const tones = {
-    neutral: 'border-ink-line text-steel',
-    accent: 'border-crimson text-crimson-bright',
+    neutral: 'border-line text-muted',
+    accent: 'border-crimson text-crimson',
     success: 'border-success/40 text-success',
     warning: 'border-warning/40 text-warning',
   };
@@ -60,8 +60,8 @@ export function UnderlineLink({
   href, children, className, external,
 }: { href: string; children: ReactNode; className?: string; external?: boolean }) {
   const classes = cn(
-    'group relative inline-flex items-center gap-1.5 text-sm text-bone',
-    'transition-colors hover:text-white', className,
+    'group relative inline-flex items-center gap-1.5 text-sm text-content',
+    'transition-colors hover:text-crimson', className,
   );
   const content = (
     <>
@@ -97,9 +97,9 @@ export function EmptyState({
   title, description, action,
 }: { title: string; description?: string; action?: ReactNode }) {
   return (
-    <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-ink-line px-6 py-16 text-center">
-      <h3 className="display-sm text-bone">{title}</h3>
-      {description && <p className="max-w-sm text-sm text-steel">{description}</p>}
+    <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-line px-6 py-16 text-center">
+      <h3 className="display-sm text-content">{title}</h3>
+      {description && <p className="max-w-sm text-sm text-muted">{description}</p>}
       {action}
     </div>
   );

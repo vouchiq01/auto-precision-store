@@ -5,7 +5,7 @@ import { Hero } from '@/components/home/hero';
 import { Marquee } from '@/components/home/marquee';
 import { CategoryRail } from '@/components/home/category-rail';
 import { WhatItDoes } from '@/components/home/what-it-does';
-import { HowEasy } from '@/components/home/how-easy';
+import { TableDemo } from '@/components/home/table-demo';
 import { FeaturedStory } from '@/components/home/featured-story';
 import { Bestsellers } from '@/components/home/bestsellers';
 import { Proof } from '@/components/home/proof';
@@ -41,8 +41,10 @@ export default async function HomePage() {
     <>
       <Hero banner={heroBanners[0] ?? null} totalProducts={totalProducts} />
       <Marquee />
+      {/* Show, then explain: the demo answers "what even is this and is it
+          hard?", WhatItDoes then backs it with the numbers. */}
+      <TableDemo />
       <WhatItDoes />
-      <HowEasy />
       <CategoryRail categories={categories} />
       {flagship && <FeaturedStory product={flagship} />}
       <Bestsellers products={featured.items} />

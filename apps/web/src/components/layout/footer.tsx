@@ -37,24 +37,24 @@ const COLUMNS = [
 
 export function Footer() {
   return (
-    <footer className="rule mt-32 bg-ink">
+    <footer className="on-ink mt-32">
       <div className="shell py-16 md:py-20">
         <div className="grid gap-12 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
-            <Link href="/" className="text-bone" aria-label="Auto Precision — home">
+            <Link href="/" className="text-on-ink" aria-label="Auto Precision — home">
               <Logo />
             </Link>
-            <p className="mt-5 max-w-xs text-sm leading-relaxed text-steel">
+            <p className="mt-5 max-w-xs text-sm leading-relaxed text-on-ink-muted">
               We build grooming tables in Bengaluru for people who stand at them all day.
             </p>
-            <div className="mt-6 space-y-1 text-sm text-steel">
+            <div className="mt-6 space-y-1 text-sm text-on-ink-muted">
               <p>
-                <a href={`mailto:${STORE.supportEmail}`} className="transition-colors hover:text-bone">
+                <a href={`mailto:${STORE.supportEmail}`} className="transition-colors hover:text-on-ink">
                   {STORE.supportEmail}
                 </a>
               </p>
               <p>
-                <a href={`tel:${STORE.supportPhone.replace(/\s/g, '')}`} className="transition-colors hover:text-bone">
+                <a href={`tel:${STORE.supportPhone.replace(/\s/g, '')}`} className="transition-colors hover:text-on-ink">
                   {STORE.supportPhone}
                 </a>
               </p>
@@ -67,7 +67,7 @@ export function Footer() {
               <ul className="space-y-3">
                 {column.links.map((link) => (
                   <li key={link.href}>
-                    <Link href={link.href} className="text-sm text-steel transition-colors hover:text-bone">
+                    <Link href={link.href} className="text-sm text-on-ink-muted transition-colors hover:text-on-ink">
                       {link.label}
                     </Link>
                   </li>
@@ -77,7 +77,7 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="rule mt-14 flex flex-col gap-3 pt-7 text-xs text-steel-dim sm:flex-row sm:items-center sm:justify-between">
+        <div className="rule mt-14 flex flex-col gap-3 pt-7 text-xs text-on-ink-muted sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} {STORE.legalName}. All prices in ₹ and inclusive of GST.</p>
           <p>Made in Bengaluru · GST registered in {STORE.sellerState}</p>
         </div>

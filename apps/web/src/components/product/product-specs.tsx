@@ -35,7 +35,7 @@ export function ProductSpecs({ product }: { product: ProductDetail }) {
       <div className="flex items-end justify-between gap-8">
         <div>
           <Eyebrow>Specification</Eyebrow>
-          <h2 className="display-md mt-4 text-bone">Every number we have.</h2>
+          <h2 className="display-md mt-4 text-content">Every number we have.</h2>
         </div>
         <SectionNumber value="02" className="hidden md:block" />
       </div>
@@ -44,11 +44,11 @@ export function ProductSpecs({ product }: { product: ProductDetail }) {
         {dimensions.length > 0 && (
           <Reveal>
             <h3 className="eyebrow mb-4 text-crimson!">Dimensions</h3>
-            <dl className="divide-y divide-ink-line border-t border-ink-line">
+            <dl className="divide-y divide-line border-t border-line">
               {dimensions.map(([label, value]) => (
                 <div key={label} className="flex items-baseline justify-between gap-6 py-3">
-                  <dt className="text-sm text-steel">{label}</dt>
-                  <dd className="numeric text-sm text-bone">{value}</dd>
+                  <dt className="text-sm text-muted">{label}</dt>
+                  <dd className="numeric text-sm text-content">{value}</dd>
                 </div>
               ))}
             </dl>
@@ -58,11 +58,11 @@ export function ProductSpecs({ product }: { product: ProductDetail }) {
         {groups.map(([group, specs]) => (
           <Reveal key={group}>
             <h3 className="eyebrow mb-4 text-crimson!">{group}</h3>
-            <dl className="divide-y divide-ink-line border-t border-ink-line">
+            <dl className="divide-y divide-line border-t border-line">
               {specs.map((spec) => (
                 <div key={spec.id} className="flex items-baseline justify-between gap-6 py-3">
-                  <dt className="text-sm text-steel">{spec.label}</dt>
-                  <dd className="numeric text-right text-sm text-bone">{spec.value}</dd>
+                  <dt className="text-sm text-muted">{spec.label}</dt>
+                  <dd className="numeric text-right text-sm text-content">{spec.value}</dd>
                 </div>
               ))}
             </dl>

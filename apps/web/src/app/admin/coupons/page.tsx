@@ -127,23 +127,23 @@ export default function AdminCouponsPage() {
         </Card>
       )}
 
-      {error && <p role="alert" className="mb-4 text-sm text-crimson-bright">{error}</p>}
+      {error && <p role="alert" className="mb-4 text-sm text-crimson">{error}</p>}
       {loading ? (
-        <div className="grid h-48 place-items-center"><Spinner className="text-steel" /></div>
+        <div className="grid h-48 place-items-center"><Spinner className="text-muted" /></div>
       ) : (
         <Table head={['Code', 'Discount', 'Minimum', 'Used', 'Expires', 'Status', '']}>
           {data?.items.map((coupon) => (
             <tr key={coupon.id}>
-              <td className="numeric px-4 py-3 font-medium text-bone">{coupon.code}</td>
-              <td className="px-4 py-3 text-steel">
+              <td className="numeric px-4 py-3 font-medium text-content">{coupon.code}</td>
+              <td className="px-4 py-3 text-muted">
                 {describe(coupon)}
-                {coupon.maxDiscount && <span className="block text-xs text-steel-dim">max {formatINR(coupon.maxDiscount)}</span>}
+                {coupon.maxDiscount && <span className="block text-xs text-faint">max {formatINR(coupon.maxDiscount)}</span>}
               </td>
-              <td className="numeric px-4 py-3 text-steel">{coupon.minOrderValue ? formatINR(coupon.minOrderValue) : '—'}</td>
-              <td className="numeric px-4 py-3 text-steel">
+              <td className="numeric px-4 py-3 text-muted">{coupon.minOrderValue ? formatINR(coupon.minOrderValue) : '—'}</td>
+              <td className="numeric px-4 py-3 text-muted">
                 {coupon.timesUsed}{coupon.usageLimitTotal ? ` / ${coupon.usageLimitTotal}` : ''}
               </td>
-              <td className="px-4 py-3 text-xs text-steel-dim">{coupon.endsAt ? formatDate(coupon.endsAt) : 'No expiry'}</td>
+              <td className="px-4 py-3 text-xs text-faint">{coupon.endsAt ? formatDate(coupon.endsAt) : 'No expiry'}</td>
               <td className="px-4 py-3">
                 <Badge tone={coupon.isActive ? 'success' : 'neutral'}>{coupon.isActive ? 'Active' : 'Inactive'}</Badge>
               </td>
@@ -153,7 +153,7 @@ export default function AdminCouponsPage() {
                     type="button"
                     disabled={busy}
                     onClick={() => void mutate('DELETE', `/api/admin/coupons/${coupon.id}`)}
-                    className="text-xs text-steel transition-colors hover:text-crimson-bright"
+                    className="text-xs text-muted transition-colors hover:text-crimson"
                   >
                     Deactivate
                   </button>

@@ -41,12 +41,12 @@ export function StockNotify({ variantId }: { variantId: string }) {
         inputMode="numeric"
         placeholder="Your mobile number"
         aria-label="Mobile number for back-in-stock alert"
-        className="numeric h-11 min-w-0 flex-1 rounded-full border border-ink-line bg-ink px-4 text-sm text-bone outline-none focus:border-bone placeholder:text-steel-dim"
+        className="numeric h-11 min-w-0 flex-1 rounded-full border border-line bg-canvas px-4 text-sm text-content outline-none focus:border-line-strong placeholder:text-faint"
       />
       <Button type="submit" variant="secondary" loading={busy} disabled={!phone.trim()}>
         Notify me
       </Button>
-      {error && <p role="alert" className="text-sm text-crimson-bright">{error}</p>}
+      {error && <p role="alert" className="text-sm text-crimson">{error}</p>}
     </form>
   );
 }

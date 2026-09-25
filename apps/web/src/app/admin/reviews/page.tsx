@@ -24,24 +24,24 @@ export default function AdminReviewsPage() {
     <>
       <PageHeading title="Reviews" description="Pending moderation" />
 
-      {error && <p role="alert" className="mb-4 text-sm text-crimson-bright">{error}</p>}
+      {error && <p role="alert" className="mb-4 text-sm text-crimson">{error}</p>}
       {loading ? (
-        <div className="grid h-48 place-items-center"><Spinner className="text-steel" /></div>
+        <div className="grid h-48 place-items-center"><Spinner className="text-muted" /></div>
       ) : !data || data.items.length === 0 ? (
-        <p className="text-sm text-steel">Nothing waiting for moderation.</p>
+        <p className="text-sm text-muted">Nothing waiting for moderation.</p>
       ) : (
         <ul className="space-y-4">
           {data.items.map(({ review, productName }) => (
-            <li key={review.id} className="rounded-2xl border border-ink-line bg-ink-raised p-5">
+            <li key={review.id} className="rounded-2xl border border-line bg-surface p-5">
               <div className="flex flex-wrap items-center gap-3">
-                <span className="text-crimson">{'★'.repeat(review.rating)}<span className="text-ink-line">{'★'.repeat(5 - review.rating)}</span></span>
+                <span className="text-crimson">{'★'.repeat(review.rating)}<span className="text-line">{'★'.repeat(5 - review.rating)}</span></span>
                 {review.isVerifiedPurchase && <Badge tone="success">Verified purchase</Badge>}
-                <span className="text-xs text-steel-dim">{productName}</span>
+                <span className="text-xs text-faint">{productName}</span>
               </div>
 
-              <h3 className="mt-3 font-medium text-bone">{review.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-steel">{review.body}</p>
-              <p className="mt-3 text-xs text-steel-dim">{review.authorName} · {formatDate(review.createdAt)}</p>
+              <h3 className="mt-3 font-medium text-content">{review.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted">{review.body}</p>
+              <p className="mt-3 text-xs text-faint">{review.authorName} · {formatDate(review.createdAt)}</p>
 
               <div className="mt-4 flex gap-2">
                 <Button size="sm" loading={busy} onClick={() => void mutate('PATCH', `/api/admin/reviews/${review.id}`, { status: 'approved' })}>

@@ -1,7 +1,7 @@
 export const STORE = {
   name: 'Auto Precision',
   legalName: 'Auto Precision Store',
-  tagline: 'Engineered for the working groomer.',
+  tagline: 'Stop grooming on the floor.',
   sellerState: 'Karnataka',
   sellerStateCode: '29',
   supportEmail: 'support@autoprecision.store',

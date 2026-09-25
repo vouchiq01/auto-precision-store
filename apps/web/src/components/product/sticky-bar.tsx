@@ -33,7 +33,7 @@ export function StickyBar({ product }: { product: ProductDetail }) {
   return (
     <div
       className={cn(
-        'fixed inset-x-0 bottom-0 z-40 border-t border-ink-line bg-ink/90 backdrop-blur-xl',
+        'fixed inset-x-0 bottom-0 z-40 border-t border-line bg-canvas/92 backdrop-blur-xl',
         'transition-transform duration-500 ease-out-expo',
         visible ? 'translate-y-0' : 'translate-y-full',
       )}
@@ -41,8 +41,8 @@ export function StickyBar({ product }: { product: ProductDetail }) {
     >
       <div className="shell flex items-center justify-between gap-4 py-3">
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-bone">{product.name}</p>
-          <p className="numeric text-xs text-steel">
+          <p className="truncate text-sm font-medium text-content">{product.name}</p>
+          <p className="numeric text-xs text-muted">
             {formatINR(variant.price)}
             {product.emiTeaser && <span className="hidden sm:inline"> · from {product.emiTeaser}</span>}
           </p>

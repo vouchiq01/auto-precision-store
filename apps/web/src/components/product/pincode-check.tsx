@@ -39,7 +39,7 @@ export function PincodeCheck() {
   }
 
   return (
-    <div className="rounded-2xl border border-ink-line p-5">
+    <div className="rounded-2xl border border-line p-5">
       <p className="eyebrow mb-3">Delivery</p>
       <form onSubmit={check} className="flex gap-2">
         <input
@@ -48,7 +48,7 @@ export function PincodeCheck() {
           inputMode="numeric"
           placeholder="Enter pincode"
           aria-label="Delivery pincode"
-          className="numeric h-11 min-w-0 flex-1 rounded-full border border-ink-line bg-ink px-4 text-sm text-bone outline-none focus:border-bone placeholder:text-steel-dim"
+          className="numeric h-11 min-w-0 flex-1 rounded-full border border-line bg-canvas px-4 text-sm text-content outline-none focus:border-line-strong placeholder:text-faint"
         />
         <Button type="submit" variant="secondary" size="sm" loading={busy} disabled={pincode.length !== 6}>
           Check
@@ -60,7 +60,7 @@ export function PincodeCheck() {
           {result.message}
         </p>
       )}
-      {error && <p role="alert" className="mt-3 text-sm text-crimson-bright">{error}</p>}
+      {error && <p role="alert" className="mt-3 text-sm text-crimson">{error}</p>}
     </div>
   );
 }

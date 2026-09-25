@@ -118,17 +118,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       {faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />}
 
       <div className="shell pt-28 md:pt-36">
-        <nav aria-label="Breadcrumb" className="mb-8 text-xs text-steel-dim">
+        <nav aria-label="Breadcrumb" className="mb-8 text-xs text-faint">
           <ol className="flex flex-wrap items-center gap-2">
-            <li><a href="/" className="transition-colors hover:text-bone">Home</a></li>
+            <li><a href="/" className="transition-colors hover:text-content">Home</a></li>
             <li aria-hidden="true">/</li>
             <li>
-              <a href={`/collections/${product.category.slug}`} className="transition-colors hover:text-bone">
+              <a href={`/collections/${product.category.slug}`} className="transition-colors hover:text-content">
                 {product.category.name}
               </a>
             </li>
             <li aria-hidden="true">/</li>
-            <li className="text-steel">{product.name}</li>
+            <li className="text-muted">{product.name}</li>
           </ol>
         </nav>
 
@@ -147,7 +147,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <Eyebrow>In detail</Eyebrow>
             <div className="mt-5 space-y-5">
               {product.description.split('\n\n').map((paragraph, i) => (
-                <p key={i} className="text-lg leading-relaxed text-steel">{paragraph}</p>
+                <p key={i} className="text-lg leading-relaxed text-muted">{paragraph}</p>
               ))}
             </div>
           </Reveal>
@@ -162,7 +162,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       {product.related.length > 0 && (
         <section className="shell rule py-20 md:py-28">
           <Eyebrow>Also consider</Eyebrow>
-          <h2 className="display-md mt-4 text-bone">Others in {product.category.name.toLowerCase()}.</h2>
+          <h2 className="display-md mt-4 text-content">Others in {product.category.name.toLowerCase()}.</h2>
           <Reveal stagger={0.08} className="mt-12 grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
             {product.related.map((related, i) => (
               <ProductCard key={related.id} product={related} index={i} />

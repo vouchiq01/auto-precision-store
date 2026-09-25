@@ -108,6 +108,67 @@ thing he can do.
 
 ---
 
+## The palette
+
+The site was near-black until it wasn't. He rejected it twice — first the hero,
+then the whole thing — and he was right on the merits: dark-luxury suits a small
+glowing gadget, not a large piece of equipment bought on trust, and not the long
+spec tables that actually close the sale. Light is also far kinder to a small
+catalogue; eighteen products in a dark grid read as empty rather than spare.
+
+So: **warm paper canvas, ink reserved for exactly two bands** — the flagship
+story and the footer. Two dark moments in a light page read as deliberate. Do
+not add a third without a reason.
+
+Semantic token names, all defined in `apps/web/src/app/globals.css`:
+
+| Token | Use |
+|---|---|
+| `canvas` / `surface` / `sand` | page, cards, warm panels |
+| `content` / `muted` / `faint` | text, in descending emphasis |
+| `line` / `line-strong` | hairlines, borders |
+| `ink` / `ink-raised` / `on-ink` / `on-ink-muted` | the dark bands only |
+| `crimson` / `crimson-deep` / `crimson-tint` | the single accent |
+
+Two things to keep straight:
+
+- **Hover deepens, it does not brighten.** On the old dark canvas hover went
+  lighter. On paper a lighter red reads as disabled. `hover:text-white` is
+  hover-to-invisible — it is gone from the codebase; do not reintroduce it.
+- **A dark section needs `.on-ink` AND swapped utilities.** The scope only
+  recolours the shared `.eyebrow` / `.lede` classes, which carry their colour in
+  CSS. Anything coloured by a utility has to be swapped in the markup too.
+
+`faint` at #7A6F63 is exactly 4.5:1 on canvas — it is the floor for the 11px
+eyebrow caps, so do not lighten it.
+
+## The homepage sequence
+
+`table-demo.tsx` is a scroll-driven sequence: the dog from the hero walks onto a
+round table, the table lifts, the deck turns, the arm comes in. It replaced a
+three-step text block, because the real objection is not "how many steps" — it
+is that someone who has never used a grooming table cannot picture one working,
+and no specification fixes that.
+
+- The dog is drawn (`components/art/dog.tsx`), in two complete poses that
+  cross-fade rather than a rig that can interpolate through a pose no real dog
+  passes through. `DogFigure` is the bare `<g>` for composing into a scene.
+- The dog and the table share ONE svg viewBox on purpose. The deck rises 124
+  units and the dog rises exactly 124 with it; separately-positioned HTML would
+  not stay honest about that.
+- Pinning is CSS `position: sticky`, never ScrollTrigger's `pin` — a GSAP pin
+  here previously tore the section out of flow and overlapped the next one.
+- Static placement goes on INNER groups as svg `transform` attributes. GSAP
+  writes SVG transforms to the attribute and will overwrite anything already
+  sitting on an element it animates.
+
+## Claims must match the data
+
+The marquee said "36-month frame warranty". Two of the eighteen products have
+36 months; ten have 24 and four have 12. It now states the real range. Before
+putting a number on the homepage, check it against `products.data.ts` — a flat
+claim that is true of two SKUs is a misleading one.
+
 ## Rules that must not be broken
 
 **Money is integer paise. Never floats.** `formatINR` is the only thing that
@@ -137,8 +198,10 @@ release it after 45 minutes.
   blocks. Never call `getDb()` inside a `db.transaction()` — it checks out a
   second connection, reads outside the transaction's snapshot, and deadlocks.
 - **Tailwind v4 dropped `[--var]`.** `bg-[--color-crimson]` compiles to invalid
-  CSS and is silently dropped. Use the named tokens from `@theme`: `bg-crimson`,
-  `text-bone`, `border-ink-line`. Important modifier is trailing: `text-crimson!`.
+  CSS and is silently dropped. Use the named tokens from `@theme` (below).
+  The important modifier is trailing: `text-crimson!`.
+- **Tailwind v4 also dropped the default `cursor: pointer` on `<button>`.**
+  It is restored once in the Button base; anything hand-rolled needs it.
 - **Drizzle renders `${table.col}` unqualified.** Inside a correlated subquery it
   binds to the *inner* table and the predicate silently never matches — six
   queries returned 0 before this was found. Always alias the inner table and
@@ -147,9 +210,11 @@ release it after 45 minutes.
   `apps/api/src/lib/rows.ts`.
 - **Next caches optimised images by path.** Replacing a file in place serves the
   stale one — `rm -rf apps/web/.next` after swapping imagery.
-- **Screenshots of the hero can come back black.** `will-change: transform` puts
-  it on its own compositing layer that the browser pane does not always capture.
-  Scroll a pixel to force a repaint. The page is fine; do not chase it.
+- **The browser pane does not composite everything.** `will-change: transform`
+  layers can screenshot black, and `backdrop-filter` (the sticky header's
+  background) often does not appear at all. Both have already been chased once.
+  Verify with `javascript_tool` — read the computed style — before believing a
+  screenshot that shows missing chrome.
 
 ---
 

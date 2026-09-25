@@ -38,8 +38,8 @@ export function BuyBox({ product }: { product: ProductDetail }) {
     <div className="space-y-7">
       <div>
         <Eyebrow>{product.category.name}</Eyebrow>
-        <h1 className="display-md mt-3 text-bone">{product.name}</h1>
-        {product.tagline && <p className="mt-3 text-lg text-steel">{product.tagline}</p>}
+        <h1 className="display-md mt-3 text-content">{product.name}</h1>
+        {product.tagline && <p className="mt-3 text-lg text-muted">{product.tagline}</p>}
 
         {product.badges.length > 0 && (
           <div className="mt-4 flex flex-wrap gap-2">
@@ -48,24 +48,24 @@ export function BuyBox({ product }: { product: ProductDetail }) {
         )}
       </div>
 
-      {product.summary && <p className="leading-relaxed text-steel">{product.summary}</p>}
+      {product.summary && <p className="leading-relaxed text-muted">{product.summary}</p>}
 
       {/* Price */}
       <div className="rule pt-6">
         <div className="flex flex-wrap items-baseline gap-3">
-          <span className="numeric font-display text-4xl font-semibold tracking-[-0.03em] text-bone">
+          <span className="numeric font-display text-4xl font-semibold tracking-[-0.03em] text-content">
             {formatINR(price)}
           </span>
           {compareAt && compareAt > price && (
             <>
-              <span className="numeric text-lg text-steel-dim line-through">{formatINR(compareAt)}</span>
+              <span className="numeric text-lg text-faint line-through">{formatINR(compareAt)}</span>
               <span className="numeric rounded-full bg-crimson px-2.5 py-1 text-xs font-medium text-white">
                 Save {formatINR(compareAt - price)}
               </span>
             </>
           )}
         </div>
-        <p className="mt-1.5 text-xs text-steel-dim">
+        <p className="mt-1.5 text-xs text-faint">
           Inclusive of {product.taxRateBps / 100}% GST · HSN {product.hsnCode}
         </p>
 
@@ -75,33 +75,33 @@ export function BuyBox({ product }: { product: ProductDetail }) {
               type="button"
               onClick={() => setShowEmi((v) => !v)}
               aria-expanded={showEmi}
-              className="numeric text-sm text-bone underline decoration-steel-dim underline-offset-4 transition-colors hover:decoration-bone"
+              className="numeric text-sm text-content underline decoration-faint underline-offset-4 transition-colors hover:decoration-bone"
             >
               or from {formatINR(Math.min(...plans.map((p) => p.monthlyAmount)))}/mo on EMI
             </button>
 
             {showEmi && (
-              <div className="mt-3 overflow-hidden rounded-xl border border-ink-line">
+              <div className="mt-3 overflow-hidden rounded-xl border border-line">
                 <table className="w-full text-sm">
                   <caption className="sr-only">EMI options for {product.name}</caption>
                   <thead>
-                    <tr className="border-b border-ink-line text-left text-xs text-steel-dim">
+                    <tr className="border-b border-line text-left text-xs text-faint">
                       <th scope="col" className="px-4 py-2.5 font-normal">Tenure</th>
                       <th scope="col" className="px-4 py-2.5 text-right font-normal">Per month</th>
                       <th scope="col" className="px-4 py-2.5 text-right font-normal">Total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-ink-line">
+                  <tbody className="divide-y divide-line">
                     {plans.map((plan) => (
                       <tr key={plan.months}>
-                        <td className="numeric px-4 py-2.5 text-steel">{plan.months} months</td>
-                        <td className="numeric px-4 py-2.5 text-right text-bone">{formatINR(plan.monthlyAmount)}</td>
-                        <td className="numeric px-4 py-2.5 text-right text-steel">{formatINR(plan.totalPayable)}</td>
+                        <td className="numeric px-4 py-2.5 text-muted">{plan.months} months</td>
+                        <td className="numeric px-4 py-2.5 text-right text-content">{formatINR(plan.monthlyAmount)}</td>
+                        <td className="numeric px-4 py-2.5 text-right text-muted">{formatINR(plan.totalPayable)}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-                <p className="border-t border-ink-line px-4 py-2.5 text-xs text-steel-dim">
+                <p className="border-t border-line px-4 py-2.5 text-xs text-faint">
                   Indicative only. Your bank sets the final rate and eligibility at checkout.
                 </p>
               </div>
@@ -129,8 +129,8 @@ export function BuyBox({ product }: { product: ProductDetail }) {
                   className={cn(
                     'flex items-center gap-2 rounded-full border px-4 py-2.5 text-sm transition-all duration-300',
                     selected
-                      ? 'border-bone bg-bone text-ink'
-                      : 'border-ink-line text-steel hover:border-steel',
+                      ? 'border-line-strong bg-surface text-content'
+                      : 'border-line text-muted hover:border-muted',
                     !option.inStock && 'cursor-not-allowed opacity-40 line-through',
                   )}
                 >
@@ -188,7 +188,7 @@ export function BuyBox({ product }: { product: ProductDetail }) {
       <PincodeCheck />
 
       {/* Reassurance */}
-      <ul className="rule grid gap-3 pt-6 text-sm text-steel">
+      <ul className="rule grid gap-3 pt-6 text-sm text-muted">
         <li className="flex gap-3">
           <span aria-hidden="true" className="text-crimson">—</span>
           {product.warrantyMonths} month frame warranty, 12 months on electrical parts

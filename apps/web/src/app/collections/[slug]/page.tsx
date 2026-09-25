@@ -55,21 +55,21 @@ export default async function CollectionPage({ params, searchParams }: PageProps
 
   return (
     <div className="shell pt-28 md:pt-36">
-      <nav aria-label="Breadcrumb" className="mb-8 text-xs text-steel-dim">
+      <nav aria-label="Breadcrumb" className="mb-8 text-xs text-faint">
         <ol className="flex items-center gap-2">
-          <li><a href="/" className="transition-colors hover:text-bone">Home</a></li>
+          <li><a href="/" className="transition-colors hover:text-content">Home</a></li>
           <li aria-hidden="true">/</li>
-          <li className="text-steel">{category.name}</li>
+          <li className="text-muted">{category.name}</li>
         </ol>
       </nav>
 
       <header className="max-w-3xl">
         <Eyebrow>Collection</Eyebrow>
-        <h1 className="display-lg mt-4 text-bone">{category.name}<span className="text-crimson">.</span></h1>
+        <h1 className="display-lg mt-4 text-content">{category.name}<span className="text-crimson">.</span></h1>
         {category.description && <p className="lede mt-6">{category.description}</p>}
       </header>
 
-      <Suspense fallback={<div className="rule py-5 text-sm text-steel">Loading filters…</div>}>
+      <Suspense fallback={<div className="rule py-5 text-sm text-muted">Loading filters…</div>}>
         <FilterBar total={result.total} />
       </Suspense>
 

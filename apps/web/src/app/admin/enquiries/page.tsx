@@ -25,26 +25,26 @@ export default function AdminEnquiriesPage() {
     <>
       <PageHeading title="Enquiries" description="Bulk and dealer leads" />
 
-      {error && <p role="alert" className="mb-4 text-sm text-crimson-bright">{error}</p>}
+      {error && <p role="alert" className="mb-4 text-sm text-crimson">{error}</p>}
       {loading ? (
-        <div className="grid h-48 place-items-center"><Spinner className="text-steel" /></div>
+        <div className="grid h-48 place-items-center"><Spinner className="text-muted" /></div>
       ) : !data || data.items.length === 0 ? (
-        <p className="text-sm text-steel">No enquiries yet.</p>
+        <p className="text-sm text-muted">No enquiries yet.</p>
       ) : (
         <Table head={['Contact', 'Business', 'Qty', 'Message', 'Status', 'Received']}>
           {data.items.map(({ enquiry }) => (
             <tr key={enquiry.id}>
               <td className="px-4 py-3">
-                <span className="block text-bone">{enquiry.name}</span>
-                <a href={`tel:${enquiry.phone}`} className="numeric text-xs text-steel hover:text-bone">{enquiry.phone}</a>
-                {enquiry.email && <span className="block text-xs text-steel-dim">{enquiry.email}</span>}
+                <span className="block text-content">{enquiry.name}</span>
+                <a href={`tel:${enquiry.phone}`} className="numeric text-xs text-muted hover:text-content">{enquiry.phone}</a>
+                {enquiry.email && <span className="block text-xs text-faint">{enquiry.email}</span>}
               </td>
-              <td className="px-4 py-3 text-steel">
+              <td className="px-4 py-3 text-muted">
                 {enquiry.businessName ?? '—'}
-                {enquiry.city && <span className="block text-xs text-steel-dim">{enquiry.city}</span>}
+                {enquiry.city && <span className="block text-xs text-faint">{enquiry.city}</span>}
               </td>
-              <td className="numeric px-4 py-3 text-steel">{enquiry.quantity ?? '—'}</td>
-              <td className="max-w-md px-4 py-3 text-xs leading-relaxed text-steel">{enquiry.message}</td>
+              <td className="numeric px-4 py-3 text-muted">{enquiry.quantity ?? '—'}</td>
+              <td className="max-w-md px-4 py-3 text-xs leading-relaxed text-muted">{enquiry.message}</td>
               <td className="px-4 py-3">
                 <select
                   value={enquiry.status}
@@ -55,7 +55,7 @@ export default function AdminEnquiriesPage() {
                   {STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
                 </select>
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-xs text-steel-dim">{formatDateTime(enquiry.createdAt)}</td>
+              <td className="whitespace-nowrap px-4 py-3 text-xs text-faint">{formatDateTime(enquiry.createdAt)}</td>
             </tr>
           ))}
         </Table>

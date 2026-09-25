@@ -41,9 +41,9 @@ export default function AdminInventoryPage() {
         </div>
       )}
 
-      {error && <p role="alert" className="mb-4 text-sm text-crimson-bright">{error}</p>}
+      {error && <p role="alert" className="mb-4 text-sm text-crimson">{error}</p>}
       {loading ? (
-        <div className="grid h-48 place-items-center"><Spinner className="text-steel" /></div>
+        <div className="grid h-48 place-items-center"><Spinner className="text-muted" /></div>
       ) : (
         <Table head={['Product', 'Variant', 'SKU', 'In stock', 'Waiting', 'Set to', '']}>
           {data?.items.map((row) => {
@@ -53,15 +53,15 @@ export default function AdminInventoryPage() {
 
             return (
               <tr key={row.variantId} className={out ? 'bg-crimson/5' : undefined}>
-                <td className="px-4 py-3 text-bone">{row.productName}</td>
-                <td className="px-4 py-3 text-steel">{row.optionLabel}</td>
-                <td className="numeric px-4 py-3 text-xs text-steel-dim">{row.sku}</td>
+                <td className="px-4 py-3 text-content">{row.productName}</td>
+                <td className="px-4 py-3 text-muted">{row.optionLabel}</td>
+                <td className="numeric px-4 py-3 text-xs text-faint">{row.sku}</td>
                 <td className="px-4 py-3">
-                  <span className="numeric mr-2 text-bone">{row.stockQty}</span>
+                  <span className="numeric mr-2 text-content">{row.stockQty}</span>
                   {out && <Badge tone="warning">Out</Badge>}
                   {low && <Badge tone="warning">Low</Badge>}
                 </td>
-                <td className="numeric px-4 py-3 text-steel">
+                <td className="numeric px-4 py-3 text-muted">
                   {row.waitlist > 0 ? `${row.waitlist} waiting` : '—'}
                 </td>
                 <td className="px-4 py-3">
@@ -71,7 +71,7 @@ export default function AdminInventoryPage() {
                     value={edits[row.variantId] ?? ''}
                     placeholder={String(row.stockQty)}
                     onChange={(e) => setEdits((prev) => ({ ...prev, [row.variantId]: e.target.value }))}
-                    className="numeric h-8 w-20 rounded-lg border border-ink-line bg-ink px-2 text-sm text-bone outline-none focus:border-bone"
+                    className="numeric h-8 w-20 rounded-lg border border-line bg-canvas px-2 text-sm text-content outline-none focus:border-line-strong"
                   />
                 </td>
                 <td className="px-4 py-3">

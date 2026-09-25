@@ -19,7 +19,7 @@ export function CategoryRail({ categories }: { categories: Category[] }) {
       <div className="flex items-end justify-between gap-8">
         <div>
           <Eyebrow>The range</Eyebrow>
-          <h2 className="display-md mt-4 max-w-xl text-bone">
+          <h2 className="display-md mt-4 max-w-xl text-content">
             Five ways to put a dog at working height.
           </h2>
         </div>
@@ -34,8 +34,8 @@ export function CategoryRail({ categories }: { categories: Category[] }) {
             key={category.id}
             href={`/collections/${category.slug}`}
             className={cn(
-              'group relative block overflow-hidden rounded-2xl border border-ink-line bg-ink-raised',
-              'transition-[border-color,flex-grow] duration-[700ms] ease-out-expo hover:border-steel-dim',
+              'group relative block overflow-hidden rounded-2xl border border-line bg-surface',
+              'transition-[border-color,flex-grow] duration-[700ms] ease-out-expo hover:border-faint',
               'lg:flex-1 lg:hover:grow-[1.8]',
             )}
           >
@@ -50,10 +50,10 @@ export function CategoryRail({ categories }: { categories: Category[] }) {
               <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
 
               <div className="absolute inset-x-0 bottom-0 p-5">
-                <h3 className="font-display text-lg font-medium leading-tight tracking-[-0.02em] text-bone">
+                <h3 className="font-display text-lg font-medium leading-tight tracking-[-0.02em] text-content">
                   {category.name}
                 </h3>
-                <p className="numeric mt-1 text-xs text-steel">
+                <p className="numeric mt-1 text-xs text-muted">
                   {category.productCount ?? 0} {category.productCount === 1 ? 'table' : 'tables'}
                 </p>
                 {/* Crimson rule that wipes in on hover — the only accent here */}

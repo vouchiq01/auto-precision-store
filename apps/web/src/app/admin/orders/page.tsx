@@ -43,11 +43,11 @@ export default function AdminOrdersPage() {
         }
       />
 
-      {error && <p role="alert" className="mb-4 text-sm text-crimson-bright">{error}</p>}
+      {error && <p role="alert" className="mb-4 text-sm text-crimson">{error}</p>}
       {loading ? (
-        <div className="grid h-48 place-items-center"><Spinner className="text-steel" /></div>
+        <div className="grid h-48 place-items-center"><Spinner className="text-muted" /></div>
       ) : !data || data.items.length === 0 ? (
-        <p className="text-sm text-steel">No orders yet.</p>
+        <p className="text-sm text-muted">No orders yet.</p>
       ) : (
         <Table head={['Order', 'Customer', 'Items', 'Total', 'Status', 'Change to', 'Date', '']}>
           {data.items.map(({ order, itemCount }) => {
@@ -58,13 +58,13 @@ export default function AdminOrdersPage() {
 
             return (
               <tr key={order.id}>
-                <td className="numeric whitespace-nowrap px-4 py-3 text-bone">{order.orderNumber}</td>
-                <td className="px-4 py-3 text-steel">
-                  <span className="block text-bone">{order.shippingAddress.fullName}</span>
-                  <span className="numeric text-xs text-steel-dim">{order.shippingAddress.phone}</span>
+                <td className="numeric whitespace-nowrap px-4 py-3 text-content">{order.orderNumber}</td>
+                <td className="px-4 py-3 text-muted">
+                  <span className="block text-content">{order.shippingAddress.fullName}</span>
+                  <span className="numeric text-xs text-faint">{order.shippingAddress.phone}</span>
                 </td>
-                <td className="numeric px-4 py-3 text-steel">{itemCount}</td>
-                <td className="numeric whitespace-nowrap px-4 py-3 text-bone">{formatINR(order.grandTotal)}</td>
+                <td className="numeric px-4 py-3 text-muted">{itemCount}</td>
+                <td className="numeric whitespace-nowrap px-4 py-3 text-content">{formatINR(order.grandTotal)}</td>
                 <td className="px-4 py-3">
                   <Badge tone={order.status === 'delivered' ? 'success' : order.status === 'cancelled' ? 'warning' : 'neutral'}>
                     {ORDER_STATUS_LABELS[order.status]}
@@ -72,13 +72,13 @@ export default function AdminOrdersPage() {
                 </td>
                 <td className="px-4 py-3">
                   {nextStates.length === 0 ? (
-                    <span className="text-xs text-steel-dim">Final</span>
+                    <span className="text-xs text-faint">Final</span>
                   ) : (
                     <select
                       value=""
                       disabled={busy}
                       onChange={(e) => { if (e.target.value) void changeStatus(order.id, e.target.value as OrderStatus); }}
-                      className="h-8 rounded-lg border border-ink-line bg-ink px-2 text-xs text-bone outline-none"
+                      className="h-8 rounded-lg border border-line bg-canvas px-2 text-xs text-content outline-none"
                     >
                       <option value="">—</option>
                       {nextStates.map((status) => (
@@ -87,12 +87,12 @@ export default function AdminOrdersPage() {
                     </select>
                   )}
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-xs text-steel-dim">{formatDate(order.createdAt)}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-xs text-faint">{formatDate(order.createdAt)}</td>
                 <td className="px-4 py-3">
                   {invoiceable && (
                     <a
                       href={`${API_URL}/api/admin/orders/${order.id}/invoice`}
-                      className="text-xs text-steel underline-offset-4 hover:text-bone hover:underline"
+                      className="text-xs text-muted underline-offset-4 hover:text-content hover:underline"
                     >
                       Invoice
                     </a>

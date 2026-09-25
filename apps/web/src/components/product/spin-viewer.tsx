@@ -123,7 +123,7 @@ export function SpinViewer({
         onKeyDown={onKeyDown}
         className={cn(
           'relative aspect-square touch-pan-y select-none overflow-hidden rounded-3xl',
-          'border border-ink-line bg-ink-raised',
+          'border border-line bg-surface',
           dragging ? 'cursor-grabbing' : 'cursor-grab',
         )}
       >
@@ -148,7 +148,7 @@ export function SpinViewer({
 
         {!ready && (
           <div className="absolute inset-0 grid place-items-center">
-            <span className="numeric text-xs text-steel-dim">
+            <span className="numeric text-xs text-faint">
               Loading 360° view… {Math.round((loaded / frames) * 100)}%
             </span>
           </div>
@@ -157,13 +157,13 @@ export function SpinViewer({
         {/* Drag affordance, retired once they have worked it out */}
         {ready && !hasInteracted && (
           <div className="pointer-events-none absolute inset-x-0 bottom-5 flex justify-center">
-            <span className="flex items-center gap-2 rounded-full border border-ink-line bg-ink/80 px-4 py-2 text-xs text-bone backdrop-blur">
+            <span className="flex items-center gap-2 rounded-full border border-line bg-surface/90 px-4 py-2 text-xs text-content backdrop-blur">
               <span aria-hidden="true">↔</span> Drag to rotate
             </span>
           </div>
         )}
 
-        <span className="pointer-events-none absolute left-5 top-5 rounded-full border border-ink-line bg-ink/80 px-3 py-1.5 text-[0.625rem] uppercase tracking-[0.14em] text-steel backdrop-blur">
+        <span className="pointer-events-none absolute left-5 top-5 rounded-full border border-line bg-surface/90 px-3 py-1.5 text-[0.625rem] uppercase tracking-[0.14em] text-muted backdrop-blur">
           {frames} views
         </span>
       </div>
@@ -177,9 +177,9 @@ export function SpinViewer({
           max={frames - 1}
           value={index}
           onChange={(event) => { setIndex(Number(event.target.value)); setHasInteracted(true); }}
-          className="h-1 w-full cursor-pointer appearance-none rounded-full bg-ink-line accent-[#CE2B2B]"
+          className="h-1 w-full cursor-pointer appearance-none rounded-full bg-line accent-[#CE2B2B]"
         />
-        <span className="numeric w-12 shrink-0 text-right text-xs text-steel-dim">
+        <span className="numeric w-12 shrink-0 text-right text-xs text-faint">
           {index + 1}/{frames}
         </span>
       </label>

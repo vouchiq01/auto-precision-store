@@ -48,13 +48,13 @@ export default function AdminPagesPage() {
     <>
       <PageHeading title="Pages" description="Policy and information pages" />
 
-      {error && <p role="alert" className="mb-4 text-sm text-crimson-bright">{error}</p>}
+      {error && <p role="alert" className="mb-4 text-sm text-crimson">{error}</p>}
       {loading ? (
-        <div className="grid h-48 place-items-center"><Spinner className="text-steel" /></div>
+        <div className="grid h-48 place-items-center"><Spinner className="text-muted" /></div>
       ) : editingSlug && editing ? (
         <Card>
           <form onSubmit={save} className="space-y-4">
-            <p className="numeric text-xs text-steel-dim">/pages/{editingSlug}</p>
+            <p className="numeric text-xs text-faint">/pages/{editingSlug}</p>
 
             <Field label="Title">
               <input required value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} className={inputClass} />
@@ -69,7 +69,7 @@ export default function AdminPagesPage() {
                 rows={18}
                 value={draft.body}
                 onChange={(e) => setDraft({ ...draft, body: e.target.value })}
-                className="w-full rounded-xl border border-ink-line bg-ink px-4 py-3 text-sm leading-relaxed text-bone outline-none focus:border-bone"
+                className="w-full rounded-xl border border-line bg-canvas px-4 py-3 text-sm leading-relaxed text-content outline-none focus:border-line-strong"
               />
             </Field>
 
@@ -82,7 +82,7 @@ export default function AdminPagesPage() {
               />
             </Field>
 
-            <label className="flex items-center gap-2 text-sm text-steel">
+            <label className="flex items-center gap-2 text-sm text-muted">
               <input
                 type="checkbox"
                 checked={draft.isPublished}
@@ -105,16 +105,16 @@ export default function AdminPagesPage() {
               <button
                 type="button"
                 onClick={() => setEditingSlug(page.slug)}
-                className="w-full rounded-2xl border border-ink-line bg-ink-raised p-5 text-left transition-colors hover:border-steel-dim"
+                className="w-full rounded-2xl border border-line bg-surface p-5 text-left transition-colors hover:border-faint"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <span className="font-medium text-bone">{page.title}</span>
+                  <span className="font-medium text-content">{page.title}</span>
                   <Badge tone={page.isPublished ? 'success' : 'neutral'}>
                     {page.isPublished ? 'Live' : 'Draft'}
                   </Badge>
                 </div>
-                <p className="numeric mt-1 text-xs text-steel-dim">/pages/{page.slug}</p>
-                <p className="mt-3 line-clamp-2 text-xs text-steel">{page.body.slice(0, 140)}…</p>
+                <p className="numeric mt-1 text-xs text-faint">/pages/{page.slug}</p>
+                <p className="mt-3 line-clamp-2 text-xs text-muted">{page.body.slice(0, 140)}…</p>
               </button>
             </li>
           ))}

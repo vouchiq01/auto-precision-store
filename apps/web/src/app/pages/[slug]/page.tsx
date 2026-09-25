@@ -32,10 +32,10 @@ function renderBody(body: string) {
   return body.split('\n\n').filter(Boolean).map((block, i) => {
     const parts = block.split(/(\*\*[^*]+\*\*)/g);
     return (
-      <p key={i} className="text-lg leading-relaxed text-steel">
+      <p key={i} className="text-lg leading-relaxed text-muted">
         {parts.map((part, j) =>
           part.startsWith('**') && part.endsWith('**')
-            ? <strong key={j} className="font-medium text-bone">{part.slice(2, -2)}</strong>
+            ? <strong key={j} className="font-medium text-content">{part.slice(2, -2)}</strong>
             : <span key={j}>{part}</span>,
         )}
       </p>
@@ -52,7 +52,7 @@ export default async function CmsPage({ params }: { params: Promise<{ slug: stri
     <article className="shell pt-28 md:pt-36">
       <div className="mx-auto max-w-3xl">
         <Eyebrow>Auto Precision</Eyebrow>
-        <h1 className="display-lg mt-4 text-bone">{page.title}<span className="text-crimson">.</span></h1>
+        <h1 className="display-lg mt-4 text-content">{page.title}<span className="text-crimson">.</span></h1>
         <div className="mt-10 space-y-6">{renderBody(page.body)}</div>
       </div>
     </article>

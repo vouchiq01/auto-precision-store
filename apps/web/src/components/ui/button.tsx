@@ -5,17 +5,20 @@ import { forwardRef, useRef, type ButtonHTMLAttributes, type ReactNode } from 'r
 import { cn } from '@/lib/cn';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'bone' | 'danger';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'contrast' | 'danger';
 type Size = 'sm' | 'md' | 'lg';
 
 const VARIANTS: Record<Variant, string> = {
   /* The crimson button is the page's single call to action. Everything else is
-     deliberately quieter so this one reads as the obvious next step. */
-  primary: 'bg-crimson text-white hover:bg-crimson-bright disabled:bg-crimson-deep',
-  secondary: 'bg-transparent text-bone border border-ink-line hover:border-bone hover:bg-white/[0.04]',
-  ghost: 'bg-transparent text-steel hover:text-bone',
-  bone: 'bg-bone text-ink hover:bg-white',
-  danger: 'bg-transparent text-crimson-bright border border-crimson-deep hover:bg-crimson/10',
+     deliberately quieter so this one reads as the obvious next step.
+
+     On the old dark canvas, hover meant "go brighter". On paper it means "go
+     deeper" — a lighter red on white reads as disabled, not as active. */
+  primary: 'bg-crimson text-white shadow-card hover:bg-crimson-deep disabled:bg-crimson-deep',
+  secondary: 'bg-surface text-content border border-line hover:border-line-strong hover:bg-sand',
+  ghost: 'bg-transparent text-muted hover:text-content',
+  contrast: 'bg-content text-canvas hover:bg-ink',
+  danger: 'bg-transparent text-crimson border border-crimson/40 hover:bg-crimson-tint',
 };
 
 const SIZES: Record<Size, string> = {
@@ -27,8 +30,13 @@ const SIZES: Record<Size, string> = {
 const BASE = cn(
   'relative inline-flex items-center justify-center gap-2 rounded-full',
   'font-medium tracking-[-0.01em] whitespace-nowrap select-none',
+  /* Tailwind v4 dropped the browser's default cursor on <button>, so without
+     this every button on the site silently lost its pointer. */
+  'cursor-pointer touch-manipulation',
   'transition-colors duration-300 ease-out-expo',
-  'disabled:opacity-50 disabled:cursor-not-allowed',
+  /* Press feedback. Touch has no hover to reward, so the tap needs to answer. */
+  'active:scale-[0.97] motion-reduce:active:scale-100',
+  'disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100',
   'focus-visible:outline-2 focus-visible:outline-offset-3',
 );
 

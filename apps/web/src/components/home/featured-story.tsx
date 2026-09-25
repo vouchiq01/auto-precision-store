@@ -73,11 +73,11 @@ export function FeaturedStory({ product }: { product: ProductDetail }) {
   }, [reduced]);
 
   return (
-    <section ref={sectionRef} className="relative bg-ink-raised py-24 md:py-32">
+    <section ref={sectionRef} className="on-ink relative py-24 md:py-32">
       <div className="shell">
         <div className="max-w-2xl">
           <Eyebrow>The flagship</Eyebrow>
-          <h2 className="display-lg mt-4 text-bone">
+          <h2 className="display-lg mt-4 text-on-ink">
             {product.name.replace(' Electric Grooming Table', '')}
             <span className="text-crimson">.</span>
           </h2>
@@ -87,7 +87,7 @@ export function FeaturedStory({ product }: { product: ProductDetail }) {
         <div className="mt-16 grid gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Sticky media column — stays put while the copy beside it advances */}
           <div data-story-media className="lg:sticky lg:top-[14vh] lg:h-fit lg:self-start">
-            <div className="relative aspect-square overflow-hidden rounded-3xl border border-ink-line bg-ink">
+            <div className="relative aspect-square overflow-hidden rounded-3xl border border-ink-line bg-ink-raised">
               <Image
                 src={product.images[0]?.url ?? '/banners/hero-apex.jpg'}
                 alt={product.name}
@@ -117,18 +117,18 @@ export function FeaturedStory({ product }: { product: ProductDetail }) {
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 {panel.eyebrow && <Eyebrow className="mt-3">{panel.eyebrow}</Eyebrow>}
-                <h3 className="display-sm mt-3 text-bone">{panel.title}</h3>
-                {panel.body && <p className="mt-4 max-w-md leading-relaxed text-steel">{panel.body}</p>}
+                <h3 className="display-sm mt-3 text-on-ink">{panel.title}</h3>
+                {panel.body && <p className="mt-4 max-w-md leading-relaxed text-on-ink-muted">{panel.body}</p>}
 
                 {panel.stats.length > 0 && (
                   <dl className="mt-7 grid grid-cols-2 gap-5 sm:grid-cols-4">
                     {panel.stats.map((stat) => (
                       <div key={stat.label}>
                         <dt className="sr-only">{stat.label}</dt>
-                        <dd className="numeric font-display text-2xl font-semibold text-bone">
+                        <dd className="numeric font-display text-2xl font-semibold text-on-ink">
                           {stat.value}
                         </dd>
-                        <p className="mt-1 text-[0.6875rem] uppercase tracking-[0.14em] text-steel-dim">
+                        <p className="mt-1 text-[0.6875rem] uppercase tracking-[0.14em] text-on-ink-muted">
                           {stat.label}
                         </p>
                       </div>
@@ -139,9 +139,9 @@ export function FeaturedStory({ product }: { product: ProductDetail }) {
             ))}
 
             <div>
-              <p className="numeric display-sm text-bone">{formatINR(product.price)}</p>
+              <p className="numeric display-sm text-on-ink">{formatINR(product.price)}</p>
               {product.emiTeaser && (
-                <p className="numeric mt-1 text-sm text-steel">or from {product.emiTeaser} on EMI</p>
+                <p className="numeric mt-1 text-sm text-on-ink-muted">or from {product.emiTeaser} on EMI</p>
               )}
               <div className="mt-7 flex flex-wrap gap-3">
                 <ButtonLink href={`/products/${product.slug}`} size="lg">

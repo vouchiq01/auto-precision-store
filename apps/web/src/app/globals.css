@@ -3,10 +3,17 @@
 /* ──────────────────────────────────────────────────────────────────────────
    Auto Precision — design tokens
 
-   Near-black canvas, warm bone for contrast sections, one crimson accent taken
-   from the logo. The discipline that makes this read as designed rather than
-   decorated: crimson marks ONE thing per screen. The moment it appears on every
-   button, badge and underline it stops meaning anything.
+   Warm paper canvas, ink reserved for two contrast bands, one crimson accent
+   taken from the logo.
+
+   This was a near-black site until it wasn't. Dark-luxury suits a small glowing
+   gadget; it suits neither a large piece of equipment bought on trust nor the
+   long spec tables that actually close the sale. Light also flatters a small
+   catalogue — eighteen products in a dark grid read as empty rather than spare.
+
+   The discipline that makes this read as designed rather than decorated:
+   crimson marks ONE thing per screen. The moment it appears on every button,
+   badge and underline it stops meaning anything.
    ────────────────────────────────────────────────────────────────────────── */
 
 @font-face {
@@ -41,34 +48,56 @@
 }
 
 @theme {
-  /* Surfaces */
-  --color-ink: #08080A;
-  --color-ink-raised: #101014;
-  --color-ink-panel: #17171C;
-  --color-ink-line: #26262E;
+  /* ---- Surfaces ---------------------------------------------------------
+     Warm paper, never clinical white. #FFF next to a photograph looks like a
+     spreadsheet; a warm off-white reads as considered and lets the crimson
+     stay the only saturated thing on the page. */
+  --color-canvas: #F7F4EF;
+  --color-surface: #FFFFFF;
+  --color-sand: #EFE8DC;
+  --color-sand-deep: #E5DACA;
+  --color-line: #E2DACD;
+  --color-line-strong: #CBBFAD;
 
-  /* Warm off-white, taken from the logo's paper */
-  --color-bone: #EFEBE7;
-  --color-bone-dim: #DCD6D0;
-  --color-bone-line: #C9C2BA;
+  /* ---- Content ----------------------------------------------------------
+     Warm near-black, not #000 — pure black on warm paper reads as a printing
+     error. Every step below is checked against --color-canvas for AA. */
+  --color-content: #1A1714;   /* 15.9:1 */
+  --color-muted: #6E6459;     /*  5.3:1 */
+  --color-faint: #7A6F63;     /*  4.5:1 — the floor for 11px eyebrow caps */
 
-  /* The single accent */
-  --color-crimson: #CE2B2B;
-  --color-crimson-bright: #E63E3E;
-  --color-crimson-deep: #9A1F1F;
+  /* ---- Ink --------------------------------------------------------------
+     Dark is now the exception, not the canvas: the flagship story and the
+     footer. Used sparingly it buys back the premium contrast the all-dark
+     site was spending everywhere and therefore getting nothing for. */
+  --color-ink: #14110E;
+  --color-ink-raised: #201B16;
+  --color-ink-line: #352D24;
+  --color-on-ink: #F5F0E8;
+  --color-on-ink-muted: #A99C8B;
 
-  /* Industrial neutrals for secondary copy */
-  --color-steel: #8A8F98;
-  --color-steel-dim: #5C616A;
+  /* ---- The single accent ------------------------------------------------
+     Deepened from #CE2B2B: on a light canvas that hit only 4.1:1 and failed
+     AA for body text. #C8202B clears it at 5.2:1, and white on it is 5.7:1
+     so the primary button is legible without going burgundy. */
+  --color-crimson: #C8202B;
+  --color-crimson-deep: #9B1620;
+  --color-crimson-tint: #FBECEA;
 
-  --color-success: #3FA96B;
-  --color-warning: #D99B32;
+  --color-success: #2E7D52;
+  --color-warning: #9A6516;
 
   --font-display: 'Clash Display', 'Archivo', system-ui, sans-serif;
   --font-body: 'Satoshi', system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
 
-  /* Motion. One easing curve everywhere, so the whole site moves like one thing. */
+  /* ---- Elevation --------------------------------------------------------
+     A dark UI separates surfaces with borders; a light one needs shadow, or
+     every card looks like a table cell. Two-part shadows: a tight contact
+     shadow for the edge, a wide soft one for the lift. */
+  --shadow-card: 0 1px 2px rgba(26,23,20,0.04), 0 10px 30px -14px rgba(26,23,20,0.14);
+  --shadow-lift: 0 2px 6px rgba(26,23,20,0.06), 0 28px 56px -22px rgba(26,23,20,0.22);
+
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
 }
@@ -88,8 +117,8 @@
   .lenis.lenis-smooth { scroll-behavior: auto !important; }
 
   body {
-    background-color: var(--color-ink);
-    color: var(--color-bone);
+    background-color: var(--color-canvas);
+    color: var(--color-content);
     font-family: var(--font-body);
     font-feature-settings: 'ss01', 'cv01';
     overflow-x: clip;
@@ -111,7 +140,7 @@
   ::selection { background: var(--color-crimson); color: #fff; }
 
   :focus-visible {
-    outline: 2px solid var(--color-crimson-bright);
+    outline: 2px solid var(--color-crimson);
     outline-offset: 3px;
     border-radius: 2px;
   }
@@ -157,13 +186,13 @@
     font-weight: 500;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--color-steel);
+    color: var(--color-faint);
   }
 
   .lede {
     font-size: clamp(1.0625rem, 1.5vw, 1.375rem);
     line-height: 1.55;
-    color: var(--color-steel);
+    color: var(--color-muted);
     max-width: 62ch;
   }
 
@@ -180,7 +209,7 @@
   @media (min-width: 768px)  { .shell { padding-inline: 2.5rem; } }
   @media (min-width: 1280px) { .shell { padding-inline: 4rem; } }
 
-  .rule { border-top: 1px solid var(--color-ink-line); }
+  .rule { border-top: 1px solid var(--color-line); }
 
   /* ---- Vertical rotated label (from the Nhale reference) ----------------- */
   .vertical-label {
@@ -189,8 +218,22 @@
     letter-spacing: 0.3em;
     text-transform: uppercase;
     font-size: 0.625rem;
-    color: var(--color-steel-dim);
+    color: var(--color-faint);
   }
+
+  /* ---- Dark contrast band ----------------------------------------------
+     Ink is now the exception: the flagship story and the footer, and nothing
+     else. Two dark moments in a light page read as deliberate; a dark page
+     with two light moments reads as a theme that could not decide.
+
+     This scope only has to catch the SHARED typography classes — .eyebrow and
+     .lede carry their colour in CSS, so without it they'd stay light-canvas
+     grey on near-black. Utility-coloured elements are swapped in the markup. */
+  .on-ink { background-color: var(--color-ink); color: var(--color-on-ink); }
+  .on-ink .eyebrow,
+  .on-ink .lede,
+  .on-ink .vertical-label { color: var(--color-on-ink-muted); }
+  .on-ink .rule { border-color: var(--color-ink-line); }
 
   /* ---- Grain ------------------------------------------------------------
      A very faint noise layer over the black. It stops large dark areas from
@@ -207,6 +250,11 @@
 }
 
 @layer utilities {
+  @keyframes wag {
+    0%, 100% { transform: rotate(-9deg); }
+    50%      { transform: rotate(13deg); }
+  }
+
   .text-balance { text-wrap: balance; }
 
   /* Edge-to-edge bleed out of .shell */

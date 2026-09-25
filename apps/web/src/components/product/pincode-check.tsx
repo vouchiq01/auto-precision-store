@@ -11,7 +11,17 @@ interface Serviceability {
   etaDaysMin: number | null;
   etaDaysMax: number | null;
   message: string;
+  reason: 'serviceable' | 'not_serviceable' | 'unknown_pincode' | 'lookup_unavailable';
 }
+
+/* A pincode that does not exist is a mistake the shopper can fix, so it reads
+   as an error. "We don't go there yet" is not their mistake, so it does not. */
+const TONE: Record<Serviceability['reason'], string> = {
+  serviceable: 'text-success',
+  not_serviceable: 'text-warning',
+  unknown_pincode: 'text-crimson',
+  lookup_unavailable: 'text-muted',
+};
 
 /**
  * "Does it reach me, and when?" — the question every Indian shopper asks before
@@ -44,7 +54,13 @@ export function PincodeCheck() {
       <form onSubmit={check} className="flex gap-2">
         <input
           value={pincode}
-          onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+          onChange={(e) => {
+            setPincode(e.target.value.replace(/\D/g, '').slice(0, 6));
+            /* Clear the previous verdict the moment the number changes, so a
+               green "delivers to Bengaluru" can never sit under a pincode it
+               was not about. */
+            setResult(null); setError(null);
+          }}
           inputMode="numeric"
           placeholder="Enter pincode"
           aria-label="Delivery pincode"
@@ -56,7 +72,10 @@ export function PincodeCheck() {
       </form>
 
       {result && (
-        <p className={`mt-3 text-sm ${result.serviceable ? 'text-success' : 'text-warning'}`}>
+        <p
+          role={result.reason === 'unknown_pincode' ? 'alert' : undefined}
+          className={`mt-3 text-sm ${TONE[result.reason]}`}
+        >
           {result.message}
         </p>
       )}

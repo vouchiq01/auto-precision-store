@@ -89,7 +89,43 @@ export function formatEta(min: number, max: number): string {
   return min === max ? `${min} day${min === 1 ? '' : 's'}` : `${min}–${max} days`;
 }
 
-/** Indian pincodes are exactly 6 digits and never start with 0. */
+/**
+ * The two-digit prefixes India Post has actually assigned.
+ *
+ * The first digit is the region and the first two identify the postal circle,
+ * and several two-digit combinations were never issued: 29, 35, 54, 55, 65, 66
+ * and 86–89 all fall in gaps between circles. 90–99 is the Army Postal Service
+ * (APO/FPO), which is a real destination but not one a courier will take a
+ * 40 kg crate to — those go through support.
+ */
+const ASSIGNED_PREFIXES: ReadonlySet<number> = new Set([
+  11, 12, 13, 14, 15, 16, 17, 18, 19,          // Delhi, Haryana, Punjab, HP, J&K
+  20, 21, 22, 23, 24, 25, 26, 27, 28,          // UP, Uttarakhand
+  30, 31, 32, 33, 34,                          // Rajasthan
+  36, 37, 38, 39,                              // Gujarat, DD, DNH
+  40, 41, 42, 43, 44,                          // Maharashtra, Goa
+  45, 46, 47, 48, 49,                          // MP, Chhattisgarh
+  50, 51, 52, 53,                              // Telangana, Andhra Pradesh
+  56, 57, 58, 59,                              // Karnataka
+  60, 61, 62, 63, 64,                          // Tamil Nadu, Puducherry
+  67, 68, 69,                                  // Kerala, Lakshadweep
+  70, 71, 72, 73, 74,                          // West Bengal, Sikkim, A&N
+  75, 76, 77,                                  // Odisha
+  78, 79,                                      // Assam and the North East
+  80, 81, 82, 83, 84, 85,                      // Bihar, Jharkhand
+]);
+
+/**
+ * Structural validity only — six digits, in a range India Post actually issues.
+ *
+ * This deliberately cannot tell you whether a pincode EXISTS. "111111" is six
+ * digits with a Delhi prefix and passes here, but no such post office has ever
+ * been issued. Proving existence needs the real directory, which is what
+ * checkPincode does against India Post before it promises anyone a delivery.
+ * Keep this function offline and cheap: it guards every address in the system.
+ */
 export function isValidPincode(pincode: string): boolean {
-  return /^[1-9][0-9]{5}$/.test(pincode.trim());
+  const value = pincode.trim();
+  if (!/^[1-8][0-9]{5}$/.test(value)) return false;
+  return ASSIGNED_PREFIXES.has(Number(value.slice(0, 2)));
 }

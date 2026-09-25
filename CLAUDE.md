@@ -171,6 +171,32 @@ make the thing look real. There is no illustration anywhere on the site now.
   turned, arm on. They drop straight into `BEATS` and the section becomes his
   own product instead of stock.
 
+## Pincodes
+
+We deliver everywhere in India, so serviceability is not the question the check
+answers — **"is this a real address"** is. Promising delivery to a typo is how a
+crate goes out to nowhere and a customer waits a fortnight for it.
+
+Three layers, cheapest first:
+
+1. `isValidPincode` (shared, offline) — six digits, first digit 1–8, and a
+   two-digit prefix India Post actually issued. 29, 35, 54, 55, 65, 66 and
+   86–89 sit in gaps between circles and are refused with no network call;
+   90–99 is Army Postal Service, which no courier will crate to.
+2. The `pincodes` table — metros are seeded, and every directory answer is
+   written back, so a pincode costs one outbound call in its lifetime.
+3. `api.postalpincode.in` — the only thing that can prove a pincode EXISTS.
+   `111111` is six digits on a real Delhi prefix and no such post office was
+   ever issued; only the directory catches that. 3.5s timeout.
+
+**A directory outage must never lose a sale.** On any error the answer stays
+"we deliver", it just cannot name the town. `setPincodeDirectory()` swaps the
+lookup so tests never touch the network — always use it when adding cases.
+
+`reason` on the response distinguishes `unknown_pincode` (the shopper's typo,
+shown in crimson with `role="alert"`) from `not_serviceable` (not their fault,
+amber) from `lookup_unavailable` (ours, muted).
+
 ## Claims must match the data
 
 The marquee said "36-month frame warranty". Two of the eighteen products have
@@ -217,6 +243,11 @@ release it after 45 minutes.
   qualify the outer reference by name.
 - **`db.execute()` row shape differs by driver.** Use `rowsOf()` in
   `apps/api/src/lib/rows.ts`.
+- **`@aps/shared` resolves to `dist/`, not source.** Editing a shared package
+  and restarting the API changes nothing until `npm run build -w @aps/shared` —
+  the dev server happily serves the stale build. The tests compile from source
+  and will pass while the running app is still on old code, which is the worst
+  possible combination. If a shared change "has no effect", build it first.
 - **Next caches optimised images by path.** Replacing a file in place serves the
   stale one — `rm -rf apps/web/.next` after swapping imagery.
 - **The browser pane does not composite everything.** `will-change: transform`

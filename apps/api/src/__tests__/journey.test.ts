@@ -213,13 +213,28 @@ describe('checkout quote', () => {
     assert.equal(res.status, 200);
   });
 
-  test('refuses an unserviceable pincode', async () => {
+  test('a pincode missing from our table still quotes, via its state zone', async () => {
+    /* 560103 is a real Bengaluru pincode that the fixture does not seed. It
+       falls back to the Karnataka zone and stays serviceable — a gap in our
+       own table must never lose a sale.
+
+       This used to use 999999, which only worked while pincode validation was
+       a bare six-digit regex. 999999 is Army Postal Service and is now
+       correctly refused, so the case needs a pincode that is genuinely valid
+       and genuinely absent. */
     const res = await client.request('POST', '/api/checkout/quote', {
-      body: { shippingAddress: { ...BENGALURU_ADDRESS, pincode: '999999', city: 'Nowhere' } },
+      body: { shippingAddress: { ...BENGALURU_ADDRESS, pincode: '560103' } },
     });
-    // 999999 is not in the seeded table, so it falls back to the Karnataka zone
-    // and remains serviceable — a gap in the pincode table must not lose a sale.
     assert.equal(res.status, 200);
+  });
+
+  test('refuses an address whose pincode cannot exist', async () => {
+    for (const pincode of ['999999', '290000']) {
+      const res = await client.request('POST', '/api/checkout/quote', {
+        body: { shippingAddress: { ...BENGALURU_ADDRESS, pincode } },
+      });
+      assert.equal(res.status, 422, `expected ${pincode} to be refused`);
+    }
   });
 });
 
@@ -446,6 +461,54 @@ describe('public endpoints', () => {
   test('rejects a malformed pincode', async () => {
     const res = await client.request('POST', '/api/pincode/check', { body: { pincode: '12' } });
     assert.equal(res.status, 422);
+  });
+
+  test('rejects a six-digit number that is not a real pincode', async () => {
+    /* The bug this covers: 111111 is structurally fine and was answered with
+       "We deliver here." */
+    const { setPincodeDirectory } = await import('../services/shipping.service.ts');
+    setPincodeDirectory(async () => null);
+    try {
+      const res = await client.request('POST', '/api/pincode/check', { body: { pincode: '111111' } });
+      assert.equal(res.status, 200);
+      assert.equal(res.body.serviceable, false);
+      assert.equal(res.body.reason, 'unknown_pincode');
+    } finally {
+      setPincodeDirectory(async () => null);
+    }
+  });
+
+  test('names the town for a real pincode and caches it', async () => {
+    const { setPincodeDirectory } = await import('../services/shipping.service.ts');
+    let calls = 0;
+    setPincodeDirectory(async () => { calls += 1; return { city: 'Pune', state: 'Maharashtra' }; });
+    try {
+      const first = await client.request('POST', '/api/pincode/check', { body: { pincode: '411001' } });
+      assert.equal(first.status, 200);
+      assert.equal(first.body.serviceable, true);
+      assert.equal(first.body.city, 'Pune');
+      assert.match(first.body.message as string, /Pune/);
+
+      /* Second time it must come from our own table, not the directory. */
+      const second = await client.request('POST', '/api/pincode/check', { body: { pincode: '411001' } });
+      assert.equal(second.body.city, 'Pune');
+      assert.equal(calls, 1, 'the directory should be consulted once per pincode');
+    } finally {
+      setPincodeDirectory(async () => null);
+    }
+  });
+
+  test('a directory outage does not cost the sale', async () => {
+    const { setPincodeDirectory } = await import('../services/shipping.service.ts');
+    setPincodeDirectory(async () => { throw new Error('upstream down'); });
+    try {
+      const res = await client.request('POST', '/api/pincode/check', { body: { pincode: '638001' } });
+      assert.equal(res.status, 200);
+      assert.equal(res.body.serviceable, true, 'we deliver across India; an outage must not say otherwise');
+      assert.equal(res.body.reason, 'lookup_unavailable');
+    } finally {
+      setPincodeDirectory(async () => null);
+    }
   });
 
   test('accepts an enquiry', async () => {

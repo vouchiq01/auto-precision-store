@@ -61,14 +61,38 @@ describe('quoteShipping', () => {
 });
 
 describe('isValidPincode', () => {
-  test('accepts six digits not starting with zero', () => {
-    assert.ok(isValidPincode('560001'));
-    assert.ok(isValidPincode(' 110001 '));
+  test('accepts real pincodes from circles across the country', () => {
+    for (const good of ['560001', ' 110001 ', '400050', '682001', '781001', '744101']) {
+      assert.ok(isValidPincode(good), `expected ${good} to be valid`);
+    }
   });
-  test('rejects the rest', () => {
+
+  test('rejects malformed input', () => {
     for (const bad of ['', '12345', '1234567', '012345', 'abcdef']) {
       assert.equal(isValidPincode(bad), false, `expected ${bad} to be invalid`);
     }
+  });
+
+  test('rejects two-digit prefixes India Post never issued', () => {
+    /* These sit in the gaps between postal circles. A plain six-digit regex
+       waves all of them through, which is how "290000" became a delivery
+       promise. */
+    for (const bad of ['290000', '350000', '540000', '550000', '650000', '660000', '860000', '890000']) {
+      assert.equal(isValidPincode(bad), false, `expected ${bad} to be invalid`);
+    }
+  });
+
+  test('rejects Army Post Office ranges, which couriers will not crate to', () => {
+    for (const bad of ['900001', '999999']) {
+      assert.equal(isValidPincode(bad), false, `expected ${bad} to be invalid`);
+    }
+  });
+
+  test('is structural only — it cannot prove a pincode exists', () => {
+    /* 111111 is six digits on a real Delhi prefix and no such post office was
+       ever issued. Only the directory lookup in checkPincode catches it, and
+       this assertion exists so nobody later mistakes this for that. */
+    assert.ok(isValidPincode('111111'));
   });
 });
 

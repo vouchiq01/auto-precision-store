@@ -102,6 +102,14 @@
   --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
 }
 
+/* Keyframes live at the top level. Inside @layer Tailwind v4 drops them and
+   the animation silently resolves to nothing — no build error, no console
+   warning, just an element that never moves. */
+@keyframes slideProgress {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
 

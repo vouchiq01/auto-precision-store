@@ -144,9 +144,15 @@ eyebrow caps, so do not lighten it.
 
 ## The homepage sequence
 
-`table-demo.tsx` is a scroll-driven sequence of five real photographs: grooming
+`table-demo.tsx` is a self-playing sequence of five real photographs: grooming
 on a kitchen floor, the table dropped low, raised to working height, the dog
-turned, the arm holding it steady. It replaced a three-step text block, because
+turned, the arm holding it steady. It advances every 3s.
+
+**It was scroll-driven and pinned across 300vh. Do not go back to that either.**
+He said it made the page feel like it hung, and he was right: holding the
+viewport for three screens of scrolling does not read as an effect on a shop,
+it reads as the page having stopped responding. It is one screen tall now and
+plays itself. It replaced a three-step text block, because
 the real objection is not "how many steps" — it is that someone who has never
 used a grooming table cannot picture one working, and no specification fixes
 that.
@@ -164,8 +170,13 @@ make the thing look real. There is no illustration anywhere on the site now.
   time leaves both at 50%, and two photographs at half opacity read as a double
   exposure rather than a dissolve. Stacked in DOM order, the previous shot stays
   opaque underneath and is simply covered.
-- Pinning is CSS `position: sticky`, never ScrollTrigger's `pin` — a GSAP pin
-  here previously tore the section out of flow and overlapped the next one.
+- It only advances **while on screen** (IntersectionObserver), and pauses on
+  hover and on focus, so anyone reading rather than glancing can finish.
+- There is a real pause button. WCAG 2.2.2 requires a way to stop anything that
+  moves on its own, and hover is not one on a touch screen.
+- **3s shows the headline, not the paragraph.** The headline carries each beat;
+  the body is detail for whoever pauses. If the copy ever needs to be *read* at
+  speed, lengthen the dwell rather than assuming anyone finished it.
 - The thing that would genuinely finish this: **six phone photos of one real
   table**, tripod fixed — dog on the floor, stepping on, sitting low, raised,
   turned, arm on. They drop straight into `BEATS` and the section becomes his
@@ -237,6 +248,16 @@ release it after 45 minutes.
   The important modifier is trailing: `text-crimson!`.
 - **Tailwind v4 also dropped the default `cursor: pointer` on `<button>`.**
   It is restored once in the Button base; anything hand-rolled needs it.
+- **`@keyframes` must be top level in `globals.css`.** Inside `@layer` Tailwind
+  v4 drops them: no build error, no console warning, the animation just resolves
+  to nothing and the element never moves. `animationName` still reads back
+  correctly in devtools, which makes it a genuinely nasty one to spot.
+- **`useReducedMotion()` starts `true` on purpose**, so the first render is the
+  still version. That means a component with a motion branch and a reduced
+  branch renders the REDUCED one first — any effect that grabs a ref belonging
+  to the motion branch must list `reduced` in its dependencies, or it runs once
+  against `null` and never again. Cost an hour on the carousel: no error
+  anywhere, the sequence simply never advanced.
 - **Drizzle renders `${table.col}` unqualified.** Inside a correlated subquery it
   binds to the *inner* table and the predicate silently never matches — six
   queries returned 0 before this was found. Always alias the inner table and

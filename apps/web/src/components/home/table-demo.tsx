@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { ButtonLink } from '@/components/ui/button';
 import { Eyebrow } from '@/components/ui/primitives';
@@ -24,7 +24,16 @@ import { Eyebrow } from '@/components/ui/primitives';
  * public/products/CREDITS.txt. Deliberately NOT the round-table set — that
  * imagery is taken from competitors' listings and is fine as a placeholder on
  * a product page, but not as the animated centrepiece of the homepage.
+ *
+ * It was also briefly scroll-driven, pinned across 300vh. That is a lovely
+ * effect on a folio site and the wrong one on a shop: holding the viewport for
+ * three screens of scrolling does not read as an effect, it reads as the page
+ * having stopped responding, and the reader's instinct is to leave rather than
+ * to keep scrolling. It plays itself now and the section is one screen tall.
  */
+
+const SLIDE_MS = 3000;
+const FADE_MS = 700;
 
 const BEATS = [
   {
@@ -60,62 +69,49 @@ const BEATS = [
 ];
 
 export function TableDemo() {
+  const [index, setIndex] = useState(0);
+  /* The slide we just left stays painted underneath the incoming one. Fading
+     both at once puts them at 50% together, and two photographs at half
+     opacity read as a double exposure rather than a dissolve. */
+  const [previous, setPrevious] = useState<number | null>(null);
+  const [paused, setPaused] = useState(false);
+  const [onScreen, setOnScreen] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
   const reduced = useReducedMotion();
 
+  const goTo = useCallback((next: number) => {
+    setIndex((current) => {
+      if (next === current) return current;
+      setPrevious(current);
+      return next;
+    });
+  }, []);
+
+  /* Only run while the section is actually on screen. Otherwise it has cycled
+     the whole story several times before anyone scrolls down to it, and they
+     arrive in the middle of a sentence.
+
+     `reduced` has to be in the dependency list. useReducedMotion starts true on
+     purpose, so the FIRST render is the still branch — which has no ref — and
+     an effect keyed on [] would attach the observer to nothing and never look
+     again. That leaves onScreen false forever and the carousel silently never
+     advances, with no error anywhere. */
   useEffect(() => {
-    if (reduced) return;
-    const section = sectionRef.current;
-    if (!section) return;
-
-    let cancelled = false;
-    let cleanup: (() => void) | undefined;
-
-    void (async () => {
-      const [{ gsap }, { ScrollTrigger }] = await Promise.all([
-        import('gsap'), import('gsap/ScrollTrigger'),
-      ]);
-      if (cancelled || !sectionRef.current) return;
-      gsap.registerPlugin(ScrollTrigger);
-
-      const context = gsap.context(() => {
-        const q = gsap.utils.selector(section);
-
-        BEATS.forEach((_, i) => {
-          if (i === 0) return;
-          gsap.set(q(`[data-shot="${i}"]`), { opacity: 0 });
-          gsap.set(q(`[data-beat="${i}"]`), { opacity: 0, y: 14 });
-        });
-        gsap.set(q('[data-dot="0"]'), { backgroundColor: 'var(--color-crimson)' });
-
-        const tl = gsap.timeline({
-          defaults: { ease: 'none' },
-          scrollTrigger: { trigger: section, start: 'top top', end: 'bottom bottom', scrub: 0.7 },
-        });
-
-        /* One beat per step, each the same length, so the scroll feels evenly
-           paced rather than racing through the middle. The photo leads the
-           words slightly — the image is what the reader is looking at.
-           
-           Only the INCOMING photo animates. Fading the outgoing one out at the
-           same time leaves both at half opacity mid-transition, and two
-           photographs at 50% read as a double exposure rather than a dissolve.
-           Stacked in DOM order, the previous shot simply stays opaque
-           underneath and is covered. */
-        for (let i = 1; i < BEATS.length; i += 1) {
-          tl.to(q(`[data-shot="${i}"]`), { opacity: 1, duration: 0.5 }, `+=${i === 1 ? 0.6 : 0.9}`)
-            .to(q(`[data-beat="${i - 1}"]`), { opacity: 0, y: -14, duration: 0.3 }, '<')
-            .to(q(`[data-beat="${i}"]`), { opacity: 1, y: 0, duration: 0.35 }, '<0.2')
-            .to(q(`[data-dot="${i - 1}"]`), { backgroundColor: 'var(--color-line-strong)', duration: 0.3 }, '<')
-            .to(q(`[data-dot="${i}"]`), { backgroundColor: 'var(--color-crimson)', duration: 0.3 }, '<');
-        }
-      }, section);
-
-      cleanup = () => context.revert();
-    })();
-
-    return () => { cancelled = true; cleanup?.(); };
+    const node = sectionRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setOnScreen(entry?.isIntersecting ?? false),
+      { threshold: 0.35 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
   }, [reduced]);
+
+  useEffect(() => {
+    if (reduced || paused || !onScreen) return;
+    const timer = window.setTimeout(() => goTo((index + 1) % BEATS.length), SLIDE_MS);
+    return () => window.clearTimeout(timer);
+  }, [index, paused, onScreen, reduced, goTo]);
 
   /* Without motion the sequence cannot tell its story, so it stops pretending
      to be one and simply lays the five beats out to be read. */
@@ -151,50 +147,117 @@ export function TableDemo() {
   }
 
   return (
-    /* 300vh over five beats. The previous 420vh left the reader scrolling
-       through a stalled frame between steps. */
-    <section ref={sectionRef} className="rule relative h-[300vh] bg-sand/60">
-      <div className="sticky top-0 flex h-screen items-center overflow-hidden py-20 md:py-24">
-        <div className="shell w-full">
-          <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:gap-14">
-            <div>
-              <Eyebrow>What using one looks like</Eyebrow>
+    <section
+      ref={sectionRef}
+      className="rule bg-sand/60 py-16 md:py-20"
+      aria-roledescription="carousel"
+      aria-label="What using a grooming table looks like"
+      /* Anyone reading rather than glancing gets to finish. Focus counts too,
+         or a keyboard user is carried off the control they are on. */
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false);
+      }}
+    >
+      <div className="shell">
+        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-14">
+          <div>
+            <Eyebrow>What using one looks like</Eyebrow>
 
-              {/* Beats are stacked and cross-faded in place so the block never
-                  changes height and the photograph beside it cannot be nudged. */}
-              <div className="relative mt-5 min-h-[14rem] sm:min-h-[12rem]">
-                {BEATS.map((beat, i) => (
-                  <div key={beat.title} data-beat={i} className="absolute inset-0">
-                    <h2 className="font-display text-[clamp(1.6rem,2.9vw,2.6rem)] font-semibold leading-[1.02] tracking-[-0.025em] text-content">
-                      {beat.title}
-                    </h2>
-                    <p className="mt-4 max-w-md text-[0.9375rem] leading-relaxed text-muted">{beat.body}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-1 flex gap-1.5" aria-hidden="true">
-                {BEATS.map((beat, i) => (
-                  <span key={beat.title} data-dot={i} className="h-0.5 w-9 rounded-full bg-line-strong" />
-                ))}
-              </div>
+            {/* Stacked and cross-faded in place, so the column never changes
+                height and the photograph beside it cannot be nudged. */}
+            <div className="relative mt-5 min-h-[15rem] sm:min-h-[13rem]">
+              {BEATS.map((beat, i) => (
+                <div
+                  key={beat.title}
+                  className="absolute inset-0"
+                  aria-hidden={i !== index}
+                  style={{
+                    opacity: i === index ? 1 : 0,
+                    transform: `translateY(${i === index ? 0 : 12}px)`,
+                    /* The outgoing text leaves before the incoming arrives —
+                       two paragraphs overlapping at half opacity is unreadable. */
+                    transition: `opacity ${FADE_MS}ms var(--ease-out-expo) ${i === index ? '160ms' : '0ms'}, transform ${FADE_MS}ms var(--ease-out-expo) ${i === index ? '160ms' : '0ms'}`,
+                    pointerEvents: i === index ? undefined : 'none',
+                  }}
+                >
+                  <h2 className="font-display text-[clamp(1.6rem,2.9vw,2.6rem)] font-semibold leading-[1.02] tracking-[-0.025em] text-content">
+                    {beat.title}
+                  </h2>
+                  <p className="mt-4 max-w-md text-[0.9375rem] leading-relaxed text-muted">{beat.body}</p>
+                </div>
+              ))}
             </div>
 
-            {/* The photograph, as large as the frame allows. */}
-            <div className="relative h-[52vh] overflow-hidden rounded-[1.75rem] bg-sand shadow-lift sm:h-[58vh] lg:h-[74vh]">
-              {BEATS.map((beat, i) => (
+            <div className="mt-2 flex items-center gap-3">
+              <div className="flex gap-1.5">
+                {BEATS.map((beat, i) => (
+                  <button
+                    key={beat.title}
+                    type="button"
+                    onClick={() => goTo(i)}
+                    aria-label={`Show step ${i + 1}: ${beat.title}`}
+                    aria-current={i === index}
+                    className="group h-4 w-10 cursor-pointer rounded-full p-0 focus-visible:outline-2 focus-visible:outline-offset-2"
+                  >
+                    <span className="block h-0.5 w-full overflow-hidden rounded-full bg-line-strong">
+                      {/* Fills across the dwell, so the rhythm is visible and a
+                          reader can see how long they have. */}
+                      <span
+                        key={`${i}-${index}-${paused}-${onScreen}`}
+                        className="block h-full rounded-full bg-crimson"
+                        style={
+                          i === index
+                            ? {
+                                animation: `slideProgress ${SLIDE_MS}ms linear forwards`,
+                                animationPlayState: paused || !onScreen ? 'paused' : 'running',
+                              }
+                            : { width: i < index ? '100%' : '0%', opacity: i < index ? 0.35 : 1 }
+                        }
+                      />
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* WCAG 2.2.2: anything that moves on its own needs a way to stop
+                  it that does not depend on hovering. */}
+              <button
+                type="button"
+                onClick={() => setPaused((p) => !p)}
+                aria-label={paused ? 'Play the sequence' : 'Pause the sequence'}
+                className="grid size-7 shrink-0 cursor-pointer place-items-center rounded-full text-faint transition-colors hover:bg-sand-deep hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2"
+              >
+                <svg viewBox="0 0 12 12" className="size-3" aria-hidden="true" fill="currentColor">
+                  {paused ? <path d="M3 1.5l7 4.5-7 4.5z" /> : <><rect x="3" y="1.5" width="2.5" height="9" rx="1" /><rect x="7" y="1.5" width="2.5" height="9" rx="1" /></>}
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="relative aspect-[4/3] overflow-hidden rounded-[1.75rem] bg-sand shadow-lift sm:aspect-[3/2] lg:aspect-[4/3]">
+            {BEATS.map((beat, i) => {
+              const isActive = i === index;
+              const isOutgoing = i === previous;
+              return (
                 <Image
                   key={beat.src}
-                  data-shot={i}
                   src={beat.src}
-                  alt={beat.alt}
+                  alt={isActive ? beat.alt : ''}
                   fill
                   priority={i === 0}
                   sizes="(min-width: 1024px) 58vw, 100vw"
                   className="object-cover"
+                  style={{
+                    opacity: isActive || isOutgoing ? 1 : 0,
+                    zIndex: isActive ? 2 : isOutgoing ? 1 : 0,
+                    transition: `opacity ${FADE_MS}ms var(--ease-out-expo)`,
+                  }}
                 />
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
       </div>

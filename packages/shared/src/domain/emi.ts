@@ -71,5 +71,10 @@ export function lowestEmi(principal: Paise, plans: readonly EmiPlan[] = DEFAULT_
 
 export function formatEmiTeaser(principal: Paise): string | null {
   const lowest = lowestEmi(principal);
-  return lowest ? `${formatINR(lowest.monthlyAmount)}/mo` : null;
+  if (!lowest) return null;
+  /* The instalment is exact paise, which renders as "₹5,503.46/mo" — precision
+     nobody asked for on a teaser, repeated on every card. Rounded UP to the
+     rupee so the headline figure can never come in under the real one. */
+  const wholeRupees = Math.ceil(lowest.monthlyAmount / 100) * 100;
+  return `${formatINR(wholeRupees)}/mo`;
 }

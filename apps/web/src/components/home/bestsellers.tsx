@@ -19,7 +19,7 @@ export function Bestsellers({ products }: { products: ProductSummary[] }) {
         <SectionNumber value="03" className="hidden md:block" />
       </div>
 
-      <Reveal stagger={0.08} className="mt-14 grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+      <Reveal stagger={0.08} className="mt-14 grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {products.slice(0, 4).map((product, i) => (
           <ProductCard key={product.id} product={product} index={i} priority={i < 2} />
         ))}

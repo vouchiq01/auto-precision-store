@@ -1,0 +1,34 @@
+{
+  "name": "auto-precision-store",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Auto Precision Store \u2014 professional pet grooming tables",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build:shared": "npm run build -w @aps/shared",
+    "build:db": "npm run build -w @aps/db",
+    "build:api": "npm run build -w @aps/api",
+    "build:web": "npm run build -w @aps/web",
+    "build": "npm run build:shared && npm run build:db && npm run build:api && npm run build:web",
+    "dev:api": "npm run dev -w @aps/api",
+    "dev:web": "npm run dev -w @aps/web",
+    "dev": "concurrently -n api,web -c magenta,cyan \"npm:dev:api\" \"npm:dev:web\"",
+    "db:generate": "npm run generate -w @aps/db",
+    "db:push": "npm run push -w @aps/db",
+    "db:seed": "npm run seed -w @aps/db",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "setup": "npm run build:shared && npm run build:db && npm run db:seed",
+    "db:migrate": "npm run migrate -w @aps/db"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.3"
+  }
+}

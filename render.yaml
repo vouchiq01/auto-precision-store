@@ -1,0 +1,65 @@
+# Render blueprint for the Auto Precision API.
+#
+# Deploy: New → Blueprint → point at this repo. Render reads this file and
+# creates the service. Secrets marked `sync: false` are set once in the Render
+# dashboard and never live in the repo.
+
+services:
+  - type: web
+    name: auto-precision-api
+    runtime: node
+    plan: starter          # free tier sleeps after 15 min; starter avoids cold starts
+    region: singapore      # closest Render region to Indian customers
+    rootDir: .
+    # The API imports the built output of both workspace packages, so they must
+    # be compiled before it is.
+    buildCommand: npm ci && npm run build:shared && npm run build:db && npm run build:api
+    startCommand: node apps/api/dist/index.js
+    healthCheckPath: /health
+    autoDeploy: true
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: LOG_LEVEL
+        value: info
+
+      # Supabase POOLED connection string (port 6543).
+      - key: DATABASE_URL
+        sync: false
+      # Supabase DIRECT connection string (port 5432), for migrations only.
+      - key: DIRECT_DATABASE_URL
+        sync: false
+
+      - key: JWT_SECRET
+        generateValue: true     # Render generates a strong value on first deploy
+
+      # Comma-separated. Must include the Vercel production domain, or every
+      # browser request is blocked by CORS.
+      - key: CORS_ORIGINS
+        sync: false
+
+      - key: SMS_PROVIDER
+        value: msg91            # the API refuses to boot in production with "mock"
+      - key: MSG91_AUTH_KEY
+        sync: false
+      - key: MSG91_TEMPLATE_ID
+        sync: false
+      - key: MSG91_SENDER_ID
+        sync: false
+
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: media

@@ -1,0 +1,76 @@
+Photography from Pexels (https://www.pexels.com).
+The Pexels licence permits free commercial use and modification; attribution is
+not required but is recorded here so the provenance of every asset is known.
+
+These are stock photographs of grooming tables in use. They are NOT photographs
+of the actual products sold here. Replace them with real product shots before
+launch — particularly shots that show the lift travel and the rotating deck.
+
+apex-e9-electric-grooming-table/01.jpg  pexels.com/photo/6131001
+apex-e9-electric-grooming-table/02.jpg  pexels.com/photo/6131005
+apex-e9-electric-grooming-table/03.jpg  pexels.com/photo/6130997
+apex-e9-electric-grooming-table/04.jpg  pexels.com/photo/6131008
+apex-e7-electric-grooming-table/01.jpg  pexels.com/photo/6130991
+apex-e7-electric-grooming-table/02.jpg  pexels.com/photo/6131574
+apex-e7-electric-grooming-table/03.jpg  pexels.com/photo/34911813
+apex-e7-electric-grooming-table/04.jpg  pexels.com/photo/6131003
+vertex-x-pro-electric-lifting-table/01.jpg  pexels.com/photo/6131579
+vertex-x-pro-electric-lifting-table/02.jpg  pexels.com/photo/6131575
+vertex-x-pro-electric-lifting-table/03.jpg  pexels.com/photo/19145899
+vertex-x-pro-electric-lifting-table/04.jpg  pexels.com/photo/6131147
+vertex-x-electric-lifting-table/01.jpg  pexels.com/photo/6131575
+vertex-x-electric-lifting-table/02.jpg  pexels.com/photo/6131566
+vertex-x-electric-lifting-table/03.jpg  pexels.com/photo/6130995
+vertex-x-electric-lifting-table/04.jpg  pexels.com/photo/6131149
+vertex-eco-electric-lifting-table/01.jpg  pexels.com/photo/6131147
+vertex-eco-electric-lifting-table/02.jpg  pexels.com/photo/6130994
+vertex-eco-electric-lifting-table/03.jpg  pexels.com/photo/6131580
+vertex-eco-electric-lifting-table/04.jpg  pexels.com/photo/6131565
+vertex-z-frame-electric-table/01.jpg  pexels.com/photo/19145899
+vertex-z-frame-electric-table/02.jpg  pexels.com/photo/6131001
+vertex-z-frame-electric-table/03.jpg  pexels.com/photo/6131579
+vertex-z-frame-electric-table/04.jpg  pexels.com/photo/6130991
+anchor-h5-hydraulic-grooming-table/01.jpg  pexels.com/photo/6131566
+anchor-h5-hydraulic-grooming-table/02.jpg  pexels.com/photo/6131161
+anchor-h5-hydraulic-grooming-table/03.jpg  pexels.com/photo/6131580
+anchor-h5-hydraulic-grooming-table/04.jpg  pexels.com/photo/6131574
+anchor-h3-hydraulic-grooming-table/01.jpg  pexels.com/photo/6131580
+anchor-h3-hydraulic-grooming-table/02.jpg  pexels.com/photo/6130994
+anchor-h3-hydraulic-grooming-table/03.jpg  pexels.com/photo/6131147
+anchor-h3-hydraulic-grooming-table/04.jpg  pexels.com/photo/16465562
+stride-adjustable-portable-table/01.jpg  pexels.com/photo/6130995
+stride-adjustable-portable-table/02.jpg  pexels.com/photo/6131575
+stride-adjustable-portable-table/03.jpg  pexels.com/photo/9360433
+stride-adjustable-portable-table/04.jpg  pexels.com/photo/6131566
+stride-air-ultralight-table-medium/01.jpg  pexels.com/photo/6130994
+stride-air-ultralight-table-medium/02.jpg  pexels.com/photo/9360433
+stride-air-ultralight-table-medium/03.jpg  pexels.com/photo/16465562
+stride-air-ultralight-table-medium/04.jpg  pexels.com/photo/6131580
+stride-air-ultralight-table-small/01.jpg  pexels.com/photo/9360433
+stride-air-ultralight-table-small/02.jpg  pexels.com/photo/6130994
+stride-air-ultralight-table-small/03.jpg  pexels.com/photo/6131147
+stride-air-ultralight-table-small/04.jpg  pexels.com/photo/6131575
+fold-pro-stainless-folding-table/01.jpg  pexels.com/photo/6131565
+fold-pro-stainless-folding-table/02.jpg  pexels.com/photo/39559269
+fold-pro-stainless-folding-table/03.jpg  pexels.com/photo/6131579
+fold-pro-stainless-folding-table/04.jpg  pexels.com/photo/6131001
+fold-lite-folding-table/01.jpg  pexels.com/photo/6131150
+fold-lite-folding-table/02.jpg  pexels.com/photo/6131565
+fold-lite-folding-table/03.jpg  pexels.com/photo/6130991
+fold-lite-folding-table/04.jpg  pexels.com/photo/39559269
+precision-grooming-arm-double-noose/01.jpg  pexels.com/photo/16465562
+precision-grooming-arm-double-noose/02.jpg  pexels.com/photo/6131147
+precision-grooming-arm-double-noose/03.jpg  pexels.com/photo/6131005
+precision-grooming-arm-double-noose/04.jpg  pexels.com/photo/6131575
+non-slip-ramp-for-electric-tables/01.jpg  pexels.com/photo/6131574
+non-slip-ramp-for-electric-tables/02.jpg  pexels.com/photo/6131580
+non-slip-ramp-for-electric-tables/03.jpg  pexels.com/photo/6130995
+non-slip-ramp-for-electric-tables/04.jpg  pexels.com/photo/6131566
+categories/electric-lifting.jpg  pexels.com/photo/6131001
+categories/hydraulic.jpg  pexels.com/photo/6131566
+categories/portable.jpg  pexels.com/photo/6130994
+categories/foldable.jpg  pexels.com/photo/6131565
+categories/accessories.jpg  pexels.com/photo/16465562
+banners/hero-apex.jpg  pexels.com/photo/6131001
+banners/hero-apex-mobile.jpg  pexels.com/photo/6130991
+banners/strip-freight.jpg  pexels.com/photo/6131579

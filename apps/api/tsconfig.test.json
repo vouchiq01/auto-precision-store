@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    /* Tests compile to their own output tree so the production image that
+       Render builds from dist/ never carries test code or fixtures. */
+    "outDir": "./dist-test",
+    "noEmit": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["dist", "dist-test"]
+}

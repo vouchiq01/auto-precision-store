@@ -1,0 +1,235 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Auto Precision — design tokens
+
+   Near-black canvas, warm bone for contrast sections, one crimson accent taken
+   from the logo. The discipline that makes this read as designed rather than
+   decorated: crimson marks ONE thing per screen. The moment it appears on every
+   button, badge and underline it stops meaning anything.
+   ────────────────────────────────────────────────────────────────────────── */
+
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/clash-display-500.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/clash-display-600.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Clash Display';
+  src: url('/fonts/clash-display-700.woff2') format('woff2');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/satoshi-400.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/satoshi-500.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Satoshi';
+  src: url('/fonts/satoshi-700.woff2') format('woff2');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+
+@theme {
+  /* Surfaces */
+  --color-ink: #08080A;
+  --color-ink-raised: #101014;
+  --color-ink-panel: #17171C;
+  --color-ink-line: #26262E;
+
+  /* Warm off-white, taken from the logo's paper */
+  --color-bone: #EFEBE7;
+  --color-bone-dim: #DCD6D0;
+  --color-bone-line: #C9C2BA;
+
+  /* The single accent */
+  --color-crimson: #CE2B2B;
+  --color-crimson-bright: #E63E3E;
+  --color-crimson-deep: #9A1F1F;
+
+  /* Industrial neutrals for secondary copy */
+  --color-steel: #8A8F98;
+  --color-steel-dim: #5C616A;
+
+  --color-success: #3FA96B;
+  --color-warning: #D99B32;
+
+  --font-display: 'Clash Display', 'Archivo', system-ui, sans-serif;
+  --font-body: 'Satoshi', system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Motion. One easing curve everywhere, so the whole site moves like one thing. */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  /* Lenis drives scrolling; native smooth-scroll would fight it. */
+  html.lenis, html.lenis body { height: auto; }
+  .lenis.lenis-smooth { scroll-behavior: auto !important; }
+
+  body {
+    background-color: var(--color-ink);
+    color: var(--color-bone);
+    font-family: var(--font-body);
+    font-feature-settings: 'ss01', 'cv01';
+    overflow-x: clip;
+    margin: 0;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    /* Display type wants tighter tracking as it grows; these are tuned per step
+       in the .display-* utilities below. */
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+    text-wrap: balance;
+  }
+
+  p { text-wrap: pretty; }
+
+  ::selection { background: var(--color-crimson); color: #fff; }
+
+  :focus-visible {
+    outline: 2px solid var(--color-crimson-bright);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* Anything that animates in starts hidden — but only when JS is present to
+     bring it back. Without this guard, a JS failure leaves a blank page. */
+  .js [data-reveal] { opacity: 0; }
+}
+
+@layer components {
+  /* ---- Type scale -------------------------------------------------------
+     Fluid, clamped at both ends. The huge steps carry negative tracking because
+     Clash Display opens up considerably at display sizes. */
+  .display-xl {
+    font-size: clamp(3rem, 11vw, 11rem);
+    line-height: 0.88;
+    letter-spacing: -0.045em;
+    font-weight: 600;
+  }
+  .display-lg {
+    font-size: clamp(2.5rem, 7.5vw, 6.5rem);
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+    font-weight: 600;
+  }
+  .display-md {
+    font-size: clamp(2rem, 4.5vw, 3.75rem);
+    line-height: 0.98;
+    letter-spacing: -0.028em;
+    font-weight: 600;
+  }
+  .display-sm {
+    font-size: clamp(1.5rem, 2.8vw, 2.25rem);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+
+  /* Small caps label — the industrial register that ties the whole site together */
+  .eyebrow {
+    font-family: var(--font-body);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-steel);
+  }
+
+  .lede {
+    font-size: clamp(1.0625rem, 1.5vw, 1.375rem);
+    line-height: 1.55;
+    color: var(--color-steel);
+    max-width: 62ch;
+  }
+
+  /* Tabular figures for anything that must line up in a column */
+  .numeric { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+
+  /* ---- Layout ----------------------------------------------------------- */
+  .shell {
+    width: 100%;
+    max-width: 96rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 768px)  { .shell { padding-inline: 2.5rem; } }
+  @media (min-width: 1280px) { .shell { padding-inline: 4rem; } }
+
+  .rule { border-top: 1px solid var(--color-ink-line); }
+
+  /* ---- Vertical rotated label (from the Nhale reference) ----------------- */
+  .vertical-label {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-size: 0.625rem;
+    color: var(--color-steel-dim);
+  }
+
+  /* ---- Grain ------------------------------------------------------------
+     A very faint noise layer over the black. It stops large dark areas from
+     looking like flat #000 fill and gives the photography something to sit on. */
+  .grain::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 60;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+
+  /* Edge-to-edge bleed out of .shell */
+  .full-bleed {
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Reduced motion
+
+   Not a courtesy. Vestibular disorders make scroll-driven parallax genuinely
+   unpleasant, and this site leans on it heavily. Everything resolves to its
+   final state immediately; nothing is hidden, nothing is lost.
+   ────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .js [data-reveal] { opacity: 1 !important; transform: none !important; }
+  .grain::after { display: none; }
+}

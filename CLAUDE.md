@@ -1,0 +1,163 @@
+# Auto Precision Store — working context
+
+Read this before touching anything. It covers what the project is, what the
+owner has already decided, what he has pushed back on, and the traps that have
+already cost real time. Setup and deployment live in `README.md`; this file is
+the things that are not obvious from the code.
+
+---
+
+## What it is
+
+An e-commerce store selling **professional pet grooming tables** in India.
+18 products across 6 collections. Owner: Madan, GitHub `vouchiq01`.
+Repo: `github.com/vouchiq01/auto-precision-store` (private).
+
+The business is in **Bengaluru, Karnataka** — this matters, because it decides
+the GST split on every order.
+
+```
+apps/web        Next.js 15 App Router      -> Vercel
+apps/api        Express + TypeScript       -> Render
+packages/shared money, GST, coupons, pricing, Zod schemas
+packages/db     Drizzle schema (30 tables), migrations, seed
+```
+
+---
+
+## Who we are selling to
+
+**Not only professionals.** This was a direct correction from the owner and it
+matters more than it sounds.
+
+An early version of the site was written around salons — headlines like
+"Engineered for the working groomer" and "Built for salons." He rejected that:
+segmenting the headline by buyer type makes everyone else read past it, and
+almost nobody grooming a dog thinks of themselves as a segment.
+
+The range runs from an ₹8,900 folding table someone uses at home twice a month
+to a ₹1,12,400 flagship. Copy must work for both.
+
+The current hero is **"Stop grooming on the floor."** — it names a problem the
+reader already has. Keep that register. The word "salon" has been deliberately
+removed from every page and all 18 products; do not reintroduce it.
+
+What he asked for, in his words: *convince them how our products will be helpful
+and easy for them, and show them properly.* The homepage is ordered to do that —
+convince first, browse second:
+
+1. Hero — the problem
+2. **It lifts, it turns, it holds the dog still** — the three mechanical things
+3. **There are three steps, and that is all there is** — answers "is this hard?"
+4. Categories, flagship story, bestsellers, proof, enquiry
+
+---
+
+## The product, as he describes it
+
+Three capabilities carry the sale. Every product page leads with them:
+
+- **Up and down.** Real per-model travel figures, computed from each product's
+  own specs, with mechanism-specific copy (powered / foot-pump / hand-set).
+- **Rotation.** 360° locking deck. Fitted to all electric and hydraulic models
+  plus the whole round Orbit R range. **This fitment is an assumption — confirm
+  it with him before launch.** Flagged in `packages/db/src/seed/products.data.ts`.
+- **Home use.** Closing block on every product plus an FAQ.
+
+**Round tables are a real part of the range** and he raised them specifically.
+The Orbit R collection: ₹27,000 (the one he named), ₹21,400 mini, ₹38,900 LED.
+
+---
+
+## OPEN QUESTION — ask him
+
+**His actual price ceiling.** He said "we sell round only 27k" and the round
+table is set to exactly ₹27,000. But the rest of the catalogue still carries
+prices derived from a reference site — Apex E9 at ₹1,12,400, Vertex line
+₹47k–65k. If his real range tops out nearer ₹30k, **the whole catalogue is
+mispriced**. This has been asked several times and is still unanswered. Ask
+again before anyone treats the prices as real.
+
+---
+
+## Imagery — read before touching
+
+`apps/web/public/products/ROUND-PHOTO-CREDITS.txt` is not decoration.
+
+The round-table photos were taken from Lohas Pets, Sanglepet, Alibaba and
+Amazon listings. They are **other companies' copyrighted product photography**,
+not licensed, and not photographs of his products. He was told twice, reaffirmed
+twice, and they went in as placeholders. The repo is private, which makes them
+working material rather than republished — **do not make this repo public
+without replacing them and rewriting history.**
+
+The rest is Pexels stock (licensed for commercial use, but still not his tables).
+
+He has corrected image choices twice, and both corrections generalise:
+
+- **Show the product, not the activity.** The first pass used "dog grooming"
+  photos — a dog on a sofa, a walk in a field, a food bowl. For a shop selling
+  tables, a table must be in frame. Every primary image now has one.
+- **It must attract buyers.** Photos are judged *with the hero wash and headline
+  applied*, not in isolation.
+
+The 360° viewer reads `spin/frames.json` per product, so real photography drops
+in with no code change. **18 shots of a real table, turning it ~20° each time,
+would replace all of this** — tell him that; it is the single highest-value
+thing he can do.
+
+---
+
+## Rules that must not be broken
+
+**Money is integer paise. Never floats.** `formatINR` is the only thing that
+turns it into `₹1,12,400` — with Indian lakh grouping.
+
+**GST is computed, not stored.** Prices are GST-inclusive per Indian retail
+convention; tax is backed out at checkout. Buyer in Karnataka → CGST + SGST.
+Anywhere else → IGST.
+
+**The browser is never trusted about price.** Checkout re-prices the cart from
+the database, then again inside the payment transaction.
+
+**The webhook is the truth for payment.** Razorpay's browser callback is a hint
+that lets the confirmation page appear quickly. Both paths converge on one
+idempotent handler.
+
+**Stock is reserved at order creation**, not at payment. Abandoned orders
+release it after 45 minutes.
+
+---
+
+## Traps that have already cost time
+
+- **Never run `next build` while `npm run dev` is running.** They share `.next`
+  and the build corrupts the dev server's cache. Stop dev first.
+- **PGlite is single-connection.** Stop the API before seeding or the seed
+  blocks. Never call `getDb()` inside a `db.transaction()` — it checks out a
+  second connection, reads outside the transaction's snapshot, and deadlocks.
+- **Tailwind v4 dropped `[--var]`.** `bg-[--color-crimson]` compiles to invalid
+  CSS and is silently dropped. Use the named tokens from `@theme`: `bg-crimson`,
+  `text-bone`, `border-ink-line`. Important modifier is trailing: `text-crimson!`.
+- **Drizzle renders `${table.col}` unqualified.** Inside a correlated subquery it
+  binds to the *inner* table and the predicate silently never matches — six
+  queries returned 0 before this was found. Always alias the inner table and
+  qualify the outer reference by name.
+- **`db.execute()` row shape differs by driver.** Use `rowsOf()` in
+  `apps/api/src/lib/rows.ts`.
+- **Next caches optimised images by path.** Replacing a file in place serves the
+  stale one — `rm -rf apps/web/.next` after swapping imagery.
+- **Screenshots of the hero can come back black.** `will-change: transform` puts
+  it on its own compositing layer that the browser pane does not always capture.
+  Scroll a pixel to force a repaint. The page is fine; do not chase it.
+
+---
+
+## Verifying
+
+`npm test` — 112 tests: 71 unit over pricing and tax, 41 integration running the
+real Express app against a real database over real HTTP. No mocks; they have
+caught several genuine bugs.
+
+Always run the tests, `npm run typecheck`, and a production build before
+claiming something works.

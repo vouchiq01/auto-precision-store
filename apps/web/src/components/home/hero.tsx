@@ -6,7 +6,6 @@ import type { Banner } from '@aps/shared';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { ButtonLink } from '@/components/ui/button';
 import { Eyebrow, VerticalLabel } from '@/components/ui/primitives';
-import { Dog } from '@/components/art/dog';
 
 /**
  * The hero.
@@ -18,9 +17,10 @@ import { Dog } from '@/components/art/dog';
  * people to buy. Splitting copy from image fixes both — the type sits on paper
  * at ~16:1 whatever the photo does, and the photo is shown at full strength.
  *
- * The dog stands on a floor line at the foot of the section, because the
- * headline is "Stop grooming on the floor." It is the same animal that gets up
- * onto the table in the section below, so the two read as one sentence.
+ * Everything visible here is a photograph. A drawn dog stood on a floor line at
+ * the foot of this section for a while; it read as a drawing however much
+ * anatomy went into it, which is the opposite of what a store selling on trust
+ * needs. The sequence below now carries the same idea in real photographs.
  */
 export function Hero({ banner, totalProducts }: { banner: Banner | null; totalProducts: number }) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -48,10 +48,7 @@ export function Hero({ banner, totalProducts }: { banner: Banner | null; totalPr
           .fromTo('[data-hero-sub]', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.85 }, '-=0.7')
           .fromTo('[data-hero-cta]', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.75 }, '-=0.65')
           .fromTo('[data-hero-trust] > li', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.08 }, '-=0.5')
-          .fromTo(mediaRef.current, { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1, duration: 1.4 }, 0.15)
-          /* The dog trots in last and from the left, so it reads as arriving
-             rather than as one more panel fading up. */
-          .fromTo('[data-hero-dog]', { opacity: 0, x: -70 }, { opacity: 1, x: 0, duration: 1.1 }, '-=0.9');
+          .fromTo(mediaRef.current, { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1, duration: 1.4 }, 0.15);
 
         /* The photo drifts slower than the page. Scrubbed against scroll rather
            than played on a timer, so it tracks the reader back up too. */
@@ -162,17 +159,6 @@ export function Hero({ banner, totalProducts }: { banner: Banner | null; totalPr
         </div>
       </div>
 
-      {/* The floor. The dog is on it; the headline is about getting off it. */}
-      <div className="shell relative mt-24 md:mt-20">
-        <div className="relative h-px bg-line-strong/70">
-          <Dog
-            data-hero-dog
-            wag
-            title="A dog waiting on the floor"
-            className="absolute bottom-0 left-[4%] h-20 w-auto text-content md:left-[8%] md:h-32"
-          />
-        </div>
-      </div>
     </section>
   );
 }

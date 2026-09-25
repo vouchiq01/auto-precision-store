@@ -74,3 +74,5 @@ categories/accessories.jpg  pexels.com/photo/16465562
 banners/hero-apex.jpg  pexels.com/photo/6131001
 banners/hero-apex-mobile.jpg  pexels.com/photo/6130991
 banners/strip-freight.jpg  pexels.com/photo/6131579
+
+../banners/demo-floor.jpg  pexels.com/photo/8498530  (homepage sequence, beat 1: grooming on the floor at home)

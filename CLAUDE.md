@@ -144,23 +144,32 @@ eyebrow caps, so do not lighten it.
 
 ## The homepage sequence
 
-`table-demo.tsx` is a scroll-driven sequence: the dog from the hero walks onto a
-round table, the table lifts, the deck turns, the arm comes in. It replaced a
-three-step text block, because the real objection is not "how many steps" — it
-is that someone who has never used a grooming table cannot picture one working,
-and no specification fixes that.
+`table-demo.tsx` is a scroll-driven sequence of five real photographs: grooming
+on a kitchen floor, the table dropped low, raised to working height, the dog
+turned, the arm holding it steady. It replaced a three-step text block, because
+the real objection is not "how many steps" — it is that someone who has never
+used a grooming table cannot picture one working, and no specification fixes
+that.
 
-- The dog is drawn (`components/art/dog.tsx`), in two complete poses that
-  cross-fade rather than a rig that can interpolate through a pose no real dog
-  passes through. `DogFigure` is the bare `<g>` for composing into a scene.
-- The dog and the table share ONE svg viewBox on purpose. The deck rises 124
-  units and the dog rises exactly 124 with it; separately-positioned HTML would
-  not stay honest about that.
+**It was briefly a drawn dog on a drawn table. Do not go back.** He rejected it
+twice and he was right: an illustration of a dog reads as an illustration no
+matter how much anatomy goes into it, and the entire job of this section is to
+make the thing look real. There is no illustration anywhere on the site now.
+
+- Every image is Pexels-licensed and recorded in `products/CREDITS.txt`.
+  Deliberately NOT the round-table set — that imagery is taken from
+  competitors' listings, which is tolerable as a placeholder on a product page
+  and not as the animated centrepiece of the homepage.
+- **Only the incoming photo animates.** Fading the outgoing one out at the same
+  time leaves both at 50%, and two photographs at half opacity read as a double
+  exposure rather than a dissolve. Stacked in DOM order, the previous shot stays
+  opaque underneath and is simply covered.
 - Pinning is CSS `position: sticky`, never ScrollTrigger's `pin` — a GSAP pin
   here previously tore the section out of flow and overlapped the next one.
-- Static placement goes on INNER groups as svg `transform` attributes. GSAP
-  writes SVG transforms to the attribute and will overwrite anything already
-  sitting on an element it animates.
+- The thing that would genuinely finish this: **six phone photos of one real
+  table**, tripod fixed — dog on the floor, stepping on, sitting low, raised,
+  turned, arm on. They drop straight into `BEATS` and the section becomes his
+  own product instead of stock.
 
 ## Claims must match the data
 

@@ -250,18 +250,6 @@
 }
 
 @layer utilities {
-  @keyframes wag {
-    0%, 100% { transform: rotate(-9deg); }
-    50%      { transform: rotate(13deg); }
-  }
-
-  .text-balance { text-wrap: balance; }
-
-  /* Edge-to-edge bleed out of .shell */
-  .full-bleed {
-    width: 100vw;
-    margin-inline: calc(50% - 50vw);
-  }
 }
 
 /* ──────────────────────────────────────────────────────────────────────────

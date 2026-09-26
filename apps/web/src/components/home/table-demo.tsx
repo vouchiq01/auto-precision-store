@@ -87,6 +87,15 @@ export function TableDemo() {
     });
   }, []);
 
+  /* Choosing a step by hand is the reader taking over, so it stops advancing
+     and stays where they put it. That is also what satisfies WCAG 2.2.2 — a
+     mechanism to stop self-moving content — now that there is no visible
+     pause button: the control is the dots themselves. */
+  const takeOver = useCallback((next: number) => {
+    setPaused(true);
+    goTo(next);
+  }, [goTo]);
+
   /* Only run while the section is actually on screen. Otherwise it has cycled
      the whole story several times before anyone scrolls down to it, and they
      arrive in the middle of a sentence.
@@ -152,10 +161,10 @@ export function TableDemo() {
       className="rule bg-sand/60 py-16 md:py-20"
       aria-roledescription="carousel"
       aria-label="What using a grooming table looks like"
-      /* Anyone reading rather than glancing gets to finish. Focus counts too,
-         or a keyboard user is carried off the control they are on. */
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      /* Focus only — NOT hover. This section fills the viewport on a desktop,
+         so pausing on hover meant the pointer was resting on it essentially all
+         the time and the sequence never advanced at all. Focus still pauses, or
+         a keyboard user gets carried off the control they are on. */
       onFocusCapture={() => setPaused(true)}
       onBlurCapture={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false);
@@ -191,13 +200,12 @@ export function TableDemo() {
               ))}
             </div>
 
-            <div className="mt-2 flex items-center gap-3">
-              <div className="flex gap-1.5">
+            <div className="mt-2 flex gap-1.5">
                 {BEATS.map((beat, i) => (
                   <button
                     key={beat.title}
                     type="button"
-                    onClick={() => goTo(i)}
+                    onClick={() => takeOver(i)}
                     aria-label={`Show step ${i + 1}: ${beat.title}`}
                     aria-current={i === index}
                     className="group h-4 w-10 cursor-pointer rounded-full p-0 focus-visible:outline-2 focus-visible:outline-offset-2"
@@ -220,20 +228,6 @@ export function TableDemo() {
                     </span>
                   </button>
                 ))}
-              </div>
-
-              {/* WCAG 2.2.2: anything that moves on its own needs a way to stop
-                  it that does not depend on hovering. */}
-              <button
-                type="button"
-                onClick={() => setPaused((p) => !p)}
-                aria-label={paused ? 'Play the sequence' : 'Pause the sequence'}
-                className="grid size-7 shrink-0 cursor-pointer place-items-center rounded-full text-faint transition-colors hover:bg-sand-deep hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2"
-              >
-                <svg viewBox="0 0 12 12" className="size-3" aria-hidden="true" fill="currentColor">
-                  {paused ? <path d="M3 1.5l7 4.5-7 4.5z" /> : <><rect x="3" y="1.5" width="2.5" height="9" rx="1" /><rect x="7" y="1.5" width="2.5" height="9" rx="1" /></>}
-                </svg>
-              </button>
             </div>
           </div>
 

@@ -170,13 +170,21 @@ make the thing look real. There is no illustration anywhere on the site now.
   time leaves both at 50%, and two photographs at half opacity read as a double
   exposure rather than a dissolve. Stacked in DOM order, the previous shot stays
   opaque underneath and is simply covered.
-- It only advances **while on screen** (IntersectionObserver), and pauses on
-  hover and on focus, so anyone reading rather than glancing can finish.
-- There is a real pause button. WCAG 2.2.2 requires a way to stop anything that
-  moves on its own, and hover is not one on a touch screen.
-- **3s shows the headline, not the paragraph.** The headline carries each beat;
-  the body is detail for whoever pauses. If the copy ever needs to be *read* at
-  speed, lengthen the dwell rather than assuming anyone finished it.
+- It only advances **while on screen** (IntersectionObserver), so it is not
+  three beats into the story before anyone scrolls down to it.
+- **It does NOT pause on hover, and there is no pause button.** Both were tried
+  and both were wrong. This section fills the viewport on a desktop, so pausing
+  on hover meant the pointer was resting on it essentially always and the
+  sequence never advanced at all — he saw a play button and a frozen slide and
+  asked, reasonably, why the thing he asked to be automatic had a play button.
+- The **dots are the stop mechanism**: clicking one takes control and stops the
+  advance for good. That is what satisfies WCAG 2.2.2 now the button is gone.
+  Focus still pauses, so a keyboard user is not carried off the control they
+  are on. Do not reintroduce hover-pause on the section as a whole; if reading
+  time becomes the complaint, lengthen the dwell instead.
+- **3s shows the headline, not the paragraph.** The headline carries each beat
+  and the body is detail. If the copy ever needs to be *read* at speed,
+  lengthen the dwell rather than assuming anyone finished it.
 - The thing that would genuinely finish this: **six phone photos of one real
   table**, tripod fixed — dog on the floor, stepping on, sitting low, raised,
   turned, arm on. They drop straight into `BEATS` and the section becomes his

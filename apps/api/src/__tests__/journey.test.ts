@@ -240,12 +240,27 @@ describe('checkout quote', () => {
 
 describe('placing an order', () => {
   let orderNumber = '';
+  let customerToken = '';
+
+  /* Orders require a verified customer: a crate ships against this phone
+     number and the warranty needs someone behind it. The cart here was built
+     as a guest, so signing in now also exercises the guest-cart handover —
+     which is exactly the production flow, since identity is confirmed at the
+     pay step rather than at the door. */
+  before(async () => {
+    const request = await client.request('POST', '/api/auth/otp/request', { body: { phone: '9876543210' } });
+    const session = await client.request('POST', '/api/auth/otp/verify', {
+      body: { phone: '9876543210', code: request.body.devCode, fullName: 'Priya Raghavan' },
+    });
+    customerToken = session.body.accessToken;
+  });
 
   test('creates the order, reserves stock and empties the cart', async () => {
     const before = await client.request('GET', `/api/catalog/products/${fixture.productSlug}`);
     const stockBefore = before.body.variants.find((v: { id: string }) => v.id === fixture.variantId).stockQty;
 
     const res = await client.request('POST', '/api/checkout/orders', {
+      token: customerToken,
       body: { shippingAddress: BENGALURU_ADDRESS, billingSameAsShipping: true },
     });
 
@@ -283,8 +298,9 @@ describe('placing an order', () => {
     // have collided on the second order of the financial year.
     const numbers: string[] = [];
     for (let i = 0; i < 3; i += 1) {
-      await client.request('POST', '/api/cart/items', { body: { variantId: fixture.variantId, quantity: 1 } });
+      await client.request('POST', '/api/cart/items', { token: customerToken, body: { variantId: fixture.variantId, quantity: 1 } });
       const res = await client.request('POST', '/api/checkout/orders', {
+        token: customerToken,
         body: { shippingAddress: BENGALURU_ADDRESS, billingSameAsShipping: true },
       });
       assert.equal(res.status, 201);
@@ -299,9 +315,20 @@ describe('placing an order', () => {
 
   test('refuses to check out an empty cart', async () => {
     const res = await client.request('POST', '/api/checkout/orders', {
+      token: customerToken,
       body: { shippingAddress: BENGALURU_ADDRESS, billingSameAsShipping: true },
     });
     assert.equal(res.status, 409);
+  });
+
+  test('refuses to place an order for an unidentified buyer', async () => {
+    /* The browser asks for a code before paying, but that is a convention
+       until the server insists on it. A crate must not ship against a phone
+       number nobody confirmed. */
+    const res = await client.request('POST', '/api/checkout/orders', {
+      body: { shippingAddress: BENGALURU_ADDRESS, billingSameAsShipping: true },
+    });
+    assert.equal(res.status, 401);
   });
 });
 

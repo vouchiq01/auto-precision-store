@@ -216,6 +216,52 @@ lookup so tests never touch the network — always use it when adding cases.
 shown in crimson with `role="alert"`) from `not_serviceable` (not their fault,
 amber) from `lookup_unavailable` (ours, muted).
 
+## Checkout identity
+
+**Identity is confirmed at the pay step, not at the door.** There is no login
+wall in front of the cart or the address form, and there should not be one:
+forcing an account before someone can even see freight is the largest single
+cause of abandoned carts, and it lands before they have committed to anything.
+
+But a crate worth up to ₹1,12,400 ships against the phone number on that form,
+and the 12–36 month warranty needs a customer behind it. So at "Pay", a guest
+gets a 6-digit code to the number they already typed. Verifying creates the
+account and attaches the order — framed as *confirm your number*, never as
+*sign up*.
+
+- `POST /checkout/orders` is `requireAuth`. Quoting stays open, because freight
+  and the GST split are exactly what someone needs in order to decide. The
+  browser gate is a convention until the server insists.
+- **Signing in must never cost someone their basket.** `getOrCreateCart` keys
+  on the user as soon as there is one and stops reading the cookie, so
+  `claimGuestCart` hands the guest cart over first. Without it the shopper
+  verifies at the pay step and lands on an empty cart — and that was already
+  true of signing in from the header mid-shop.
+- **Never charge a total that was not on screen.** Claiming merges an abandoned
+  cart from a previous visit into this one, which legitimately moves the total.
+  Checkout re-prices after verification and stops with a message if it changed,
+  rather than placing an order for a figure nobody saw.
+
+## apiFetch does not attach tokens
+
+`apiFetch` only sends `Authorization` when a call passes `{ token }`
+explicitly. Nothing warns you: the request just goes up as a guest.
+
+This had already cost something real — the checkout page never passed a token,
+so **every order was created with a null userId** and no customer ever saw
+their orders under "Your orders", signed in or not.
+
+And reading the token out of state immediately after signing in is a race.
+`verifyOtp` returns the whole session for exactly this reason: the caller
+resumes on a microtask, long before React has committed the new token, so a
+closure captured during the pre-sign-in render still holds `null`. Thread the
+returned `accessToken` through; do not reach for state or a ref.
+
+One more trap from the same bug: `refreshQuote` clears `error` every time it
+runs, and it runs whenever the cart or address changes. A failed order was
+being wiped milliseconds after it appeared. Order-path failures go in
+`orderError`, which the quote never touches.
+
 ## Claims must match the data
 
 The marquee said "36-month frame warranty". Two of the eighteen products have

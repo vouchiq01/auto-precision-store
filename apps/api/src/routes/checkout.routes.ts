@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { checkoutQuoteSchema, createOrderSchema, verifyPaymentSchema, uuidSchema } from '@aps/shared';
 import { asyncHandler } from '../lib/async-handler.ts';
 import { publicKeyId } from '../services/razorpay.service.ts';
-import { optionalAuth } from '../middleware/auth.ts';
+import { optionalAuth, requireAuth } from '../middleware/auth.ts';
 import { checkoutLimiter } from '../middleware/rate-limit.ts';
 import { params, validateBody, validateParams } from '../middleware/validate.ts';
 import { placeOrder, quoteCheckout } from '../services/checkout.service.ts';
@@ -28,7 +28,14 @@ checkoutRouter.post('/quote', validateBody(checkoutQuoteSchema), asyncHandler(as
 }));
 
 /** Create the order and the matching Razorpay order. Reserves stock. */
-checkoutRouter.post('/orders', checkoutLimiter, validateBody(createOrderSchema), asyncHandler(async (req, res) => {
+/* Quoting stays open to guests on purpose — freight and the GST split are
+   exactly what someone needs to see BEFORE deciding, and putting a wall in
+   front of that is what loses carts. Placing the order is the line: a crate
+   worth up to ₹1,12,400 ships against this phone number, and the 12–36 month
+   warranty needs a customer behind it, so the number is verified by then.
+   Enforced here and not only in the browser, or it is a convention rather
+   than a guarantee. */
+checkoutRouter.post('/orders', requireAuth, checkoutLimiter, validateBody(createOrderSchema), asyncHandler(async (req, res) => {
   const cart = await resolveCart(req, res);
   const body = req.body as z.infer<typeof createOrderSchema>;
 

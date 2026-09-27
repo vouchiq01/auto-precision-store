@@ -20,7 +20,9 @@ interface AuthContextValue {
   loading: boolean;
   isAdmin: boolean;
   requestOtp: (phone: string) => Promise<{ devCode?: string }>;
-  verifyOtp: (phone: string, code: string, fullName?: string) => Promise<AuthUser>;
+  /** Returns the whole session: callers that act immediately need the token
+      now, not after React has re-rendered with it. */
+  verifyOtp: (phone: string, code: string, fullName?: string) => Promise<SessionResponse>;
   adminLogin: (email: string, password: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -86,7 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: 'POST', body: { phone, code, ...(fullName ? { fullName } : {}) },
     });
     applySession(session);
-    return session.user;
+    return session;
   }, [applySession]);
 
   const adminLogin = useCallback(async (email: string, password: string) => {

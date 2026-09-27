@@ -6,8 +6,7 @@ import { isProduction } from '../env.ts';
 import { optionalAuth } from '../middleware/auth.ts';
 import { params, validateBody, validateParams } from '../middleware/validate.ts';
 import {
-  addItem, clearCart, getCartSummary, getOrCreateCart, newSessionToken, removeItem, setCoupon, updateItem,
-} from '../services/cart.service.ts';
+  addItem, clearCart, getCartSummary, getOrCreateCart, newSessionToken, removeItem, setCoupon, updateItem, claimGuestCart } from '../services/cart.service.ts';
 
 export const CART_COOKIE = 'aps_cart';
 
@@ -23,6 +22,15 @@ cartRouter.use(optionalAuth);
 async function resolveCart(req: Request, res: Response) {
   const cookies = (req.cookies ?? {}) as Record<string, string>;
   const sessionToken = cookies[CART_COOKIE];
+
+  /* Signing in must never cost someone their basket. getOrCreateCart keys on
+     the user as soon as there is one and stops looking at the cookie, so the
+     guest cart has to be handed over first — otherwise the shopper verifies at
+     the pay step and lands on an empty cart. */
+  if (req.user && sessionToken) {
+    await claimGuestCart(req.user.id, sessionToken);
+    res.clearCookie(CART_COOKIE, { path: '/' });
+  }
 
   const cart = await getOrCreateCart({
     userId: req.user?.id,

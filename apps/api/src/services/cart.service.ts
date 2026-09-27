@@ -46,6 +46,55 @@ export async function getOrCreateCart(owner: CartOwner): Promise<typeof carts.$i
   return created;
 }
 
+/**
+ * Hand a guest's cart to the account they just signed into.
+ *
+ * Without this, authenticating empties the basket: getOrCreateCart keys on the
+ * user once a user exists and never looks at the session cookie again, so the
+ * cart built as a guest is orphaned and the shopper is dropped onto an empty
+ * one. That was already true of signing in from the header mid-shop; it became
+ * unavoidable once identity is confirmed at the pay step, which is precisely
+ * the moment the cart is at its most valuable.
+ *
+ * Claiming outright is preferred over copying — it keeps the cart's id, so
+ * anything already referencing it stays valid. Only when the account already
+ * has its own cart do we move the lines across.
+ */
+export async function claimGuestCart(userId: string, sessionToken: string): Promise<void> {
+  const db = getDb();
+
+  const [guest] = await db.select().from(carts).where(eq(carts.sessionToken, sessionToken)).limit(1);
+  if (!guest || guest.userId) return;
+
+  const [owned] = await db.select().from(carts).where(eq(carts.userId, userId)).limit(1);
+
+  if (!owned) {
+    await db.update(carts).set({ userId, sessionToken: null }).where(eq(carts.id, guest.id));
+    return;
+  }
+
+  const guestLines = await db.select().from(cartItems).where(eq(cartItems.cartId, guest.id));
+  const ownedLines = await db.select().from(cartItems).where(eq(cartItems.cartId, owned.id));
+  const byVariant = new Map(ownedLines.map((line) => [line.variantId, line]));
+
+  for (const line of guestLines) {
+    const existing = byVariant.get(line.variantId);
+    if (existing) {
+      /* Same quantity ceiling the cart enforces everywhere else — a merge must
+         not become a way to exceed it. */
+      const merged = Math.min(existing.quantity + line.quantity, CART.maxQuantityPerLine);
+      if (merged !== existing.quantity) {
+        await db.update(cartItems).set({ quantity: merged }).where(eq(cartItems.id, existing.id));
+      }
+    } else if (byVariant.size < CART.maxLines) {
+      await db.update(cartItems).set({ cartId: owned.id }).where(eq(cartItems.id, line.id));
+      byVariant.set(line.variantId, { ...line, cartId: owned.id });
+    }
+  }
+
+  await db.delete(carts).where(eq(carts.id, guest.id));
+}
+
 /** Rows joined for pricing: variant + its product + primary image. */
 async function loadCartRows(cartId: string) {
   const db = getDb();

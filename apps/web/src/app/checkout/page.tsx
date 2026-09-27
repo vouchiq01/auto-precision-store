@@ -6,6 +6,7 @@ import { formatINR, INDIAN_STATES, STORE, type CheckoutQuote } from '@aps/shared
 import { apiFetch, ApiError } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/providers/auth-provider';
+import { useSignIn } from '@/providers/sign-in-provider';
 import { useCart } from '@/providers/cart-provider';
 import { useRazorpay } from '@/hooks/use-razorpay';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,8 @@ const EMPTY_ADDRESS: AddressForm = {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, token, requestOtp, verifyOtp } = useAuth();
+  const { openSignIn } = useSignIn();
   const { cart, loading, reload } = useCart();
   const razorpay = useRazorpay();
 
@@ -36,35 +38,86 @@ export default function CheckoutPage() {
   const [quoting, setQuoting] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /* Kept apart from the quote's error on purpose. refreshQuote clears `error`
+     every time it runs, and it runs whenever the cart or address changes — so
+     a failure to place the order was being wiped a few milliseconds after it
+     appeared, leaving a checkout that silently did nothing. */
+  const [orderError, setOrderError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
 
+  /* Identity is confirmed at the very end, not at the door.
+     A ₹1,12,400 crate goes out against this phone number: if it has a typo the
+     courier cannot reach anyone and the table comes back at our cost, and the
+     12–36 month warranty has no verified customer behind it. But making people
+     register BEFORE they can even see freight is the single biggest cause of
+     abandoned carts, so the ask lands after they have decided to buy and is
+     framed as confirming a number they already typed — not as signing up. */
+  const [otpStep, setOtpStep] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpBusy, setOtpBusy] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [devCode, setDevCode] = useState<string | null>(null);
+  const [resendIn, setResendIn] = useState(0);
+
   useEffect(() => {
-    if (user) {
-      setAddress((prev) => ({
-        ...prev,
-        fullName: prev.fullName || user.fullName || '',
-        phone: prev.phone || (user.phone?.replace('+91', '') ?? ''),
-      }));
-    }
-  }, [user]);
+    if (resendIn <= 0) return;
+    const timer = setTimeout(() => setResendIn((n) => n - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendIn]);
+
+  useEffect(() => {
+    if (!user) return;
+    setAddress((prev) => ({
+      ...prev,
+      fullName: prev.fullName || user.fullName || '',
+      phone: prev.phone || (user.phone?.replace('+91', '') ?? ''),
+    }));
+
+    /* A returning customer should not retype an address we already hold. Only
+       fills blanks, so anything they have already typed this visit wins. */
+    let cancelled = false;
+    void (async () => {
+      try {
+        const saved = await apiFetch<{ items: Array<AddressForm & { isDefault: boolean }> }>('/api/account/addresses', { token });
+        const preferred = saved.items.find((a) => a.isDefault) ?? saved.items[0];
+        if (!preferred || cancelled) return;
+        setAddress((prev) => ({
+          fullName: prev.fullName || preferred.fullName || '',
+          phone: prev.phone || (preferred.phone?.replace('+91', '') ?? ''),
+          line1: prev.line1 || preferred.line1 || '',
+          line2: prev.line2 || preferred.line2 || '',
+          landmark: prev.landmark || preferred.landmark || '',
+          city: prev.city || preferred.city || '',
+          state: prev.state === 'Karnataka' ? (preferred.state || prev.state) : prev.state,
+          pincode: prev.pincode || preferred.pincode || '',
+        }));
+      } catch {
+        // No saved address, or the session lapsed. Neither is worth surfacing.
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user, token]);
 
   const canQuote = address.pincode.length === 6 && address.state && (cart?.itemCount ?? 0) > 0;
 
   /* Re-price whenever the address or GSTIN changes: freight is weight × zone and
      the tax split depends on the delivery state, so a Karnataka address and a
      Delhi one genuinely produce different totals. */
+  const fetchQuote = useCallback(async (tokenOverride?: string) => apiFetch<CheckoutQuote>('/api/checkout/quote', {
+    token: tokenOverride ?? token,
+    method: 'POST',
+    body: {
+      shippingAddress: { ...address, line2: address.line2 || null, landmark: address.landmark || null, type: 'home', isDefault: false },
+      couponCode: cart?.couponCode ?? null,
+      gstin: wantsInvoice && gstin ? gstin : null,
+    },
+  }), [address, cart?.couponCode, gstin, wantsInvoice, token]);
+
   const refreshQuote = useCallback(async () => {
     if (!canQuote) { setQuote(null); return; }
     setQuoting(true); setError(null);
     try {
-      setQuote(await apiFetch<CheckoutQuote>('/api/checkout/quote', {
-        method: 'POST',
-        body: {
-          shippingAddress: { ...address, line2: address.line2 || null, landmark: address.landmark || null, type: 'home', isDefault: false },
-          couponCode: cart?.couponCode ?? null,
-          gstin: wantsInvoice && gstin ? gstin : null,
-        },
-      }));
+      setQuote(await fetchQuote());
     } catch (err) {
       setQuote(null);
       if (err instanceof ApiError) {
@@ -74,7 +127,7 @@ export default function CheckoutPage() {
     } finally {
       setQuoting(false);
     }
-  }, [canQuote, address, cart?.couponCode, gstin, wantsInvoice]);
+  }, [canQuote, fetchQuote]);
 
   useEffect(() => {
     const timer = setTimeout(() => { void refreshQuote(); }, 400);
@@ -83,7 +136,71 @@ export default function CheckoutPage() {
 
   async function placeOrder(event: React.FormEvent) {
     event.preventDefault();
-    setPlacing(true); setError(null); setFieldErrors({});
+    /* Guests confirm the number they just typed before paying; the account is
+       created from that verification rather than from a separate signup. */
+    if (!user) { await startVerification(); return; }
+    await submitOrder();
+  }
+
+  async function startVerification() {
+    setOtpBusy(true); setOrderError(null); setOtpError(null);
+    try {
+      const { devCode: code } = await requestOtp(address.phone);
+      setDevCode(code ?? null);
+      setOtpStep(true);
+      setResendIn(30);
+    } catch (err) {
+      setOrderError(err instanceof ApiError
+        ? (err.fieldError('phone') ?? err.message)
+        : 'Could not send the code. Check the mobile number.');
+    } finally {
+      setOtpBusy(false);
+    }
+  }
+
+  async function confirmCode() {
+    setOtpBusy(true); setOtpError(null);
+    try {
+      const session = await verifyOtp(address.phone, otpCode, address.fullName.trim() || undefined);
+      setOtpStep(false); setOtpCode('');
+
+      /* Signing in can change what is in the basket: an abandoned cart on this
+         account gets merged with the one they just built as a guest. That is
+         the right thing to do with their items, but it means the total can
+         move between the figure on the button and the order we are about to
+         place — shop on a phone, finish on a laptop, and you would be charged
+         a number you were never shown. Re-price first and stop if it moved. */
+      const shownTotal = quote?.grandTotal ?? null;
+      const repriced = await fetchQuote(session.accessToken);
+      setQuote(repriced);
+      await reload();
+
+      if (shownTotal !== null && repriced.grandTotal !== shownTotal) {
+        setOrderError(
+          `You had items saved from an earlier visit, so they have been added to this order. `
+          + `The total is now ${formatINR(repriced.grandTotal)} — check the summary and pay again.`,
+        );
+        return;
+      }
+      /* Straight on to payment — making them press Pay a second time after
+         verifying is a step that buys nothing.
+
+         The token is passed explicitly rather than read from state: this
+         function closed over `token` during a render that happened BEFORE
+         sign-in, and execution resumes here on a microtask, long before React
+         has committed the new value. Relying on the closure sends the order up
+         unauthenticated, and the 401 is then wiped by the quote refresh that
+         the merged cart triggers — a completely silent failure. */
+      await submitOrder(session.accessToken);
+    } catch (err) {
+      setOtpError(err instanceof ApiError ? err.message : 'That code did not work.');
+    } finally {
+      setOtpBusy(false);
+    }
+  }
+
+  async function submitOrder(freshToken?: string) {
+    setPlacing(true); setOrderError(null); setFieldErrors({});
 
     try {
       const order = await apiFetch<{
@@ -91,6 +208,7 @@ export default function CheckoutPage() {
         razorpayOrderId: string | null; razorpayKeyId: string | null;
       }>('/api/checkout/orders', {
         method: 'POST',
+        token: freshToken ?? token,
         body: {
           shippingAddress: { ...address, line2: address.line2 || null, landmark: address.landmark || null, type: 'home', isDefault: false },
           billingSameAsShipping: true,
@@ -110,7 +228,7 @@ export default function CheckoutPage() {
       }
 
       if (!razorpay.ready) {
-        setError('The payment window is still loading. Please try again in a moment.');
+        setOrderError('The payment window is still loading. Please try again in a moment.');
         setPlacing(false);
         return;
       }
@@ -123,12 +241,13 @@ export default function CheckoutPage() {
         description: `Order ${order.orderNumber}`,
         order_id: order.razorpayOrderId,
         prefill: { name: address.fullName, contact: address.phone, email: user?.email ?? undefined },
-        theme: { color: '#CE2B2B' },
+        theme: { color: '#C8202B' },
         handler: (response) => {
           void (async () => {
             try {
               await apiFetch(`/api/checkout/orders/${order.orderId}/confirm`, {
                 method: 'POST',
+                token: freshToken ?? token,
                 body: {
                   razorpayOrderId: response.razorpay_order_id,
                   razorpayPaymentId: response.razorpay_payment_id,
@@ -147,16 +266,16 @@ export default function CheckoutPage() {
         modal: {
           ondismiss: () => {
             setPlacing(false);
-            setError('Payment was cancelled. Your order is saved — you can pay for it from your account.');
+            setOrderError('Payment was cancelled. Your order is saved — you can pay for it from your account.');
           },
         },
       });
     } catch (err) {
       if (err instanceof ApiError) {
-        setError(err.message);
+        setOrderError(err.message);
         setFieldErrors(err.errors ?? {});
       } else {
-        setError('Something went wrong. Please try again.');
+        setOrderError('Something went wrong. Please try again.');
       }
       setPlacing(false);
     }
@@ -355,19 +474,104 @@ export default function CheckoutPage() {
               <p className="mt-3 text-xs text-faint">Enter a pincode to see freight and tax.</p>
             )}
             {error && <p role="alert" className="mt-4 text-sm text-crimson">{error}</p>}
+            {orderError && <p role="alert" className="mt-4 text-sm text-crimson">{orderError}</p>}
             {razorpay.failed && (
               <p className="mt-4 text-sm text-warning">
                 The payment window could not load. Check any ad blocker and refresh.
               </p>
             )}
 
-            <Button type="submit" size="lg" loading={placing} disabled={!quote || quoting} className="mt-6 w-full">
-              {quote ? `Pay ${formatINR(quote.grandTotal)}` : 'Enter your address'}
-            </Button>
+            {otpStep ? (
+              /* Deliberately NOT a nested <form> — the whole checkout is one
+                 already, and nesting forms is invalid HTML that browsers
+                 resolve by dropping the inner one. Enter is handled by hand. */
+              <div className="mt-6 rounded-2xl border border-line bg-canvas p-4">
+                <p className="text-sm font-medium text-content">Confirm your number</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted">
+                  We sent a 6-digit code to +91 {address.phone}. This is how the courier
+                  reaches you on delivery day.
+                </p>
 
-            <p className="mt-3 text-center text-xs text-faint">
-              Secured by Razorpay · UPI, cards, net banking and EMI
-            </p>
+                <input
+                  value={otpCode}
+                  onChange={(e) => { setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setOtpError(null); }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') { e.preventDefault(); if (otpCode.length === 6) void confirmCode(); }
+                  }}
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  aria-label="6-digit code"
+                  autoFocus
+                  placeholder="······"
+                  className="numeric mt-3 h-12 w-full rounded-xl border border-line bg-surface px-4 text-center text-lg tracking-[0.4em] text-content outline-none focus:border-line-strong placeholder:text-faint"
+                />
+
+                {devCode && (
+                  <p className="mt-2 text-center text-xs text-faint">Development code: {devCode}</p>
+                )}
+                {otpError && <p role="alert" className="mt-2 text-sm text-crimson">{otpError}</p>}
+
+                <Button
+                  type="button"
+                  size="lg"
+                  loading={otpBusy || placing}
+                  disabled={otpCode.length !== 6}
+                  onClick={() => void confirmCode()}
+                  className="mt-3 w-full"
+                >
+                  Verify and pay {quote ? formatINR(quote.grandTotal) : ''}
+                </Button>
+
+                <div className="mt-3 flex items-center justify-between text-xs">
+                  <button
+                    type="button"
+                    onClick={() => { setOtpStep(false); setOtpCode(''); setOtpError(null); }}
+                    className="cursor-pointer text-muted underline underline-offset-2 hover:text-content"
+                  >
+                    Change number
+                  </button>
+                  <button
+                    type="button"
+                    disabled={resendIn > 0 || otpBusy}
+                    onClick={() => void startVerification()}
+                    className="cursor-pointer text-muted underline underline-offset-2 hover:text-content disabled:cursor-not-allowed disabled:no-underline disabled:opacity-60"
+                  >
+                    {resendIn > 0 ? `Resend in ${resendIn}s` : 'Resend code'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <Button
+                  type="submit"
+                  size="lg"
+                  loading={placing || otpBusy}
+                  disabled={!quote || quoting}
+                  className="mt-6 w-full"
+                >
+                  {quote ? `Pay ${formatINR(quote.grandTotal)}` : 'Enter your address'}
+                </Button>
+
+                {/* Says what happens next, so the code is expected rather than
+                    an interruption between deciding to buy and paying. */}
+                {!user && quote && (
+                  <p className="mt-3 text-center text-xs text-faint">
+                    We will text a 6-digit code to confirm your number.{' '}
+                    <button
+                      type="button"
+                      onClick={openSignIn}
+                      className="cursor-pointer underline underline-offset-2 hover:text-content"
+                    >
+                      Ordered before? Sign in
+                    </button>
+                  </p>
+                )}
+
+                <p className="mt-3 text-center text-xs text-faint">
+                  Secured by Razorpay · UPI, cards, net banking and EMI
+                </p>
+              </>
+            )}
           </div>
         </aside>
       </form>

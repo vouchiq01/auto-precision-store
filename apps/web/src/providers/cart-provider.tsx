@@ -30,17 +30,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [mutating, setMutating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const { user, loading: authLoading } = useAuth();
+  const { user, token, loading: authLoading } = useAuth();
 
+  /* The token has to go on every cart call. apiFetch only sends an
+     Authorization header when one is passed explicitly, so without this the
+     server sees a guest on every request — the signed-in user's cart is never
+     resolved, and the guest cart is never handed over to them. */
   const reload = useCallback(async () => {
     try {
-      setCart(await apiFetch<CartSummary>('/api/cart'));
+      setCart(await apiFetch<CartSummary>('/api/cart', { token }));
     } catch {
       setCart(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   /* Reload once auth settles, and again whenever the signed-in user changes:
      the guest cart is merged into the user's cart at sign-in, so the contents
@@ -48,7 +52,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (authLoading) return;
     void reload();
-  }, [authLoading, user?.id, reload]);
+  }, [authLoading, user?.id, token, reload]);
 
   /** Every mutation returns the authoritative cart, so there is no optimistic state to reconcile. */
   const mutate = useCallback(async (run: () => Promise<CartSummary>) => {
@@ -66,28 +70,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = useCallback(async (variantId: string, quantity = 1) => {
     await mutate(() => apiFetch<CartSummary>('/api/cart/items', {
-      method: 'POST', body: { variantId, quantity },
+      method: 'POST', token, body: { variantId, quantity },
     }));
     setIsOpen(true);
-  }, [mutate]);
+  }, [mutate, token]);
 
   const updateItem = useCallback(async (itemId: string, quantity: number) => {
     await mutate(() => apiFetch<CartSummary>(`/api/cart/items/${itemId}`, {
-      method: 'PATCH', body: { quantity },
+      method: 'PATCH', token, body: { quantity },
     }));
-  }, [mutate]);
+  }, [mutate, token]);
 
   const removeItem = useCallback(async (itemId: string) => {
-    await mutate(() => apiFetch<CartSummary>(`/api/cart/items/${itemId}`, { method: 'DELETE' }));
-  }, [mutate]);
+    await mutate(() => apiFetch<CartSummary>(`/api/cart/items/${itemId}`, { method: 'DELETE', token }));
+  }, [mutate, token]);
 
   const applyCoupon = useCallback(async (code: string) => {
-    await mutate(() => apiFetch<CartSummary>('/api/cart/coupon', { method: 'POST', body: { code } }));
-  }, [mutate]);
+    await mutate(() => apiFetch<CartSummary>('/api/cart/coupon', { method: 'POST', token, body: { code } }));
+  }, [mutate, token]);
 
   const removeCoupon = useCallback(async () => {
-    await mutate(() => apiFetch<CartSummary>('/api/cart/coupon', { method: 'DELETE' }));
-  }, [mutate]);
+    await mutate(() => apiFetch<CartSummary>('/api/cart/coupon', { method: 'DELETE', token }));
+  }, [mutate, token]);
 
   const value = useMemo<CartContextValue>(() => ({
     cart, loading, mutating, error, isOpen,

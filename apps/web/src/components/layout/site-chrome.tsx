@@ -1,14 +1,14 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { AuthProvider } from '@/providers/auth-provider';
 import { CartProvider } from '@/providers/cart-provider';
 import { SmoothScroll } from '@/components/motion/smooth-scroll';
 import { Header } from './header';
 import { Footer } from './footer';
 import { CartDrawer } from './cart-drawer';
-import { SignInDialog } from './sign-in-dialog';
+import { SignInProvider, useSignIn } from '@/providers/sign-in-provider';
 
 /**
  * Everything that must be a client component, in one boundary.
@@ -21,7 +21,6 @@ import { SignInDialog } from './sign-in-dialog';
  * brings its own sidebar.
  */
 export function SiteChrome({ children }: { children: ReactNode }) {
-  const [signInOpen, setSignInOpen] = useState(false);
   const pathname = usePathname();
   const isAdmin = pathname.startsWith('/admin');
 
@@ -36,14 +35,25 @@ export function SiteChrome({ children }: { children: ReactNode }) {
   return (
     <AuthProvider>
       <CartProvider>
-        <SmoothScroll>
-          <Header onSignIn={() => setSignInOpen(true)} />
-          <main id="main">{children}</main>
-          <Footer />
-          <CartDrawer />
-          <SignInDialog open={signInOpen} onClose={() => setSignInOpen(false)} />
-        </SmoothScroll>
+        <SignInProvider>
+          <SmoothScroll>
+            <ChromeInner>{children}</ChromeInner>
+          </SmoothScroll>
+        </SignInProvider>
       </CartProvider>
     </AuthProvider>
+  );
+}
+
+/** Split out so it sits BELOW SignInProvider and can therefore use it. */
+function ChromeInner({ children }: { children: ReactNode }) {
+  const { openSignIn } = useSignIn();
+  return (
+    <>
+      <Header onSignIn={openSignIn} />
+      <main id="main">{children}</main>
+      <Footer />
+      <CartDrawer />
+    </>
   );
 }

@@ -4,11 +4,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { formatINR } from '@aps/shared';
+import { useAuth } from '@/providers/auth-provider';
 import { useCart } from '@/providers/cart-provider';
+import { useSignIn } from '@/providers/sign-in-provider';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Eyebrow, EmptyState, Spinner } from '@/components/ui/primitives';
 
 export default function CartPage() {
+  const { user, loading: authLoading } = useAuth();
+  const { openSignIn } = useSignIn();
   const { cart, loading, mutating, error, updateItem, removeItem, applyCoupon, removeCoupon } = useCart();
   const [couponInput, setCouponInput] = useState('');
 
@@ -173,6 +177,24 @@ export default function CartPage() {
               >
                 {blocked ? 'Fix stock issues first' : 'Checkout'}
               </ButtonLink>
+
+              {/* Returning buyers get their saved address prefilled at
+                  checkout, which is worth a lot on a form this long. New
+                  buyers are not asked for anything here — identity is
+                  confirmed at the pay step, not at the door. */}
+              {!user && !authLoading && (
+                <p className="mt-3 text-center text-xs text-faint">
+                  Ordered before?{' '}
+                  <button
+                    type="button"
+                    onClick={openSignIn}
+                    className="cursor-pointer underline underline-offset-2 hover:text-content"
+                  >
+                    Sign in
+                  </button>{' '}
+                  to reuse your address.
+                </p>
+              )}
 
               <ButtonLink href="/collections/electric-lifting" variant="ghost" size="sm" className="mt-2 w-full">
                 Continue shopping

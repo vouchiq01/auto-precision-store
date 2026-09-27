@@ -83,17 +83,26 @@ export interface ProductSummary {
   rating: { average: number; count: number } | null;
   /** Lowest monthly instalment, pre-formatted. Null below the EMI threshold. */
   emiTeaser: string | null;
-  /** How many active variants the product has. */
-  variantCount: number;
   /**
-   * The variant to add, but ONLY when there is exactly one — otherwise null.
+   * Enough of each variant to add one straight from a listing card.
    *
-   * Deliberately not "the first variant". A listing card cannot know whether
-   * someone wants Bone White or Graphite, and quietly picking one on a
-   * ₹38,400 table is a wrong order, not a small annoyance. Null here is the
-   * contract telling the caller to send them to the product page to choose.
+   * A card must never guess: eight of the eighteen tables come in two
+   * finishes, and quietly adding whichever sorts first to a ₹38,400 order is
+   * a wrong order. With the options here the card can ask — one tap, on the
+   * card — instead of either guessing or sending the buyer away.
+   *
+   * Named `options` rather than `variants` because ProductDetail already
+   * carries the full variant rows under that name.
    */
-  addableVariantId: string | null;
+  options: ProductOption[];
+}
+
+export interface ProductOption {
+  id: string;
+  /** "Graphite", "Bone White" — what the shopper is actually choosing between. */
+  label: string;
+  hexColour: string | null;
+  inStock: boolean;
 }
 
 export interface ProductDetail extends ProductSummary {

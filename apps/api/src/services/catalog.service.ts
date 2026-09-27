@@ -138,19 +138,21 @@ async function hydrateSummaries(
     .where(and(inArray(productImages.productId, productIds), eq(productImages.isPrimary, true)));
   const imageByProduct = new Map(images.map((img) => [img.productId, img]));
 
-  /* Stock, variant count and — only when a product has a single variant — the
-     id to add straight from a listing card. Same grouped pass, no extra query. */
-  const stock = await db
-    .select({
-      productId: productVariants.productId,
-      total: sql<number>`sum(${productVariants.stockQty})::int`,
-      variants: sql<number>`count(*)::int`,
-      firstVariantId: sql<string>`(array_agg(${productVariants.id} order by ${productVariants.sortOrder}, ${productVariants.id}))[1]`,
-    })
+  /* The variants themselves, not just a stock total: a listing card offers
+     add-to-cart, and for the eight tables that come in two finishes it has to
+     be able to ask which one. At most a couple of rows per product. */
+  const variantRows = await db
+    .select()
     .from(productVariants)
     .where(and(inArray(productVariants.productId, productIds), eq(productVariants.isActive, true)))
-    .groupBy(productVariants.productId);
-  const stockByProduct = new Map(stock.map((s) => [s.productId, s]));
+    .orderBy(asc(productVariants.sortOrder));
+
+  const variantsByProduct = new Map<string, typeof variantRows>();
+  for (const row of variantRows) {
+    const list = variantsByProduct.get(row.productId) ?? [];
+    list.push(row);
+    variantsByProduct.set(row.productId, list);
+  }
 
   const ratings = await db
     .select({
@@ -178,12 +180,13 @@ async function hydrateSummaries(
         : null,
       category,
       badges: product.badges,
-      inStock: (stockByProduct.get(product.id)?.total ?? 0) > 0,
-      variantCount: stockByProduct.get(product.id)?.variants ?? 0,
-      /* Withheld unless it is unambiguous — see ProductSummary.addableVariantId. */
-      addableVariantId: stockByProduct.get(product.id)?.variants === 1
-        ? stockByProduct.get(product.id)!.firstVariantId
-        : null,
+      inStock: (variantsByProduct.get(product.id) ?? []).some((v) => v.stockQty > 0),
+      options: (variantsByProduct.get(product.id) ?? []).map((v) => ({
+        id: v.id,
+        label: v.optionValue,
+        hexColour: v.hexColour,
+        inStock: v.stockQty > 0,
+      })),
       isFeatured: product.isFeatured,
       rating: rating ? { average: rating.average, count: rating.count } : null,
       emiTeaser: formatEmiTeaser(product.basePrice),
@@ -251,9 +254,9 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail> {
     category,
     badges: product.badges,
     inStock: mappedVariants.some((v) => v.inStock),
-    variantCount: mappedVariants.length,
-    /* Same rule as the listing: an id only when there is nothing to choose. */
-    addableVariantId: mappedVariants.length === 1 ? (mappedVariants[0]?.id ?? null) : null,
+    options: mappedVariants.map((v) => ({
+      id: v.id, label: v.optionValue, hexColour: v.hexColour, inStock: v.inStock,
+    })),
     isFeatured: product.isFeatured,
     rating: rating && rating.count > 0 ? { average: rating.average, count: rating.count } : null,
     emiTeaser: formatEmiTeaser(product.basePrice),

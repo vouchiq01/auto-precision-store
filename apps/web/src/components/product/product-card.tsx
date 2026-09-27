@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { formatINR, type ProductSummary } from '@aps/shared';
 import { cn } from '@/lib/cn';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
@@ -27,6 +27,23 @@ export function ProductCard({
   const reduced = useReducedMotion();
   const { addItem } = useCart();
   const [adding, setAdding] = useState(false);
+  const [picking, setPicking] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  /* Dismiss the finish picker on an outside click or Escape, like any popover. */
+  useEffect(() => {
+    if (!picking) return;
+    const onDown = (event: MouseEvent) => {
+      if (!pickerRef.current?.contains(event.target as Node)) setPicking(false);
+    };
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setPicking(false); };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [picking]);
 
   const onMove = (event: React.MouseEvent<HTMLDivElement>) => {
     if (reduced) return;
@@ -45,18 +62,34 @@ export function ProductCard({
 
   const outOfStock = !product.inStock;
 
-  async function quickAdd() {
-    if (!product.addableVariantId || adding) return;
+  /* Tolerate a payload without options rather than taking the whole
+     collection page down with it. Pages are cached and revalidated in the
+     background, so during a deploy a card can legitimately be handed a
+     response shaped by the previous release. */
+  const sellable = (product.options ?? []).filter((option) => option.inStock);
+
+  async function add(variantId: string) {
+    if (adding) return;
     setAdding(true);
     try {
       /* The cart drawer opens itself on a successful add, which is the
          confirmation — no toast needed, and it shows the running total. */
-      await addItem(product.addableVariantId);
+      await addItem(variantId);
+      setPicking(false);
     } catch {
       /* The cart provider surfaces the reason in the drawer. */
     } finally {
       setAdding(false);
     }
+  }
+
+  /* One variant goes straight in. More than one asks first — on the card,
+     because eight of the eighteen tables come in two finishes and adding
+     whichever sorts first to a ₹38,400 order is a wrong order, not a small
+     annoyance. Asking costs one tap; guessing costs a return shipment. */
+  function onAddClick() {
+    if (sellable.length === 1) { void add(sellable[0]!.id); return; }
+    setPicking((open) => !open);
   }
 
   return (
@@ -121,46 +154,61 @@ export function ProductCard({
           )}
         </div>
 
-        {/* ---- Quick add ---------------------------------------------------
+        {/* ---- Add to cart -------------------------------------------------
             Always rendered rather than hover-only: a control that appears on
             hover is invisible on a touch screen and unfindable by keyboard.
-            z-20 keeps it above the title's stretched link.
+            z-20 keeps it above the title's stretched link. */}
+        {!outOfStock && sellable.length > 0 && (
+          <div ref={pickerRef} className="absolute bottom-3 right-3 z-20">
+            {picking && (
+              <div
+                role="group"
+                aria-label={`Choose a finish for ${product.name}`}
+                className="absolute bottom-full right-0 mb-2 w-44 overflow-hidden rounded-xl border border-line bg-surface p-1.5 shadow-lift"
+              >
+                <p className="px-2 pb-1.5 pt-1 text-[0.6875rem] uppercase tracking-[0.14em] text-faint">
+                  Choose a finish
+                </p>
+                {sellable.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    disabled={adding}
+                    onClick={() => void add(option.id)}
+                    className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm text-content transition-colors hover:bg-sand disabled:opacity-60"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="size-3.5 shrink-0 rounded-full border border-line-strong"
+                      style={option.hexColour ? { backgroundColor: option.hexColour } : undefined}
+                    />
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
-            Two outcomes, and the difference is deliberate. Eight of the
-            eighteen tables come in two finishes, and quietly adding Graphite
-            to a ₹38,400 order because it happened to sort first is a wrong
-            order, not a small annoyance — those send you to choose. */}
-        {!outOfStock && (
-          product.addableVariantId ? (
             <button
               type="button"
-              onClick={quickAdd}
+              onClick={onAddClick}
               disabled={adding}
-              aria-label={`Add ${product.name} to cart`}
+              aria-expanded={sellable.length > 1 ? picking : undefined}
+              aria-label={
+                sellable.length > 1
+                  ? `Add ${product.name} to cart — choose a finish`
+                  : `Add ${product.name} to cart`
+              }
               className={cn(
-                'absolute bottom-3 right-3 z-20 grid size-11 cursor-pointer place-items-center rounded-full',
+                'grid size-11 cursor-pointer place-items-center rounded-full',
                 'bg-surface/95 text-content shadow-card backdrop-blur-sm',
                 'transition-colors duration-300 hover:bg-crimson hover:text-white',
                 'focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60',
+                picking && 'bg-crimson text-white',
               )}
             >
               {adding ? <Spinner className="size-4" /> : <BagIcon />}
             </button>
-          ) : (
-            <Link
-              href={`/products/${product.slug}`}
-              aria-label={`Choose a finish for ${product.name}`}
-              title="Two finishes — choose one"
-              className={cn(
-                'absolute bottom-3 right-3 z-20 grid size-11 place-items-center rounded-full',
-                'bg-surface/95 text-content shadow-card backdrop-blur-sm',
-                'transition-colors duration-300 hover:bg-content hover:text-canvas',
-                'focus-visible:outline-2 focus-visible:outline-offset-2',
-              )}
-            >
-              <SwatchIcon />
-            </Link>
-          )
+          </div>
         )}
       </div>
 
@@ -205,16 +253,6 @@ function BagIcon() {
     <svg viewBox="0 0 20 20" className="size-[1.125rem]" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
       <path d="M4 6.5h12l-1 9.5H5l-1-9.5z" strokeLinejoin="round" />
       <path d="M7.25 6.5V5a2.75 2.75 0 0 1 5.5 0v1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-/** Two finishes, overlapping — "there is something to pick here". */
-function SwatchIcon() {
-  return (
-    <svg viewBox="0 0 20 20" className="size-[1.125rem]" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
-      <circle cx="7.75" cy="10" r="4.75" />
-      <circle cx="12.25" cy="10" r="4.75" />
     </svg>
   );
 }

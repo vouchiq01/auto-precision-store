@@ -42,6 +42,31 @@ describe('catalogue', () => {
     assert.ok('emiTeaser' in product);
   });
 
+  test('offers a variant to quick-add only when there is nothing to choose', async () => {
+    /* A listing card cannot know whether someone wants Bone White or Graphite,
+       and quietly adding whichever sorts first to a ₹38,400 order is a wrong
+       order. The contract enforces it: an id is withheld unless it is the only
+       one, so a card physically cannot guess. */
+    const res = await client.request('GET', '/api/catalog/products');
+    assert.equal(res.status, 200);
+
+    const multi = res.body.items.find((p: { variantCount: number }) => p.variantCount > 1);
+    const single = res.body.items.find((p: { variantCount: number }) => p.variantCount === 1);
+
+    assert.ok(multi, 'fixture should include a product with two variants');
+    assert.equal(multi.addableVariantId, null, 'a product with a choice must not be quick-addable');
+
+    assert.ok(single, 'fixture should include a single-variant product');
+    assert.ok(single.addableVariantId, 'a product with one variant should be quick-addable');
+
+    /* And the id handed out must really belong to that product. */
+    const detail = await client.request('GET', `/api/catalog/products/${single.slug}`);
+    assert.ok(
+      detail.body.variants.some((v: { id: string }) => v.id === single.addableVariantId),
+      'the quick-add id should be one of that product\'s own variants',
+    );
+  });
+
   test('returns full detail including specs, features and FAQs', async () => {
     const res = await client.request('GET', `/api/catalog/products/${fixture.productSlug}`);
     assert.equal(res.status, 200);

@@ -83,6 +83,17 @@ export interface ProductSummary {
   rating: { average: number; count: number } | null;
   /** Lowest monthly instalment, pre-formatted. Null below the EMI threshold. */
   emiTeaser: string | null;
+  /** How many active variants the product has. */
+  variantCount: number;
+  /**
+   * The variant to add, but ONLY when there is exactly one — otherwise null.
+   *
+   * Deliberately not "the first variant". A listing card cannot know whether
+   * someone wants Bone White or Graphite, and quietly picking one on a
+   * ₹38,400 table is a wrong order, not a small annoyance. Null here is the
+   * contract telling the caller to send them to the product page to choose.
+   */
+  addableVariantId: string | null;
 }
 
 export interface ProductDetail extends ProductSummary {

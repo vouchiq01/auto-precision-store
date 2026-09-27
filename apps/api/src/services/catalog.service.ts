@@ -138,12 +138,19 @@ async function hydrateSummaries(
     .where(and(inArray(productImages.productId, productIds), eq(productImages.isPrimary, true)));
   const imageByProduct = new Map(images.map((img) => [img.productId, img]));
 
+  /* Stock, variant count and — only when a product has a single variant — the
+     id to add straight from a listing card. Same grouped pass, no extra query. */
   const stock = await db
-    .select({ productId: productVariants.productId, total: sql<number>`sum(${productVariants.stockQty})::int` })
+    .select({
+      productId: productVariants.productId,
+      total: sql<number>`sum(${productVariants.stockQty})::int`,
+      variants: sql<number>`count(*)::int`,
+      firstVariantId: sql<string>`(array_agg(${productVariants.id} order by ${productVariants.sortOrder}, ${productVariants.id}))[1]`,
+    })
     .from(productVariants)
     .where(and(inArray(productVariants.productId, productIds), eq(productVariants.isActive, true)))
     .groupBy(productVariants.productId);
-  const stockByProduct = new Map(stock.map((s) => [s.productId, s.total]));
+  const stockByProduct = new Map(stock.map((s) => [s.productId, s]));
 
   const ratings = await db
     .select({
@@ -171,7 +178,12 @@ async function hydrateSummaries(
         : null,
       category,
       badges: product.badges,
-      inStock: (stockByProduct.get(product.id) ?? 0) > 0,
+      inStock: (stockByProduct.get(product.id)?.total ?? 0) > 0,
+      variantCount: stockByProduct.get(product.id)?.variants ?? 0,
+      /* Withheld unless it is unambiguous — see ProductSummary.addableVariantId. */
+      addableVariantId: stockByProduct.get(product.id)?.variants === 1
+        ? stockByProduct.get(product.id)!.firstVariantId
+        : null,
       isFeatured: product.isFeatured,
       rating: rating ? { average: rating.average, count: rating.count } : null,
       emiTeaser: formatEmiTeaser(product.basePrice),
@@ -239,6 +251,9 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail> {
     category,
     badges: product.badges,
     inStock: mappedVariants.some((v) => v.inStock),
+    variantCount: mappedVariants.length,
+    /* Same rule as the listing: an id only when there is nothing to choose. */
+    addableVariantId: mappedVariants.length === 1 ? (mappedVariants[0]?.id ?? null) : null,
     isFeatured: product.isFeatured,
     rating: rating && rating.count > 0 ? { average: rating.average, count: rating.count } : null,
     emiTeaser: formatEmiTeaser(product.basePrice),

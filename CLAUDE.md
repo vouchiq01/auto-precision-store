@@ -242,6 +242,27 @@ account and attaches the order — framed as *confirm your number*, never as
   Checkout re-prices after verification and stops with a message if it changed,
   rather than placing an order for a figure nobody saw.
 
+## Quick add from a listing card
+
+Eight of the eighteen tables come in two finishes. Adding whichever one
+happens to sort first to a ₹38,400 order is a wrong order, not a small
+annoyance, so the API makes guessing impossible rather than trusting the card
+to behave: `addableVariantId` is **only** populated when a product has exactly
+one variant, and is null otherwise. Null is the contract saying "send them to
+the page to choose".
+
+The card reflects that with two different controls — a bag that adds, or a
+swatch that links to the product page. Same position, different icon, because
+two buttons that look identical and do different things is worse than none.
+
+- The control is **always rendered**, not hover-only: something that appears on
+  hover is invisible on a touch screen and unreachable by keyboard.
+- The card is a container with a **stretched link** on the title, not one large
+  `<a>`. A `<button>` inside an `<a>` is invalid HTML and browsers disagree
+  about it — the quick-add control could not exist until that was split. Keep
+  the control above the stretched link's `::after` (`z-20`).
+- Out of stock renders no control at all.
+
 ## Addresses: the snapshot and the book are different things
 
 Two separate copies, on purpose, and conflating them breaks one or the other:

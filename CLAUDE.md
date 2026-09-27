@@ -242,6 +242,29 @@ account and attaches the order — framed as *confirm your number*, never as
   Checkout re-prices after verification and stops with a message if it changed,
   rather than placing an order for a figure nobody saw.
 
+## Addresses: the snapshot and the book are different things
+
+Two separate copies, on purpose, and conflating them breaks one or the other:
+
+- **The order's snapshot** (`orders.shippingAddress`, JSON). Frozen. It must
+  never change when someone later edits or deletes an address, or historic
+  invoices would quietly rewrite themselves.
+- **The address book** (`addresses` table). Editable, soft-deleted, and what
+  checkout prefills from.
+
+Only the snapshot existed. The book was written by nothing, so
+`/api/account/addresses` returned empty for every customer, "use my saved
+address" had nothing to offer, and the account page had no addresses section
+because there was nothing to put in it. `rememberAddress` in
+`checkout.service.ts` now saves it too — after the transaction commits, so a
+rolled-back checkout leaves nothing behind; deduplicated on name + line1 +
+pincode so four orders to one house do not make four entries; first one saved
+becomes the default; and wrapped so a failure there can never fail an order
+that has already been paid for.
+
+The account page states this to the customer, because "Remove" next to an
+address they can see on a past order is otherwise alarming.
+
 ## apiFetch does not attach tokens
 
 `apiFetch` only sends `Authorization` when a call passes `{ token }`

@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import {
   addresses, cartItems, carts, couponRedemptions, coupons, getDb, orderEvents, orderItems,
   orders, payments, productImages, products, productVariants, type Database,
@@ -93,6 +93,54 @@ async function resolveAddress(userId: string | undefined, input: {
   }
 
   throw new ValidationError({ shippingAddress: ['A shipping address is required.'] });
+}
+
+/**
+ * Keep the address the buyer just typed.
+ *
+ * The order snapshots its own copy — that must never change when someone later
+ * edits their address book, or historic invoices would rewrite themselves. But
+ * the snapshot lives on the order, so nothing was ever written to `addresses`
+ * and the address book was empty for everyone: "use my saved address" had
+ * nothing to offer, on a form long enough that retyping it is a real deterrent
+ * to buying a second table.
+ *
+ * Deduplicated on the parts that identify a place, so ordering four times does
+ * not leave four identical entries. Failure here must never fail the order —
+ * the order is placed and paid for either way.
+ */
+async function rememberAddress(userId: string, address: AddressInput): Promise<void> {
+  const db = getDb();
+  const key = (value: string | null | undefined) => (value ?? '').trim().toLowerCase();
+
+  try {
+    const existing = await db.select().from(addresses)
+      .where(and(eq(addresses.userId, userId), isNull(addresses.deletedAt)));
+
+    const duplicate = existing.some((row) =>
+      key(row.line1) === key(address.line1)
+      && key(row.pincode) === key(address.pincode)
+      && key(row.fullName) === key(address.fullName));
+    if (duplicate) return;
+
+    await db.insert(addresses).values({
+      userId,
+      fullName: address.fullName,
+      phone: address.phone,
+      line1: address.line1,
+      line2: address.line2 ?? null,
+      landmark: address.landmark ?? null,
+      city: address.city,
+      state: address.state,
+      pincode: address.pincode,
+      type: address.type ?? 'home',
+      /* The first one saved becomes the default, so checkout has something to
+         prefill without the customer having to nominate one. */
+      isDefault: existing.length === 0,
+    });
+  } catch (error) {
+    logger.warn({ userId, err: error }, 'could not save address to the address book');
+  }
 }
 
 /**
@@ -315,6 +363,12 @@ export async function placeOrder(params: {
 
     return { order, totals };
   });
+
+  /* After the order is committed, never before: a rolled-back checkout must
+     not leave an address behind. */
+  if (params.userId && params.shippingAddress) {
+    await rememberAddress(params.userId, shippingAddress);
+  }
 
   // The cart is emptied only after the order exists, so a failed transaction
   // never loses the shopper's cart.

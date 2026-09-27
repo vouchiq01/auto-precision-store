@@ -321,6 +321,24 @@ describe('placing an order', () => {
     assert.equal(res.status, 409);
   });
 
+  test('remembers the address so the next checkout can prefill it', async () => {
+    /* The order snapshots its own copy, which is why nothing was being written
+       to the address book and "use my saved address" had nothing to offer. */
+    const res = await client.request('GET', '/api/account/addresses', { token: customerToken });
+    assert.equal(res.status, 200);
+    assert.ok(res.body.items.length >= 1, 'the address used at checkout should be saved');
+
+    const saved = res.body.items[0];
+    assert.equal(saved.pincode, BENGALURU_ADDRESS.pincode);
+    assert.equal(saved.isDefault, true, 'the first address saved becomes the default');
+
+    /* Several orders to the same place must not fill the book with copies. */
+    const count = res.body.items.filter(
+      (a: { line1: string }) => a.line1 === BENGALURU_ADDRESS.line1,
+    ).length;
+    assert.equal(count, 1, 'repeat orders to one address should not duplicate it');
+  });
+
   test('refuses to place an order for an unidentified buyer', async () => {
     /* The browser asks for a code before paying, but that is a convention
        until the server insists on it. A crate must not ship against a phone

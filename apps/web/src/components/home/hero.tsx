@@ -145,7 +145,14 @@ export function Hero({ banner, totalProducts }: { banner: Banner | null; totalPr
 
           <div
             ref={mediaRef}
-            className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-sand shadow-lift will-change-transform sm:aspect-[5/4] lg:aspect-[4/5]"
+            /* lg:max-h caps the portrait crop. Without it, aspect-[4/5] scales
+               height directly off the column's own width — on a wide desktop
+               monitor the image column alone gets wide enough to force a
+               ~800px tall row, nearly double the text column beside it, and
+               the whole hero balloons well past its content, shoving every
+               section below it down the page. The cap lets object-cover crop
+               the photo rather than the layout stretching to fit it. */
+            className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-sand shadow-lift will-change-transform sm:aspect-[5/4] lg:aspect-[4/5] lg:max-h-[34rem]"
           >
             <Image
               src={banner?.imageDesktop ?? '/banners/hero-apex-mobile.jpg'}

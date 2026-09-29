@@ -49,11 +49,15 @@ export function CategoryRail({ categories }: { categories: Category[] }) {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
 
+              {/* text-on-ink, not text-content: this sits over the dark
+                  gradient painted onto the photo, not over the page canvas.
+                  The dark-ink body text used here during the light-canvas
+                  migration was nearly invisible against the photo. */}
               <div className="absolute inset-x-0 bottom-0 p-5">
-                <h3 className="font-display text-lg font-medium leading-tight tracking-[-0.02em] text-content">
+                <h3 className="font-display text-lg font-medium leading-tight tracking-[-0.02em] text-on-ink">
                   {category.name}
                 </h3>
-                <p className="numeric mt-1 text-xs text-muted">
+                <p className="numeric mt-1 text-xs text-on-ink-muted">
                   {category.productCount ?? 0} {category.productCount === 1 ? 'table' : 'tables'}
                 </p>
                 {/* Crimson rule that wipes in on hover — the only accent here */}

@@ -16,7 +16,7 @@ export function Bestsellers({ products }: { products: ProductSummary[] }) {
             What people actually buy.
           </h2>
         </div>
-        <SectionNumber value="03" className="hidden md:block" />
+        <SectionNumber value="01" className="hidden md:block" />
       </div>
 
       <Reveal stagger={0.08} className="mt-14 grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

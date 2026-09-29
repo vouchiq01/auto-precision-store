@@ -96,6 +96,33 @@ export function TableDemo() {
     goTo(next);
   }, [goTo]);
 
+  /* Arrows and swipe are the same "take over" action as clicking a dot — the
+     reader driving it by hand, so the auto-advance stops rather than fighting
+     them a few seconds later. Wraps in both directions. */
+  const step = useCallback((delta: 1 | -1) => {
+    takeOver((index + delta + BEATS.length) % BEATS.length);
+  }, [index, takeOver]);
+
+  /* Touch swipe on the photo. A tap is a drag of ~0px and must not be treated
+     as a swipe, so anything under the threshold is ignored rather than
+     resolved to "next". */
+  const touchStartX = useRef<number | null>(null);
+  const SWIPE_THRESHOLD_PX = 40;
+
+  const onTouchStart = useCallback((event: React.TouchEvent) => {
+    touchStartX.current = event.touches[0]?.clientX ?? null;
+  }, []);
+
+  const onTouchEnd = useCallback((event: React.TouchEvent) => {
+    const startX = touchStartX.current;
+    touchStartX.current = null;
+    if (startX === null) return;
+    const endX = event.changedTouches[0]?.clientX ?? startX;
+    const delta = endX - startX;
+    if (Math.abs(delta) < SWIPE_THRESHOLD_PX) return;
+    step(delta < 0 ? 1 : -1);
+  }, [step]);
+
   /* Only run while the section is actually on screen. Otherwise it has cycled
      the whole story several times before anyone scrolls down to it, and they
      arrive in the middle of a sentence.
@@ -231,7 +258,11 @@ export function TableDemo() {
             </div>
           </div>
 
-          <div className="relative aspect-[4/3] overflow-hidden rounded-[1.75rem] bg-sand shadow-lift sm:aspect-[3/2] lg:aspect-[4/3]">
+          <div
+            className="relative aspect-[4/3] overflow-hidden rounded-[1.75rem] bg-sand shadow-lift sm:aspect-[3/2] lg:aspect-[4/3]"
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+          >
             {BEATS.map((beat, i) => {
               const isActive = i === index;
               const isOutgoing = i === previous;
@@ -252,9 +283,51 @@ export function TableDemo() {
                 />
               );
             })}
+
+            {/* Prev/next, so the photo itself is a control, not only the
+                small dots below it. Always rendered rather than hover-only —
+                the same rule as the listing card's add-to-cart icon: hover
+                does not exist on a touch screen and is unreachable by
+                keyboard-only navigation, so a hover-revealed control is
+                invisible to exactly the visitors who need a tappable target
+                most. z-10 keeps them above every photo layer. */}
+            <button
+              type="button"
+              onClick={() => step(-1)}
+              aria-label={`Previous step: ${BEATS[(index - 1 + BEATS.length) % BEATS.length]!.title}`}
+              className="absolute left-3 top-1/2 z-10 grid size-10 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-surface/90 text-content shadow-card backdrop-blur-sm transition-colors duration-300 hover:bg-crimson hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2"
+            >
+              <ArrowIcon direction="left" />
+            </button>
+            <button
+              type="button"
+              onClick={() => step(1)}
+              aria-label={`Next step: ${BEATS[(index + 1) % BEATS.length]!.title}`}
+              className="absolute right-3 top-1/2 z-10 grid size-10 -translate-y-1/2 cursor-pointer place-items-center rounded-full bg-surface/90 text-content shadow-card backdrop-blur-sm transition-colors duration-300 hover:bg-crimson hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2"
+            >
+              <ArrowIcon direction="right" />
+            </button>
           </div>
         </div>
       </div>
     </section>
+  );
+}
+
+function ArrowIcon({ direction }: { direction: 'left' | 'right' }) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      className="size-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      style={direction === 'left' ? undefined : { transform: 'scaleX(-1)' }}
+    >
+      <path d="M12.5 5 7 10l5.5 5" />
+    </svg>
   );
 }

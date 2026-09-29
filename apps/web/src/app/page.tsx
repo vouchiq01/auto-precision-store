@@ -40,14 +40,17 @@ export default async function HomePage() {
   return (
     <>
       <Hero banner={heroBanners[0] ?? null} totalProducts={totalProducts} />
+      {/* Bestsellers 2nd, categories 3rd: social proof — what people actually
+          buy — lands before the full range does, then the range itself,
+          before the "does this even work" pitch below. */}
+      <Bestsellers products={featured.items} />
+      <CategoryRail categories={categories} />
       <Marquee />
       {/* Show, then explain: the demo answers "what even is this and is it
           hard?", WhatItDoes then backs it with the numbers. */}
       <TableDemo />
       <WhatItDoes />
-      <CategoryRail categories={categories} />
       {flagship && <FeaturedStory product={flagship} />}
-      <Bestsellers products={featured.items} />
       <Proof />
       <EnquiryCta />
     </>

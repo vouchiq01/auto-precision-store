@@ -81,7 +81,7 @@ export function WhatItDoes() {
               dog&rsquo;s patience rather than the table itself.
             </p>
           </div>
-          <SectionNumber value="01" className="hidden md:block" />
+          <SectionNumber value="03" className="hidden md:block" />
         </div>
 
         <div className="mt-16 space-y-20 md:space-y-28">

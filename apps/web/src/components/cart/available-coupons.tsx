@@ -1,18 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { formatINR } from '@aps/shared';
-import { apiFetch } from '@/lib/api';
-
-interface PublicCouponRow {
-  code: string;
-  description: string | null;
-  type: 'percent' | 'flat' | 'free_shipping';
-  value: number;
-  minOrderValue: number | null;
-  maxDiscount: number | null;
-  endsAt: string | null;
-}
+import { usePublicCoupons, type PublicCouponRow } from '@/hooks/use-public-coupons';
 
 function describe(coupon: PublicCouponRow): string {
   if (coupon.type === 'percent') return `${coupon.value / 100}% off`;
@@ -28,16 +18,8 @@ function describe(coupon: PublicCouponRow): string {
  * the shopper choosing to hit "Apply" themselves.
  */
 export function AvailableCoupons({ onPick }: { onPick: (code: string) => void }) {
-  const [coupons, setCoupons] = useState<PublicCouponRow[] | null>(null);
+  const coupons = usePublicCoupons();
   const [copied, setCopied] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    void apiFetch<{ items: PublicCouponRow[] }>('/api/coupons/public')
-      .then((result) => { if (!cancelled) setCoupons(result.items); })
-      .catch(() => { if (!cancelled) setCoupons([]); });
-    return () => { cancelled = true; };
-  }, []);
 
   if (!coupons || coupons.length === 0) return null;
 

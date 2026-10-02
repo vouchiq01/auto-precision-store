@@ -473,6 +473,18 @@ release it after 45 minutes.
   qualify the outer reference by name.
 - **`db.execute()` row shape differs by driver.** Use `rowsOf()` in
   `apps/api/src/lib/rows.ts`.
+- **PGlite tolerates raw `Date` objects inside a `sql` template that
+  Postgres's real driver (`postgres` npm package) does not.** The admin
+  dashboard's `generate_series(${periodStart}::date, ${now}::date, ...)`
+  passed JS `Date`s straight through — every test and every local dev session
+  runs on PGlite, so this shipped clean and then threw `TypeError
+  [ERR_INVALID_ARG_TYPE] ... Received an instance of Date` the first time it
+  ever ran against the real Supabase Postgres. Call `.toISOString()` before
+  interpolating a `Date` next to an explicit `::date`/`::timestamp` cast in a
+  raw `sql` template. Found by reproducing the deployed 500 locally with
+  `DATABASE_URL` pointed at the production database — the production error
+  response is deliberately opaque, but the server's own log line has the real
+  stack trace.
 - **`@aps/shared` resolves to `dist/`, not source.** Editing a shared package
   and restarting the API changes nothing until `npm run build -w @aps/shared` —
   the dev server happily serves the stale build. The tests compile from source

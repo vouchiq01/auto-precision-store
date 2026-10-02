@@ -53,7 +53,7 @@ adminDashboardRouter.get('/',
         to_char(d.day, 'YYYY-MM-DD') as date,
         coalesce(sum(o.grand_total), 0)::text as revenue,
         count(o.id)::int as orders
-      from generate_series(${periodStart}::date, ${now}::date, '1 day') as d(day)
+      from generate_series(${periodStart.toISOString()}::date, ${now.toISOString()}::date, '1 day') as d(day)
       left join orders o
         on o.created_at::date = d.day
         and o.status in ('paid','confirmed','packed','shipped','delivered')

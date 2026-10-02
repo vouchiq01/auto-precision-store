@@ -382,6 +382,17 @@ operation that triggered it.
   `order-notifications.service.ts` is the one place that re-adds it; do not
   send a stored phone number to the provider without going through it.
 
+## ALLOW_MOCK_SMS_IN_PRODUCTION — staging-only escape hatch
+
+The API refuses to boot in production with `SMS_PROVIDER=mock`, on purpose —
+every OTP being `123456` is an account-takeover hole, not a cosmetic warning.
+`ALLOW_MOCK_SMS_IN_PRODUCTION=true` (in `env.ts`) overrides that refusal for a
+staging deploy that's reachable over the internet before MSG91/DLT is sorted
+out. It logs a loud warning on every boot while it's on. **Never set this on a
+deployment real customers can reach** — turn it off (and switch
+`SMS_PROVIDER` to `msg91`) the moment MSG91 is configured, before announcing
+the store is live.
+
 ## Public coupon listing
 
 Coupons are private by default — `coupons.isPublic` (default `false`), admin

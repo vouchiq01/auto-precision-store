@@ -52,6 +52,13 @@ const envSchema = z.object({
   SUPABASE_STORAGE_BUCKET: z.string().default('media'),
 
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
+
+  /* A deliberate, named escape hatch for the SMS_PROVIDER=mock boot refusal
+     below — for a staging deploy that is reachable over the internet before
+     MSG91/DLT is sorted out, not for anything a real customer will touch.
+     Off by default: this must be a choice someone makes on purpose, not a
+     default anyone could ship without realising every OTP is 123456. */
+  ALLOW_MOCK_SMS_IN_PRODUCTION: z.coerce.boolean().default(false),
 });
 
 function loadEnv() {
@@ -85,9 +92,13 @@ function loadEnv() {
       console.error('\nRazorpay credentials are required in production — checkout cannot work without them.\n');
       process.exit(1);
     }
-    if (env.SMS_PROVIDER === 'mock') {
+    if (env.SMS_PROVIDER === 'mock' && !env.ALLOW_MOCK_SMS_IN_PRODUCTION) {
       console.error('\nSMS_PROVIDER is "mock" in production. Every OTP would be 123456.\n');
+      console.error('If this is a deliberate staging deploy (MSG91/DLT not ready yet), set ALLOW_MOCK_SMS_IN_PRODUCTION=true. Do not do this for a deployment real customers can reach.\n');
       process.exit(1);
+    }
+    if (env.SMS_PROVIDER === 'mock' && env.ALLOW_MOCK_SMS_IN_PRODUCTION) {
+      console.warn('\nSMS_PROVIDER is "mock" in production, explicitly allowed via ALLOW_MOCK_SMS_IN_PRODUCTION. Every OTP is 123456 — anyone who knows that can sign in as any phone number. Turn this off before the site is customer-facing.\n');
     }
     /* A warning, not a boot failure: WhatsApp notifications are useful but not
        load-bearing the way OTP and payment are — the store must still be able

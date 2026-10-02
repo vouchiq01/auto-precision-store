@@ -15,7 +15,7 @@ export function CategoryRail({ categories }: { categories: Category[] }) {
   if (categories.length === 0) return null;
 
   return (
-    <section className="shell py-24 md:py-32">
+    <section className="shell py-16 md:py-24">
       <div className="flex items-end justify-between gap-8">
         <div>
           <Eyebrow>The range</Eyebrow>

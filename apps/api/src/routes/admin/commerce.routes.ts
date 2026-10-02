@@ -160,7 +160,7 @@ adminCommerceRouter.patch('/orders/:id/status',
 
     const order = await updateOrderStatus({
       orderId: id, status: body.status, note: body.note,
-      trackingNumber: body.trackingNumber, trackingUrl: body.trackingUrl,
+      carrier: body.carrier, trackingNumber: body.trackingNumber, trackingUrl: body.trackingUrl,
       actorId: req.user!.id,
     });
 

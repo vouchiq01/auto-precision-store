@@ -515,6 +515,59 @@ describe('admin', () => {
     const stockAfter = after.body.variants.find((v: { id: string }) => v.id === fixture.variantId).stockQty;
     assert.equal(stockAfter, stockBefore + orderedUnits, 'cancelling returns the reserved units to the shelf');
   });
+
+  test('refuses to ship an order with no carrier or tracking number, and carries both once given', async () => {
+    /* A fresh order, walked to the one state this rule actually gates. */
+    const phone = '9988776655';
+    const request = await client.request('POST', '/api/auth/otp/request', { body: { phone } });
+    const session = await client.request('POST', '/api/auth/otp/verify', {
+      body: { phone, code: request.body.devCode, fullName: 'Shipping Test' },
+    });
+    const shopperToken = session.body.accessToken;
+
+    await client.request('POST', '/api/cart/items', { token: shopperToken, body: { variantId: fixture.variantId, quantity: 1 } });
+    const placed = await client.request('POST', '/api/checkout/orders', {
+      token: shopperToken, body: { shippingAddress: BENGALURU_ADDRESS, billingSameAsShipping: true },
+    });
+    assert.equal(placed.status, 201);
+    const orderId = placed.body.orderId;
+
+    for (const status of ['paid', 'confirmed', 'packed'] as const) {
+      const res = await client.request('PATCH', `/api/admin/orders/${orderId}/status`, { token: adminToken, body: { status } });
+      assert.equal(res.status, 200, `could not advance to ${status}: ${JSON.stringify(res.body)}`);
+    }
+
+    // The transition itself is legal (packed → shipped) but carries nothing
+    // the customer could track with, so it must be refused — and refused as
+    // a validation problem, not as an illegal-transition one, since the
+    // transition is fine and the content of the request is what is missing.
+    const bare = await client.request('PATCH', `/api/admin/orders/${orderId}/status`, {
+      token: adminToken, body: { status: 'shipped' },
+    });
+    assert.equal(bare.status, 422);
+    assert.equal(bare.body.type, 'validation_error');
+
+    // A carrier with no AWB (or vice versa) is half a shipment record.
+    const halfRecord = await client.request('PATCH', `/api/admin/orders/${orderId}/status`, {
+      token: adminToken, body: { status: 'shipped', carrier: 'Delhivery' },
+    });
+    assert.equal(halfRecord.status, 422);
+
+    const shipped = await client.request('PATCH', `/api/admin/orders/${orderId}/status`, {
+      token: adminToken,
+      body: { status: 'shipped', carrier: 'Delhivery', trackingNumber: 'AWB123456', trackingUrl: 'https://www.delhivery.com/track-v2/package/AWB123456' },
+    });
+    assert.equal(shipped.status, 200, JSON.stringify(shipped.body));
+    assert.equal(shipped.body.status, 'shipped');
+    assert.equal(shipped.body.carrier, 'Delhivery');
+    assert.equal(shipped.body.trackingNumber, 'AWB123456');
+
+    // And the customer sees exactly that, not just the admin view.
+    const customerView = await client.request('GET', `/api/checkout/orders/${placed.body.orderNumber}`, { token: shopperToken });
+    assert.equal(customerView.body.carrier, 'Delhivery');
+    assert.equal(customerView.body.trackingNumber, 'AWB123456');
+    assert.equal(customerView.body.trackingUrl, 'https://www.delhivery.com/track-v2/package/AWB123456');
+  });
 });
 
 describe('public endpoints', () => {

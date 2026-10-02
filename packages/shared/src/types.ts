@@ -224,6 +224,7 @@ export interface Order {
   gstin: string | null;
   shippingAddress: Record<string, unknown>;
   billingAddress: Record<string, unknown>;
+  carrier: string | null;
   trackingNumber: string | null;
   trackingUrl: string | null;
   invoiceUrl: string | null;

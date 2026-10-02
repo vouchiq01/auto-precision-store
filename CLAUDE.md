@@ -314,6 +314,31 @@ runs, and it runs whenever the cart or address changes. A failed order was
 being wiped milliseconds after it appeared. Order-path failures go in
 `orderError`, which the quote never touches.
 
+## Carrier and tracking
+
+Admin picks a **carrier** from a known list (`CARRIERS` in
+`packages/shared/src/constants.ts`) and types the AWB/tracking number; the
+tracking URL is built automatically from a per-carrier template
+(`carrierTrackingUrl`), with a manual override field for couriers with no
+predictable URL shape ("Professional Couriers") or anything not on the list
+("Other").
+
+**Marking an order "shipped" without both is refused** — a shipped order with
+no carrier and no tracking number is one the customer has no way to follow and
+support has no way to answer "where is my table" about. Enforced in
+`updateOrderStatus` (`order.service.ts`), deliberately **after** the
+legal-transition check, not in the Zod schema: the schema only enforces the
+shape-level rule (carrier and tracking number travel together, or neither is
+present), because a request that is illegal for an unrelated reason — skipping
+a status — must still report as `invalid_transition`, not get masked by a
+validation error about tracking fields it was never going to use.
+
+Carrier and tracking number can also be added or corrected outside a status
+change, from the same inline form in the admin orders table (`+ Add tracking`
+/ click the existing value to edit) — a courier's AWB sometimes needs fixing
+after the fact, and that must not require walking the order backward through
+the status machine to do it.
+
 ## Claims must match the data
 
 The marquee said "36-month frame warranty". Two of the eighteen products have

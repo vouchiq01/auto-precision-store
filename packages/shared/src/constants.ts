@@ -52,6 +52,31 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   refunded: 'Refunded',
 };
 
+/**
+ * Couriers we actually ship with, each with a template for building the
+ * tracking URL from just the AWB/tracking number — so the admin only has to
+ * type the number once instead of hunting down a tracking link by hand.
+ * "Other" always falls back to leaving the URL blank for manual entry.
+ */
+export const CARRIERS = [
+  { id: 'delhivery', name: 'Delhivery', trackingUrl: (awb: string) => `https://www.delhivery.com/track-v2/package/${awb}` },
+  { id: 'dtdc', name: 'DTDC', trackingUrl: (awb: string) => `https://www.dtdc.in/tracking/shipment-status?trackingId=${awb}` },
+  { id: 'bluedart', name: 'Blue Dart', trackingUrl: (awb: string) => `https://www.bluedart.com/tracking?trackFor=${awb}` },
+  { id: 'ekart', name: 'Ekart', trackingUrl: (awb: string) => `https://www.ekartlogistics.com/track/${awb}` },
+  { id: 'xpressbees', name: 'XpressBees', trackingUrl: (awb: string) => `https://www.xpressbees.com/track?awb=${awb}` },
+  { id: 'shiprocket', name: 'Shiprocket', trackingUrl: (awb: string) => `https://shiprocket.co/tracking/${awb}` },
+  { id: 'professional', name: 'Professional Couriers', trackingUrl: () => null },
+  { id: 'india_post', name: 'India Post', trackingUrl: (awb: string) => `https://www.indiapost.gov.in/_layouts/15/dop.portal.tracking/trackconsignment.aspx?id=${awb}` },
+  { id: 'other', name: 'Other', trackingUrl: () => null },
+] as const satisfies ReadonlyArray<{ id: string; name: string; trackingUrl: (awb: string) => string | null }>;
+export type CarrierId = (typeof CARRIERS)[number]['id'];
+
+export function carrierTrackingUrl(carrierId: string, trackingNumber: string): string | null {
+  const carrier = CARRIERS.find((c) => c.id === carrierId);
+  if (!carrier || !trackingNumber.trim()) return null;
+  return carrier.trackingUrl(trackingNumber.trim());
+}
+
 export const PAYMENT_STATUSES = ['created', 'authorized', 'captured', 'failed', 'refunded'] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 

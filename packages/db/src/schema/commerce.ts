@@ -88,6 +88,9 @@ export const orders = pgTable('orders', {
 
   totalWeightG: integer('total_weight_g').notNull().default(0),
   notes: text('notes'),
+  /** Name of the courier doing the delivery — "Delhivery", "DTDC", etc. Free
+      text rather than an enum: new couriers get added without a migration. */
+  carrier: text('carrier'),
   trackingNumber: text('tracking_number'),
   trackingUrl: text('tracking_url'),
   invoiceNumber: text('invoice_number').unique(),

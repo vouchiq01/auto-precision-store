@@ -66,9 +66,22 @@ export type CategoryInput = z.infer<typeof categoryInputSchema>;
 export const updateOrderStatusSchema = z.object({
   status: z.enum(ORDER_STATUSES),
   note: z.string().trim().max(500).optional().nullable(),
+  carrier: z.string().trim().max(80).optional().nullable(),
   trackingNumber: z.string().trim().max(80).optional().nullable(),
   trackingUrl: z.string().url().optional().nullable(),
-});
+})
+  /* A courier name with no AWB (or vice versa) is half a shipment record — the
+     customer-facing tracking line needs both or neither. This is pure shape
+     validation (true regardless of the order's current status), so it belongs
+     here. Whether "shipped" specifically REQUIRES both is a business rule
+     about THIS order's state, not the request's shape, and is enforced in
+     updateOrderStatus instead — after the legal-transition check, so a
+     request that is illegal for an unrelated reason (e.g. skipping a status)
+     still reports as that, not as "you forgot the tracking number". */
+  .refine((v) => !(v.carrier && !v.trackingNumber) && !(v.trackingNumber && !v.carrier), {
+    message: 'Enter both the carrier and the tracking number, or leave both blank.',
+    path: ['trackingNumber'],
+  });
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
 
 export const moderateReviewSchema = z.object({

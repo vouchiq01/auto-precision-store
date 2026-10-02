@@ -79,10 +79,23 @@ export default function OrderPage() {
 
       <div className="mt-12 grid gap-12 lg:grid-cols-[1fr_22rem] lg:gap-16">
         <div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Badge tone={paid ? 'success' : 'warning'}>{ORDER_STATUS_LABELS[order.status]}</Badge>
             {order.trackingNumber && (
-              <span className="numeric text-sm text-muted">Tracking {order.trackingNumber}</span>
+              order.trackingUrl ? (
+                <a
+                  href={order.trackingUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="numeric text-sm text-muted underline-offset-4 transition-colors hover:text-crimson hover:underline"
+                >
+                  {order.carrier ? `${order.carrier} · ` : ''}Tracking {order.trackingNumber} ↗
+                </a>
+              ) : (
+                <span className="numeric text-sm text-muted">
+                  {order.carrier ? `${order.carrier} · ` : ''}Tracking {order.trackingNumber}
+                </span>
+              )
             )}
           </div>
 

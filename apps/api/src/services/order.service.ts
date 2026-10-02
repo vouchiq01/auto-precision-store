@@ -3,7 +3,7 @@ import {
   getDb, orderEvents, orderItems, orders, payments, productVariants, type Database,
 } from '@aps/db';
 import { canTransition, type Order, type OrderStatus, type Paginated } from '@aps/shared';
-import { ConflictError, InvalidTransitionError, NotFoundError } from '../lib/errors.ts';
+import { ConflictError, InvalidTransitionError, NotFoundError, ValidationError } from '../lib/errors.ts';
 import { logger } from '../lib/logger.ts';
 import { nextInvoiceNumber } from '../lib/numbering.ts';
 import { verifyPaymentSignature } from './razorpay.service.ts';
@@ -34,7 +34,7 @@ async function hydrateOrder(row: typeof orders.$inferSelect): Promise<Order> {
     taxTotal: row.taxTotal, grandTotal: row.grandTotal,
     couponCode: row.couponCode, gstin: row.gstin,
     shippingAddress: row.shippingAddress, billingAddress: row.billingAddress,
-    trackingNumber: row.trackingNumber, trackingUrl: row.trackingUrl, invoiceUrl: row.invoiceUrl,
+    carrier: row.carrier, trackingNumber: row.trackingNumber, trackingUrl: row.trackingUrl, invoiceUrl: row.invoiceUrl,
     placedAt: row.placedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
   };
@@ -185,7 +185,7 @@ export async function recordFailedPayment(params: {
  */
 export async function updateOrderStatus(params: {
   orderId: string; status: OrderStatus; note?: string | null;
-  trackingNumber?: string | null; trackingUrl?: string | null; actorId: string;
+  carrier?: string | null; trackingNumber?: string | null; trackingUrl?: string | null; actorId: string;
 }): Promise<Order> {
   const db = getDb();
 
@@ -196,6 +196,21 @@ export async function updateOrderStatus(params: {
     if (order.status === params.status) throw new ConflictError(`This order is already ${params.status}.`);
     if (!canTransition(order.status, params.status)) {
       throw new InvalidTransitionError(order.status, params.status);
+    }
+
+    /* Checked after the transition itself is confirmed legal: a request that
+       is illegal for an unrelated reason (skipping a status) should report as
+       that, not as "you forgot the tracking number". Marking an order shipped
+       without saying who is carrying it is the one gap that actually breaks
+       the point of shipping it — the customer has no way to track it and
+       support has no way to answer "where is my table". */
+    const carrier = params.carrier ?? order.carrier;
+    const trackingNumber = params.trackingNumber ?? order.trackingNumber;
+    if (params.status === 'shipped' && !(carrier && trackingNumber)) {
+      throw new ValidationError(
+        { carrier: ['Add the carrier and tracking number before marking an order shipped.'] },
+        'Add the carrier and tracking number before marking an order shipped.',
+      );
     }
 
     const restocking = params.status === 'cancelled' || params.status === 'refunded';
@@ -223,6 +238,7 @@ export async function updateOrderStatus(params: {
       status: params.status,
       invoiceNumber,
       placedAt: order.placedAt ?? (needsInvoice ? new Date() : null),
+      carrier: params.carrier ?? order.carrier,
       trackingNumber: params.trackingNumber ?? order.trackingNumber,
       trackingUrl: params.trackingUrl ?? order.trackingUrl,
       updatedAt: new Date(),

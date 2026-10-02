@@ -29,6 +29,24 @@ const envSchema = z.object({
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
 
+  /* Order-event WhatsApp messages: new order -> seller, status change -> buyer.
+     Mock in dev prints to the log; "meta" sends through the WhatsApp Cloud API
+     directly (no BSP in between). */
+  WHATSAPP_PROVIDER: z.enum(['mock', 'meta']).default('mock'),
+  META_WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
+  META_WHATSAPP_ACCESS_TOKEN: z.string().optional(),
+  META_WHATSAPP_BUSINESS_ACCOUNT_ID: z.string().optional(),
+  META_WHATSAPP_API_VERSION: z.string().default('v21.0'),
+  /** Where "you have a new order" alerts go — the seller's own WhatsApp number. */
+  SELLER_WHATSAPP_NUMBER: z.string().optional(),
+  /* Business-initiated WhatsApp messages must use a template Meta has already
+     approved — free-form text is only allowed as a reply inside a 24-hour
+     customer-service window, which an automated order update is not. */
+  WHATSAPP_TEMPLATE_ORDER_PLACED: z.string().optional(),
+  WHATSAPP_TEMPLATE_ORDER_PLACED_LANG: z.string().default('en'),
+  WHATSAPP_TEMPLATE_ORDER_STATUS: z.string().optional(),
+  WHATSAPP_TEMPLATE_ORDER_STATUS_LANG: z.string().default('en'),
+
   SUPABASE_URL: z.string().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   SUPABASE_STORAGE_BUCKET: z.string().default('media'),
@@ -54,6 +72,10 @@ function loadEnv() {
     console.error('\nSMS_PROVIDER is "msg91" but MSG91_AUTH_KEY is not set.\n');
     process.exit(1);
   }
+  if (env.WHATSAPP_PROVIDER === 'meta' && !(env.META_WHATSAPP_PHONE_NUMBER_ID && env.META_WHATSAPP_ACCESS_TOKEN)) {
+    console.error('\nWHATSAPP_PROVIDER is "meta" but META_WHATSAPP_PHONE_NUMBER_ID / META_WHATSAPP_ACCESS_TOKEN is not set.\n');
+    process.exit(1);
+  }
   if (env.NODE_ENV === 'production') {
     if (env.DATABASE_URL.startsWith('pglite://')) {
       console.error('\nDATABASE_URL points at a local PGlite file. That is a development-only database and cannot serve production traffic.\n');
@@ -66,6 +88,12 @@ function loadEnv() {
     if (env.SMS_PROVIDER === 'mock') {
       console.error('\nSMS_PROVIDER is "mock" in production. Every OTP would be 123456.\n');
       process.exit(1);
+    }
+    /* A warning, not a boot failure: WhatsApp notifications are useful but not
+       load-bearing the way OTP and payment are — the store must still be able
+       to go live before Meta finishes approving a message template. */
+    if (env.WHATSAPP_PROVIDER === 'mock') {
+      console.warn('\nWHATSAPP_PROVIDER is "mock" in production. Order-event WhatsApp messages will only be logged, not sent.\n');
     }
   }
 
@@ -82,3 +110,5 @@ export const corsOrigins = env.CORS_ORIGINS.split(',').map((o) => o.trim()).filt
 /** Razorpay is optional in development so the rest of the app can run without it. */
 export const razorpayConfigured = Boolean(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET);
 export const supabaseConfigured = Boolean(env.SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY);
+export const whatsappConfigured = env.WHATSAPP_PROVIDER === 'meta'
+  && Boolean(env.META_WHATSAPP_PHONE_NUMBER_ID && env.META_WHATSAPP_ACCESS_TOKEN);

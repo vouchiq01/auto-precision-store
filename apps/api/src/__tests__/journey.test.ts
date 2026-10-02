@@ -8,6 +8,10 @@ process.env.JWT_SECRET = 'test-secret-that-is-definitely-long-enough-32';
 process.env.SMS_PROVIDER = 'mock';
 process.env.LOG_LEVEL = 'silent';
 process.env.CORS_ORIGINS = 'http://localhost:3000';
+process.env.WHATSAPP_PROVIDER = 'mock';
+process.env.SELLER_WHATSAPP_NUMBER = '+919000000000';
+process.env.WHATSAPP_TEMPLATE_ORDER_PLACED = 'order_placed';
+process.env.WHATSAPP_TEMPLATE_ORDER_STATUS = 'order_status';
 
 const { createTestDatabase } = await import('@aps/db/testing');
 const { createApp } = await import('../app.ts');
@@ -567,6 +571,56 @@ describe('admin', () => {
     assert.equal(customerView.body.carrier, 'Delhivery');
     assert.equal(customerView.body.trackingNumber, 'AWB123456');
     assert.equal(customerView.body.trackingUrl, 'https://www.delhivery.com/track-v2/package/AWB123456');
+  });
+
+  test('messages the seller on a new order and the buyer on a status change, without duplicating', async () => {
+    /* A spy in place of the mock provider: same contract, captures what was
+       sent instead of only logging it. */
+    const { setWhatsappProvider } = await import('../services/whatsapp/index.ts');
+    const sent: Array<{ to: string; template: string; bodyParams: string[] }> = [];
+    setWhatsappProvider({
+      name: 'spy',
+      async sendTemplate(params) { sent.push(params); return { messageId: 'spy-1' }; },
+    });
+
+    try {
+      const phone = '9977885544';
+      const request = await client.request('POST', '/api/auth/otp/request', { body: { phone } });
+      const session = await client.request('POST', '/api/auth/otp/verify', {
+        body: { phone, code: request.body.devCode, fullName: 'Notify Test' },
+      });
+      const shopperToken = session.body.accessToken;
+
+      await client.request('POST', '/api/cart/items', { token: shopperToken, body: { variantId: fixture.variantId, quantity: 1 } });
+      const placed = await client.request('POST', '/api/checkout/orders', {
+        token: shopperToken, body: { shippingAddress: BENGALURU_ADDRESS, billingSameAsShipping: true },
+      });
+      assert.equal(placed.status, 201);
+
+      const sellerMessage = sent.find((m) => m.template === 'order_placed');
+      assert.ok(sellerMessage, 'placing an order should message the seller');
+      assert.equal(sellerMessage!.to, '919000000000');
+      assert.ok(sellerMessage!.bodyParams.includes(placed.body.orderNumber));
+
+      // A real admin status change notifies the buyer.
+      const toPaid = await client.request('PATCH', `/api/admin/orders/${placed.body.orderId}/status`, {
+        token: adminToken, body: { status: 'paid' },
+      });
+      assert.equal(toPaid.status, 200);
+      const paidMessages = sent.filter((m) => m.template === 'order_status' && m.bodyParams.includes(placed.body.orderNumber));
+      assert.equal(paidMessages.length, 1, 'the buyer should hear about the paid transition exactly once');
+
+      // markOrderPaid is also reachable directly (the webhook path) and must
+      // be idempotent: a duplicate delivery of the same event must not send a
+      // SECOND "your payment went through" message — the count must stay at
+      // one, not grow to two.
+      const { markOrderPaid } = await import('../services/order.service.ts');
+      await markOrderPaid({ orderId: placed.body.orderId, razorpayPaymentId: 'pay_test_dup', source: 'webhook' });
+      const paidMessagesAfterDuplicate = sent.filter((m) => m.template === 'order_status' && m.bodyParams.includes(placed.body.orderNumber));
+      assert.equal(paidMessagesAfterDuplicate.length, 1, 'a duplicate payment confirmation must not notify the buyer a second time');
+    } finally {
+      setWhatsappProvider(null);
+    }
   });
 });
 

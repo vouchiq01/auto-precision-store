@@ -339,6 +339,49 @@ change, from the same inline form in the admin orders table (`+ Add tracking`
 after the fact, and that must not require walking the order backward through
 the status machine to do it.
 
+## WhatsApp order notifications
+
+New order -> seller's own WhatsApp number. Order status change -> the buyer's.
+Same pluggable-provider pattern as `services/sms/` (interface + mock + real
+provider + a factory that picks one from env) — see `services/whatsapp/`.
+Provider is the WhatsApp Cloud API direct (no BSP), because that is what he
+already has connected in Meta Business Manager.
+
+**Every message is a template message, never free text.** WhatsApp only
+allows free-form replies inside the 24-hour window after the *customer*
+messages first; every notification here is business-initiated, so it has to
+use a template Meta has already approved. `order-notifications.service.ts`
+sends three positional body params per message — **the exact params are a
+starting guess, not a contract**: once there are real approved templates,
+line `bodyParams` up with that template's `{{1}}`, `{{2}}`, `{{3}}` in the
+same order the template actually uses them, and add a header/button component
+to the payload in `meta.provider.ts` if the approved template has one.
+
+Needed in `.env` before this does anything real: `WHATSAPP_PROVIDER=meta`,
+`META_WHATSAPP_PHONE_NUMBER_ID`, `META_WHATSAPP_ACCESS_TOKEN` (**permanent** —
+a system-user token, not the short-lived one Meta hands out by default, which
+expires and silently stops every notification with no error anywhere obvious),
+`SELLER_WHATSAPP_NUMBER`, and the two template names. Until then it runs on
+`mock`, which just logs — checkout and admin status changes work identically
+either way, because a notification must never be able to block or fail the
+operation that triggered it.
+
+**Two correctness traps already found and fixed here:**
+
+- `markOrderPaid` is idempotent by design — both the browser callback and the
+  Razorpay webhook call it, and a duplicate webhook delivery is routine, not
+  an edge case. The buyer must hear "payment received" once, not once per
+  delivery. Do NOT gate the notification on `result.status === 'paid'` — the
+  idempotent no-op branch returns the order in whatever status it was already
+  in, which is also `'paid'`, so that check fires on every duplicate too. Gate
+  it on an explicit flag (`justTransitioned`) set only inside the branch that
+  actually performed the update.
+- Stored phone numbers are a bare 10-digit Indian mobile (see `phoneSchema` —
+  the country code is deliberately stripped at input time). WhatsApp's Cloud
+  API needs the country code back on. `toWhatsappNumber()` in
+  `order-notifications.service.ts` is the one place that re-adds it; do not
+  send a stored phone number to the provider without going through it.
+
 ## Claims must match the data
 
 The marquee said "36-month frame warranty". Two of the eighteen products have

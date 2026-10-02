@@ -7,6 +7,7 @@ import { ConflictError, InvalidTransitionError, NotFoundError, ValidationError }
 import { logger } from '../lib/logger.ts';
 import { nextInvoiceNumber } from '../lib/numbering.ts';
 import { verifyPaymentSignature } from './razorpay.service.ts';
+import { notifyBuyerOfStatusChange } from './order-notifications.service.ts';
 
 /** Statuses that represent money received, and therefore require a tax invoice. */
 const INVOICEABLE_STATUSES: OrderStatus[] = ['paid', 'confirmed', 'packed', 'shipped', 'delivered'];
@@ -86,6 +87,10 @@ export async function markOrderPaid(params: {
   source: 'callback' | 'webhook';
 }): Promise<Order> {
   const db = getDb();
+  /* Set only on the real transition, never on the idempotent no-op below —
+     Razorpay can and does deliver the same webhook twice, and the buyer must
+     hear "your payment went through" once, not once per delivery. */
+  let justTransitioned = false;
 
   const result = await db.transaction(async (tx) => {
     const [order] = await tx.select().from(orders)
@@ -97,6 +102,7 @@ export async function markOrderPaid(params: {
         'payment confirmation for an order that is already past pending — ignoring');
       return order;
     }
+    justTransitioned = true;
 
     const invoiceNumber = order.invoiceNumber ?? (await nextInvoiceNumber(tx as unknown as Database));
 
@@ -129,7 +135,9 @@ export async function markOrderPaid(params: {
     return updated ?? order;
   });
 
-  return hydrateOrder(result);
+  const hydrated = await hydrateOrder(result);
+  if (justTransitioned) await notifyBuyerOfStatusChange(hydrated, 'paid');
+  return hydrated;
 }
 
 /** Verify the browser's callback, then confirm. Signature failure throws. */
@@ -252,7 +260,9 @@ export async function updateOrderStatus(params: {
     return updated ?? order;
   });
 
-  return hydrateOrder(result);
+  const hydrated = await hydrateOrder(result);
+  await notifyBuyerOfStatusChange(hydrated, params.status);
+  return hydrated;
 }
 
 /**

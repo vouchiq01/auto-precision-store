@@ -15,6 +15,7 @@ import { nextOrderNumber } from '../lib/numbering.ts';
 import { evaluateCartCoupon } from './cart.service.ts';
 import { quoteForAddress } from './shipping.service.ts';
 import { createRazorpayOrder } from './razorpay.service.ts';
+import { notifySellerOfNewOrder } from './order-notifications.service.ts';
 
 /** Either the pooled database or an open transaction — anything that can run a query. */
 type Executor = Database | Parameters<Parameters<Database['transaction']>[0]>[0];
@@ -369,6 +370,16 @@ export async function placeOrder(params: {
   if (params.userId && params.shippingAddress) {
     await rememberAddress(params.userId, shippingAddress);
   }
+
+  // Same rule as the address book: only after commit, and a failure here must
+  // never be allowed to look like the order itself failed.
+  await notifySellerOfNewOrder({
+    orderNumber: placed.order.orderNumber,
+    grandTotal: placed.order.grandTotal,
+    customerName: shippingAddress.fullName,
+    customerPhone: shippingAddress.phone,
+    itemCount: placed.totals.lines.reduce((sum, line) => sum + line.quantity, 0),
+  });
 
   // The cart is emptied only after the order exists, so a failed transaction
   // never loses the shopper's cart.

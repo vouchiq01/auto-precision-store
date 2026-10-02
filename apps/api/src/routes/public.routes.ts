@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import { and, desc, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { cmsPages, enquiries, getDb, orderItems, orders, products, reviews, stockNotifications } from '@aps/db';
+import { cmsPages, coupons, enquiries, getDb, orderItems, orders, products, reviews, stockNotifications } from '@aps/db';
 import {
-  enquiryInputSchema, paginationSchema, pincodeCheckSchema, reviewInputSchema, slugSchema, stockNotifySchema, uuidSchema,
+  enquiryInputSchema, isCouponCurrentlyLive, paginationSchema, pincodeCheckSchema, reviewInputSchema, slugSchema,
+  stockNotifySchema, uuidSchema,
 } from '@aps/shared';
 import { asyncHandler } from '../lib/async-handler.ts';
 import { ConflictError, NotFoundError } from '../lib/errors.ts';
@@ -142,3 +143,33 @@ publicRouter.get('/pages/:slug',
     res.json(page);
   }),
 );
+
+// ---- Coupons ----------------------------------------------------------------
+
+/**
+ * Codes the admin has opted to show on the storefront, so a shopper can copy
+ * one instead of needing to already know it. Gating is the same for every
+ * visitor — isActive, isPublic, date window, total usage left — because there
+ * is no cart yet to check a minimum or per-user limit against; minOrderValue
+ * is still returned so the UI can say "min ₹25,000" rather than hide the code.
+ */
+publicRouter.get('/coupons/public', asyncHandler(async (_req, res) => {
+  const db = getDb();
+  const rows = await db.select({
+    code: coupons.code, description: coupons.description, type: coupons.type, value: coupons.value,
+    minOrderValue: coupons.minOrderValue, maxDiscount: coupons.maxDiscount,
+    usageLimitTotal: coupons.usageLimitTotal, timesUsed: coupons.timesUsed,
+    startsAt: coupons.startsAt, endsAt: coupons.endsAt, isActive: coupons.isActive, isPublic: coupons.isPublic,
+  }).from(coupons).where(and(eq(coupons.isActive, true), eq(coupons.isPublic, true)));
+
+  const now = new Date();
+  const items = rows
+    .filter((c) => isCouponCurrentlyLive(c, now, c.timesUsed))
+    .map((c) => ({
+      code: c.code, description: c.description, type: c.type, value: c.value,
+      minOrderValue: c.minOrderValue, maxDiscount: c.maxDiscount,
+      endsAt: c.endsAt ? c.endsAt.toISOString() : null,
+    }));
+
+  res.json({ items });
+}));

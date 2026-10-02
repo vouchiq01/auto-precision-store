@@ -382,6 +382,30 @@ operation that triggered it.
   `order-notifications.service.ts` is the one place that re-adds it; do not
   send a stored phone number to the provider without going through it.
 
+## Public coupon listing
+
+Coupons are private by default — `coupons.isPublic` (default `false`), admin
+opt-in per code from the "Storefront" column on `/admin/coupons`. Existing
+coupons stayed hidden when this shipped; nothing becomes visible without the
+admin deliberately switching it on.
+
+`GET /api/coupons/public` is the only thing that lists them, and it is the one
+coupon code path that is not cart-scoped. `evaluateCoupon()` needs a cart
+(`CouponLine[]`) to check scope and minimum-order eligibility, which a
+browsing shopper does not have yet — so listing uses a lighter, separate check,
+`isCouponCurrentlyLive()` in `packages/shared/src/domain/coupon.ts`: active,
+public, within its date window, total usage not exhausted. Minimum order value
+and scope are **not** gating conditions here — a ₹25,000-minimum code is still
+worth showing, just not applicable to every basket, so `minOrderValue` comes
+back in the response for the UI to print ("min ₹25,000") rather than being used
+to decide whether the code appears at all.
+
+The storefront component (`components/cart/available-coupons.tsx`, used in
+both the cart page and the drawer) copies the code to the clipboard **and**
+drops it into the coupon input — it does not apply the coupon itself. Clicking
+a code must never change the cart total on its own; the shopper still presses
+Apply.
+
 ## Claims must match the data
 
 The marquee said "36-month frame warranty". Two of the eighteen products have

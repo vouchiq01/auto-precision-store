@@ -38,6 +38,8 @@ export const couponInputSchema = z.object({
   scope: z.enum(['all', 'category', 'product']).default('all'),
   targetIds: z.array(uuidSchema).default([]),
   isActive: z.boolean().default(true),
+  /** Admin opt-in to show this code on the storefront. */
+  isPublic: z.boolean().default(false),
 })
   .refine((c) => c.type !== 'percent' || (c.value > 0 && c.value <= 10_000), {
     message: 'Percentage must be between 0 and 100', path: ['value'],

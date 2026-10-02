@@ -20,6 +20,18 @@ export interface Coupon {
   /** Category or product ids when scope is not 'all'. */
   targetIds: string[];
   isActive: boolean;
+  isPublic: boolean;
+}
+
+/** The subset of a coupon safe to show an anonymous shopper browsing the store. */
+export interface PublicCoupon {
+  code: string;
+  description: string | null;
+  type: CouponType;
+  value: number;
+  minOrderValue: Paise | null;
+  maxDiscount: Paise | null;
+  endsAt: Date | null;
 }
 
 export interface CouponLine {
@@ -138,4 +150,26 @@ function isLineEligible(coupon: Coupon, line: CouponLine): boolean {
 /** Normalise user input: coupons are case-insensitive and whitespace-tolerant. */
 export function normaliseCouponCode(code: string): string {
   return code.trim().toUpperCase().replace(/\s+/g, '');
+}
+
+/**
+ * Whether a coupon should appear in a public "available codes" listing.
+ *
+ * Deliberately lighter than evaluateCoupon: a browsing shopper has no cart yet,
+ * so scope and minimum-order-value are shown as information (see PublicCoupon)
+ * rather than used to decide visibility — a ₹25,000-minimum code is still worth
+ * showing, just not applicable to every basket. Only facts true regardless of
+ * cart contents gate the listing: active, opted in, within its date window, and
+ * not used up.
+ */
+export function isCouponCurrentlyLive(
+  coupon: Pick<Coupon, 'isActive' | 'isPublic' | 'startsAt' | 'endsAt' | 'usageLimitTotal'>,
+  now: Date,
+  timesUsedTotal: number,
+): boolean {
+  if (!coupon.isActive || !coupon.isPublic) return false;
+  if (coupon.startsAt && now < coupon.startsAt) return false;
+  if (coupon.endsAt && now > coupon.endsAt) return false;
+  if (coupon.usageLimitTotal !== null && timesUsedTotal >= coupon.usageLimitTotal) return false;
+  return true;
 }

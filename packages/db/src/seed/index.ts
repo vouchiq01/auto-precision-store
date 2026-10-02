@@ -253,15 +253,15 @@ async function main(): Promise<void> {
     {
       code: 'WELCOME5', description: '5% off your first table', type: 'percent', value: 500,
       minOrderValue: 1_000_000, maxDiscount: 500_000, usageLimitPerUser: 1,
-      startsAt: now, endsAt: inNinetyDays, scope: 'all', isActive: true,
+      startsAt: now, endsAt: inNinetyDays, scope: 'all', isActive: true, isPublic: true,
     },
     {
       code: 'FREIGHTFREE', description: 'Free shipping, any order', type: 'free_shipping', value: 0,
       minOrderValue: 2_000_000, usageLimitTotal: 200,
-      startsAt: now, endsAt: inNinetyDays, scope: 'all', isActive: true,
+      startsAt: now, endsAt: inNinetyDays, scope: 'all', isActive: true, isPublic: true,
     },
     {
-      code: 'SALON2500', description: '₹2,500 off electric lifting tables', type: 'flat', value: 250_000,
+      code: 'TABLES2500', description: '₹2,500 off electric lifting tables', type: 'flat', value: 250_000,
       minOrderValue: 4_000_000, usageLimitPerUser: 2,
       startsAt: now, endsAt: inNinetyDays, scope: 'category',
       targetIds: [categoryBySlug.get('electric-lifting') as string], isActive: true,

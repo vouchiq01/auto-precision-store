@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { formatINR } from '@aps/shared';
 import { cn } from '@/lib/cn';
 import { useCart } from '@/providers/cart-provider';
+import { AvailableCoupons } from '@/components/cart/available-coupons';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Eyebrow } from '@/components/ui/primitives';
 
@@ -193,25 +194,28 @@ export function CartDrawer() {
                   </button>
                 </div>
               ) : (
-                <form
-                  className="mb-4 flex gap-2"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    if (couponInput.trim()) void applyCoupon(couponInput).then(() => setCouponInput(''));
-                  }}
-                >
-                  <input
-                    value={couponInput}
-                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                    placeholder="Coupon code"
-                    aria-label="Coupon code"
-                    tabIndex={isOpen ? 0 : -1}
-                    className="h-10 min-w-0 flex-1 rounded-full border border-line bg-canvas px-4 text-sm uppercase tracking-wide text-content outline-none focus:border-line-strong placeholder:normal-case placeholder:tracking-normal placeholder:text-faint"
-                  />
-                  <Button type="submit" variant="secondary" size="sm" loading={mutating} disabled={!couponInput.trim()}>
-                    Apply
-                  </Button>
-                </form>
+                <>
+                  <AvailableCoupons onPick={setCouponInput} />
+                  <form
+                    className="mb-4 flex gap-2"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      if (couponInput.trim()) void applyCoupon(couponInput).then(() => setCouponInput(''));
+                    }}
+                  >
+                    <input
+                      value={couponInput}
+                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                      placeholder="Coupon code"
+                      aria-label="Coupon code"
+                      tabIndex={isOpen ? 0 : -1}
+                      className="h-10 min-w-0 flex-1 rounded-full border border-line bg-canvas px-4 text-sm uppercase tracking-wide text-content outline-none focus:border-line-strong placeholder:normal-case placeholder:tracking-normal placeholder:text-faint"
+                    />
+                    <Button type="submit" variant="secondary" size="sm" loading={mutating} disabled={!couponInput.trim()}>
+                      Apply
+                    </Button>
+                  </form>
+                </>
               )}
 
               {cart?.couponMessage && (

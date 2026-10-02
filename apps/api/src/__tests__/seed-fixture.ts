@@ -108,9 +108,14 @@ export async function seedFixture() {
 
   // ---- Coupons ------------------------------------------------------------
   await db.insert(coupons).values([
-    { code: 'SAVE10', type: 'percent', value: 1000, scope: 'all', isActive: true },
+    { code: 'SAVE10', type: 'percent', value: 1000, scope: 'all', isActive: true, isPublic: true },
     { code: 'BIGSPEND', type: 'flat', value: 500_000, minOrderValue: 50_000_000, scope: 'all', isActive: true },
-    { code: 'FREIGHTFREE', type: 'free_shipping', value: 0, scope: 'all', isActive: true },
+    { code: 'FREIGHTFREE', type: 'free_shipping', value: 0, scope: 'all', isActive: true, isPublic: true },
+    { code: 'STAFFONLY', type: 'flat', value: 100_000, scope: 'all', isActive: true, isPublic: false },
+    {
+      code: 'EXPIREDPUB', type: 'flat', value: 100_000, scope: 'all', isActive: true, isPublic: true,
+      endsAt: new Date('2020-01-01'),
+    },
   ]);
 
   await db.insert(cmsPages).values({

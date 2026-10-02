@@ -14,7 +14,7 @@ interface Coupon {
   minOrderValue: number | null; maxDiscount: number | null;
   usageLimitTotal: number | null; usageLimitPerUser: number | null;
   timesUsed: number; startsAt: string | null; endsAt: string | null;
-  scope: string; isActive: boolean;
+  scope: string; targetIds: string[]; isActive: boolean; isPublic: boolean;
 }
 
 type CouponType = 'percent' | 'flat' | 'free_shipping';
@@ -22,11 +22,11 @@ type CouponType = 'percent' | 'flat' | 'free_shipping';
 const EMPTY: {
   code: string; description: string; type: CouponType; value: string;
   minOrderValue: string; maxDiscount: string; usageLimitTotal: string;
-  usageLimitPerUser: string; endsAt: string;
+  usageLimitPerUser: string; endsAt: string; isPublic: boolean;
 } = {
   code: '', description: '', type: 'percent',
   value: '', minOrderValue: '', maxDiscount: '',
-  usageLimitTotal: '', usageLimitPerUser: '', endsAt: '',
+  usageLimitTotal: '', usageLimitPerUser: '', endsAt: '', isPublic: false,
 };
 
 export default function AdminCouponsPage() {
@@ -60,9 +60,32 @@ export default function AdminCouponsPage() {
       scope: 'all',
       targetIds: [],
       isActive: true,
+      isPublic: form.isPublic,
     });
     setForm(EMPTY);
     setOpen(false);
+  }
+
+  /* The admin coupons endpoint is a full replace (PUT takes the whole
+     validated shape), so flipping one flag still sends every field back —
+     taken straight from the row already on screen. */
+  async function togglePublic(coupon: Coupon) {
+    await mutate('PUT', `/api/admin/coupons/${coupon.id}`, {
+      code: coupon.code,
+      description: coupon.description,
+      type: coupon.type,
+      value: coupon.value,
+      minOrderValue: coupon.minOrderValue,
+      maxDiscount: coupon.maxDiscount,
+      usageLimitTotal: coupon.usageLimitTotal,
+      usageLimitPerUser: coupon.usageLimitPerUser,
+      startsAt: coupon.startsAt,
+      endsAt: coupon.endsAt,
+      scope: coupon.scope,
+      targetIds: coupon.targetIds,
+      isActive: coupon.isActive,
+      isPublic: !coupon.isPublic,
+    });
   }
 
   return (
@@ -119,6 +142,12 @@ export default function AdminCouponsPage() {
               <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
                 placeholder="5% off your first table" className={inputClass} />
             </Field>
+            <label className="flex items-center gap-2 self-end pb-2.5 text-sm text-content">
+              <input type="checkbox" checked={form.isPublic}
+                onChange={(e) => setForm({ ...form, isPublic: e.target.checked })}
+                className="size-4 rounded border-line-strong" />
+              Show on the storefront, so shoppers can copy it
+            </label>
 
             <div className="sm:col-span-2 lg:col-span-3">
               <Button type="submit" loading={busy}>Create coupon</Button>
@@ -131,7 +160,7 @@ export default function AdminCouponsPage() {
       {loading ? (
         <div className="grid h-48 place-items-center"><Spinner className="text-muted" /></div>
       ) : (
-        <Table head={['Code', 'Discount', 'Minimum', 'Used', 'Expires', 'Status', '']}>
+        <Table head={['Code', 'Discount', 'Minimum', 'Used', 'Expires', 'Status', 'Storefront', '']}>
           {data?.items.map((coupon) => (
             <tr key={coupon.id}>
               <td className="numeric px-4 py-3 font-medium text-content">{coupon.code}</td>
@@ -146,6 +175,16 @@ export default function AdminCouponsPage() {
               <td className="px-4 py-3 text-xs text-faint">{coupon.endsAt ? formatDate(coupon.endsAt) : 'No expiry'}</td>
               <td className="px-4 py-3">
                 <Badge tone={coupon.isActive ? 'success' : 'neutral'}>{coupon.isActive ? 'Active' : 'Inactive'}</Badge>
+              </td>
+              <td className="px-4 py-3">
+                <button
+                  type="button"
+                  disabled={busy || !coupon.isActive}
+                  onClick={() => void togglePublic(coupon)}
+                  className="text-xs text-muted underline-offset-4 transition-colors hover:text-content hover:underline disabled:opacity-50"
+                >
+                  {coupon.isPublic ? 'Shown — hide' : 'Hidden — show'}
+                </button>
               </td>
               <td className="px-4 py-3">
                 {coupon.isActive && (

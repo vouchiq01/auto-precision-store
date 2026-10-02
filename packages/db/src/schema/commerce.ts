@@ -58,6 +58,9 @@ export const coupons = pgTable('coupons', {
   scope: couponScopeEnum('scope').notNull().default('all'),
   targetIds: jsonb('target_ids').$type<string[]>().notNull().default([]),
   isActive: boolean('is_active').notNull().default(true),
+  /** Admin opt-in to list this code on the storefront. Defaults false so every
+      existing coupon stays private until someone deliberately surfaces it. */
+  isPublic: boolean('is_public').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [index('coupons_active_idx').on(table.isActive)]);
 

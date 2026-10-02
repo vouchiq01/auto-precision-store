@@ -195,6 +195,26 @@ describe('cart', () => {
   });
 });
 
+describe('public coupon listing', () => {
+  test('lists only coupons the admin opted to publish, live right now', async () => {
+    const res = await client.request('GET', '/api/coupons/public');
+    assert.equal(res.status, 200);
+
+    const codes = res.body.items.map((c: { code: string }) => c.code);
+    assert.ok(codes.includes('SAVE10'), 'an active, public coupon should be listed');
+    assert.ok(codes.includes('FREIGHTFREE'), 'an active, public coupon should be listed');
+    assert.ok(!codes.includes('BIGSPEND'), 'a coupon never opted into isPublic must not be listed');
+    assert.ok(!codes.includes('STAFFONLY'), 'a coupon never opted into isPublic must not be listed');
+    assert.ok(!codes.includes('EXPIREDPUB'), 'a public coupon past its endsAt must not be listed');
+
+    const save10 = res.body.items.find((c: { code: string }) => c.code === 'SAVE10');
+    assert.equal(save10.type, 'percent');
+    assert.equal(save10.value, 1000);
+    assert.ok(!('id' in save10), 'the public listing must not leak the coupon row id');
+    assert.ok(!('usageLimitTotal' in save10), 'internal usage fields are not customer-facing');
+  });
+});
+
 describe('checkout quote', () => {
   test('charges CGST and SGST for a Karnataka address', async () => {
     const res = await client.request('POST', '/api/checkout/quote', {

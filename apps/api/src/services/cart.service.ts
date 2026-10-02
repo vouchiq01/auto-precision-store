@@ -199,7 +199,7 @@ export async function evaluateCartCoupon(
     minOrderValue: row.minOrderValue, maxDiscount: row.maxDiscount,
     usageLimitTotal: row.usageLimitTotal, usageLimitPerUser: row.usageLimitPerUser,
     startsAt: row.startsAt, endsAt: row.endsAt, scope: row.scope,
-    targetIds: row.targetIds, isActive: row.isActive,
+    targetIds: row.targetIds, isActive: row.isActive, isPublic: row.isPublic,
   };
 
   let timesUsedByUser = 0;

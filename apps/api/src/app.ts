@@ -5,6 +5,7 @@ import express, { type Express } from 'express';
 import helmet from 'helmet';
 import { pinoHttp } from 'pino-http';
 import { corsOrigins, isProduction } from './env.ts';
+import { ForbiddenError } from './lib/errors.ts';
 import { logger } from './lib/logger.ts';
 import { errorHandler, notFoundHandler } from './middleware/error-handler.ts';
 import { generalLimiter } from './middleware/rate-limit.ts';
@@ -35,7 +36,7 @@ export function createApp(): Express {
       if (!origin) return callback(null, true);
       if (corsOrigins.includes(origin)) return callback(null, true);
       logger.warn({ origin }, 'blocked a cross-origin request');
-      callback(new Error('Not allowed by CORS'));
+      callback(new ForbiddenError(`Origin ${origin} is not allowed.`));
     },
     credentials: true,
     exposedHeaders: ['x-request-id'],

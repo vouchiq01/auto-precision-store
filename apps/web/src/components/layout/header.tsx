@@ -152,7 +152,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
               key={item.href}
               href={item.href}
               tabIndex={mobileOpen ? 0 : -1}
-              className="display-md border-b border-line py-5 text-content transition-[transform,opacity] duration-500"
+              className="display-sm border-b border-line py-4 text-content transition-[transform,opacity] duration-500"
               style={{
                 transitionDelay: mobileOpen ? `${i * 60 + 80}ms` : '0ms',
                 transform: mobileOpen ? 'translateY(0)' : 'translateY(18px)',

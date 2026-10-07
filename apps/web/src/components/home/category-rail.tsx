@@ -15,7 +15,7 @@ export function CategoryRail({ categories }: { categories: Category[] }) {
   if (categories.length === 0) return null;
 
   return (
-    <section className="shell py-16 md:py-24">
+    <section className="shell py-12 md:py-24">
       <div className="flex items-end justify-between gap-8">
         <div>
           <Eyebrow>The range</Eyebrow>
@@ -28,7 +28,7 @@ export function CategoryRail({ categories }: { categories: Category[] }) {
 
       {/* A flex row on desktop so the hovered panel can actually take space
           from its neighbours — inside a grid, flex-grow does nothing. */}
-      <Reveal stagger={0.09} className="mt-14 grid gap-3 sm:grid-cols-2 lg:flex lg:gap-3">
+      <Reveal stagger={0.09} className="mt-8 grid grid-cols-2 gap-2.5 sm:mt-14 sm:grid-cols-3 sm:gap-3 lg:flex lg:gap-3">
         {categories.map((category) => (
           <Link
             key={category.id}
@@ -39,12 +39,12 @@ export function CategoryRail({ categories }: { categories: Category[] }) {
               'lg:flex-1 lg:hover:grow-[1.8]',
             )}
           >
-            <div className="relative aspect-[3/4] lg:aspect-auto lg:h-[26rem] xl:h-[32rem]">
+            <div className="relative aspect-[4/5] sm:aspect-[3/4] lg:aspect-auto lg:h-[26rem] xl:h-[32rem]">
               <Image
                 src={category.imageUrl ?? `/categories/${category.slug}.jpg`}
                 alt=""
                 fill
-                sizes="(min-width: 1024px) 20vw, (min-width: 640px) 50vw, 100vw"
+                sizes="(min-width: 1024px) 20vw, (min-width: 640px) 33vw, 50vw"
                 className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
@@ -53,8 +53,8 @@ export function CategoryRail({ categories }: { categories: Category[] }) {
                   gradient painted onto the photo, not over the page canvas.
                   The dark-ink body text used here during the light-canvas
                   migration was nearly invisible against the photo. */}
-              <div className="absolute inset-x-0 bottom-0 p-5">
-                <h3 className="font-display text-lg font-medium leading-tight tracking-[-0.02em] text-on-ink">
+              <div className="absolute inset-x-0 bottom-0 p-3.5 sm:p-5">
+                <h3 className="font-display text-base font-medium leading-tight tracking-[-0.02em] text-on-ink sm:text-lg">
                   {category.name}
                 </h3>
                 <p className="numeric mt-1 text-xs text-on-ink-muted">

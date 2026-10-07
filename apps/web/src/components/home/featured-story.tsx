@@ -73,7 +73,7 @@ export function FeaturedStory({ product }: { product: ProductDetail }) {
   }, [reduced]);
 
   return (
-    <section ref={sectionRef} className="on-ink relative py-16 md:py-24">
+    <section ref={sectionRef} className="on-ink relative py-12 md:py-24">
       <div className="shell">
         <div className="max-w-2xl">
           <Eyebrow>The flagship</Eyebrow>

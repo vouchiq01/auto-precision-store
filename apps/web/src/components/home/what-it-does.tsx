@@ -68,7 +68,7 @@ const CAPABILITIES = [
 
 export function WhatItDoes() {
   return (
-    <section className="rule bg-surface py-16 md:py-24">
+    <section className="rule bg-surface py-12 md:py-24">
       <div className="shell">
         <div className="flex items-end justify-between gap-8">
           <div className="max-w-2xl">

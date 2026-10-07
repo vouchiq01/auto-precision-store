@@ -127,27 +127,38 @@ export function ProductCard({
           {/* Solid backing, because these sit over an arbitrary photograph —
               an outlined pill in crimson vanishes the moment the image behind
               it is mid-tone, which is most product shots. */}
-          <div className="absolute left-4 top-4 flex flex-wrap gap-1.5">
+          {/* On a phone the card is ~175px wide: one badge across the top, and
+              the discount pill drops to the bottom-left (below) so the two never
+              collide. The second badge and the top-right pill join from `sm`. */}
+          <div className="absolute left-2.5 right-2.5 top-2.5 flex flex-wrap gap-1.5 sm:left-4 sm:right-auto sm:top-4">
             {outOfStock
               ? <Badge tone="warning" className="border-transparent bg-surface/95 text-warning backdrop-blur-sm">Sold out</Badge>
-              : product.badges.slice(0, 2).map((badge) => (
-                  <Badge key={badge} tone="accent" className="border-transparent bg-surface/95 text-crimson backdrop-blur-sm">
+              : product.badges.slice(0, 2).map((badge, badgeIndex) => (
+                  <Badge
+                    key={badge}
+                    tone="accent"
+                    className={cn(
+                      'border-transparent bg-surface/95 text-crimson backdrop-blur-sm',
+                      badgeIndex > 0 && 'hidden sm:inline-flex',
+                    )}
+                  >
                     {badge}
                   </Badge>
                 ))}
           </div>
 
           {product.discountPercent !== null && !outOfStock && (
-            <span className="numeric absolute right-4 top-4 rounded-full bg-crimson px-2.5 py-1 text-[0.6875rem] font-medium text-white">
+            <span className="numeric absolute bottom-2.5 left-2.5 rounded-full bg-crimson px-2 py-0.5 text-[0.625rem] font-medium text-white sm:bottom-auto sm:left-auto sm:right-4 sm:top-4 sm:px-2.5 sm:py-1 sm:text-[0.6875rem]">
               −{product.discountPercent}%
             </span>
           )}
 
-          {/* Moved to the left: the quick-add control owns the bottom-right. */}
+          {/* Moved to the left: the quick-add control owns the bottom-right.
+              Decorative, and clutter on a small card, so desktop only. */}
           {index !== undefined && (
             <span
               aria-hidden="true"
-              className="numeric absolute bottom-4 left-4 font-display text-3xl font-semibold text-white/10"
+              className="numeric absolute bottom-4 left-4 hidden font-display text-3xl font-semibold text-white/10 sm:block"
             >
               {String(index + 1).padStart(2, '0')}
             </span>
@@ -159,7 +170,7 @@ export function ProductCard({
             hover is invisible on a touch screen and unfindable by keyboard.
             z-20 keeps it above the title's stretched link. */}
         {!outOfStock && sellable.length > 0 && (
-          <div ref={pickerRef} className="absolute bottom-3 right-3 z-20">
+          <div ref={pickerRef} className="absolute bottom-2 right-2 z-20 sm:bottom-3 sm:right-3">
             {picking && (
               <div
                 role="group"
@@ -199,7 +210,7 @@ export function ProductCard({
                   : `Add ${product.name} to cart`
               }
               className={cn(
-                'grid size-11 cursor-pointer place-items-center rounded-full',
+                'grid size-10 cursor-pointer place-items-center rounded-full sm:size-11',
                 'bg-surface/95 text-content shadow-card backdrop-blur-sm',
                 'transition-colors duration-300 hover:bg-crimson hover:text-white',
                 'focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60',
@@ -212,10 +223,13 @@ export function ProductCard({
         )}
       </div>
 
-      <div className="mt-4 flex items-start justify-between gap-4">
+      {/* Stacked on a phone — name over price — because two columns side by
+          side leave no room for a title and a price on one row. From `sm` up it
+          goes back to name left, price right. */}
+      <div className="mt-3 flex flex-col gap-1.5 sm:mt-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0">
-          <p className="eyebrow mb-1.5">{product.category.name}</p>
-          <h3 className="font-display text-[1.0625rem] font-medium leading-tight tracking-[-0.015em] text-content transition-colors group-hover:text-crimson">
+          <p className="eyebrow mb-1 sm:mb-1.5">{product.category.name}</p>
+          <h3 className="font-display text-[0.9375rem] font-medium leading-tight tracking-[-0.015em] text-content transition-colors group-hover:text-crimson sm:text-[1.0625rem]">
             {/* The stretched link: the whole card is clickable, but only this
                 is announced, so a screen reader hears one link per product. */}
             <Link href={`/products/${product.slug}`} className="after:absolute after:inset-0 after:content-['']">
@@ -223,23 +237,23 @@ export function ProductCard({
             </Link>
           </h3>
           {product.tagline && (
-            <p className="mt-1 line-clamp-1 text-[0.8125rem] text-muted">{product.tagline}</p>
+            <p className="mt-1 hidden line-clamp-1 text-[0.8125rem] text-muted sm:block">{product.tagline}</p>
           )}
         </div>
 
-        <div className="shrink-0 text-right">
+        <div className="flex flex-wrap items-baseline gap-x-2 sm:block sm:shrink-0 sm:text-right">
           <p className="numeric text-[0.9375rem] font-medium text-content">{formatINR(product.price)}</p>
           {product.compareAtPrice && (
             <p className="numeric text-xs text-faint line-through">{formatINR(product.compareAtPrice)}</p>
           )}
           {product.emiTeaser && (
-            <p className="numeric mt-0.5 text-[0.6875rem] text-muted">from {product.emiTeaser}</p>
+            <p className="numeric mt-0.5 hidden text-[0.6875rem] text-muted sm:block">from {product.emiTeaser}</p>
           )}
         </div>
       </div>
 
       {product.rating && (
-        <p className="numeric mt-2 text-xs text-muted">
+        <p className="numeric mt-1.5 text-xs text-muted sm:mt-2">
           ★ {product.rating.average.toFixed(1)}
           <span className="text-faint"> · {product.rating.count} reviews</span>
         </p>

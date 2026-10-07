@@ -82,7 +82,7 @@ export default async function CollectionPage({ params, searchParams }: PageProps
           />
         </div>
       ) : (
-        <Reveal stagger={0.06} className="mt-10 grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <Reveal stagger={0.06} className="mt-6 grid grid-cols-2 gap-x-3 gap-y-8 sm:mt-10 sm:gap-x-5 sm:gap-y-12 lg:grid-cols-3 xl:grid-cols-4">
           {result.items.map((product, i) => (
             <ProductCard key={product.id} product={product} index={i} priority={i < 4} />
           ))}
@@ -90,7 +90,7 @@ export default async function CollectionPage({ params, searchParams }: PageProps
       )}
 
       {/* Cross-links to the rest of the range */}
-      <section className="rule mt-24 py-12">
+      <section className="rule mt-16 py-10 sm:mt-24 sm:py-12">
         <Eyebrow>Other collections</Eyebrow>
         <div className="mt-5 flex flex-wrap gap-2">
           {categories.filter((c) => c.slug !== slug).map((other) => (

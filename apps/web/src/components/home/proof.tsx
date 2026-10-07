@@ -32,7 +32,7 @@ const FACTS = [
 
 export function Proof() {
   return (
-    <section className="relative overflow-hidden bg-surface py-16 text-content md:py-24">
+    <section className="relative overflow-hidden bg-surface py-12 text-content md:py-24">
       <div className="shell">
         <div className="flex items-end justify-between gap-8">
           <div>

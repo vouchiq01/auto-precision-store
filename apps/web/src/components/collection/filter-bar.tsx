@@ -53,12 +53,15 @@ export function FilterBar({ total }: { total: number }) {
   const hasFilters = Boolean(activeMin || activeMax || inStockOnly);
 
   return (
-    <div className={cn('rule flex flex-wrap items-center gap-3 py-5 transition-opacity', pending && 'opacity-50')}>
+    <div className={cn('rule flex flex-wrap items-center gap-3 py-4 transition-opacity sm:py-5', pending && 'opacity-50')}>
       <p className="numeric mr-auto text-sm text-muted">
         {total} {total === 1 ? 'table' : 'tables'}
       </p>
 
-      <div className="flex flex-wrap gap-2">
+      {/* On a phone the chips are one swipeable row under the count and sort
+          (they wrapped onto three lines before); the negative margin lets the
+          row run edge to edge so the cut-off chip says "there is more". */}
+      <div className="order-3 -mx-4 flex basis-full gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:order-2 sm:mx-0 sm:basis-auto sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
         {PRICE_BANDS.map((band) => {
           const active = String(band.min ?? '') === (activeMin ?? '') && String(band.max ?? '') === (activeMax ?? '');
           return (
@@ -71,7 +74,7 @@ export function FilterBar({ total }: { total: number }) {
                 maxPrice: active ? undefined : band.max?.toString(),
               })}
               className={cn(
-                'rounded-full border px-3.5 py-1.5 text-xs transition-colors duration-300',
+                'shrink-0 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs transition-colors duration-300',
                 active ? 'border-line-strong bg-surface text-content' : 'border-line text-muted hover:border-muted',
               )}
             >
@@ -85,7 +88,7 @@ export function FilterBar({ total }: { total: number }) {
           aria-pressed={inStockOnly}
           onClick={() => setParams({ inStock: inStockOnly ? undefined : 'true' })}
           className={cn(
-            'rounded-full border px-3.5 py-1.5 text-xs transition-colors duration-300',
+            'shrink-0 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-xs transition-colors duration-300',
             inStockOnly ? 'border-line-strong bg-surface text-content' : 'border-line text-muted hover:border-muted',
           )}
         >
@@ -96,14 +99,14 @@ export function FilterBar({ total }: { total: number }) {
           <button
             type="button"
             onClick={() => setParams({ minPrice: undefined, maxPrice: undefined, inStock: undefined })}
-            className="rounded-full px-3.5 py-1.5 text-xs text-crimson transition-colors hover:text-crimson"
+            className="shrink-0 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs text-crimson transition-colors hover:text-crimson"
           >
             Clear
           </button>
         )}
       </div>
 
-      <label className="flex items-center gap-2">
+      <label className="order-2 flex items-center gap-2 sm:order-3">
         <span className="sr-only">Sort by</span>
         <select
           value={activeSort}

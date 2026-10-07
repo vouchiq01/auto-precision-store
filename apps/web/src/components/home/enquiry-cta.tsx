@@ -4,7 +4,7 @@ import { Eyebrow } from '@/components/ui/primitives';
 
 export function EnquiryCta() {
   return (
-    <section className="shell py-16 md:py-24">
+    <section className="shell py-12 md:py-24">
       <Reveal className="relative overflow-hidden rounded-3xl border border-line bg-surface px-7 py-16 md:px-16 md:py-24">
         {/* Oversized ghost numeral, from the Nhale reference */}
         <span

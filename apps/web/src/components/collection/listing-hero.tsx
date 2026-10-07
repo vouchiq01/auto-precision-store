@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { ReactNode } from 'react';
 
 /**
  * The title band at the top of every listing page.
@@ -10,8 +11,17 @@ import Link from 'next/link';
  * title because "how many are there" is the first thing a listing should say.
  */
 export function ListingHero({
-  crumb, title, description, count,
-}: { crumb: string; title: string; description?: string | null; count?: number }) {
+  crumb, title, description, count, unit = 'product', action,
+}: {
+  crumb: string;
+  title: string;
+  description?: ReactNode;
+  count?: number;
+  /** What `count` counts — "table" on a listing, "item" in the cart. */
+  unit?: string;
+  /** A control on the right of the title, e.g. "Sign out" on the account page. */
+  action?: ReactNode;
+}) {
   return (
     <section className="on-ink bg-blueprint pb-6 pt-[5.25rem] md:pb-8 md:pt-28 lg:pt-[8.5rem]">
       <div className="shell">
@@ -23,18 +33,21 @@ export function ListingHero({
           </ol>
         </nav>
 
-        <div className="mt-3 flex flex-wrap items-end gap-x-4 gap-y-2">
+        <div className="mt-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+          <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
           <h1 className="font-display text-[clamp(1.875rem,4vw,3rem)] font-semibold leading-none tracking-[-0.03em] text-on-ink">
             {title}<span className="text-crimson">.</span>
           </h1>
           {count !== undefined && (
             <span className="numeric mb-1 rounded-full border border-white/20 px-3 py-1 text-xs text-on-ink-muted">
-              {count} {count === 1 ? 'table' : 'tables'}
+              {count} {count === 1 ? unit : `${unit}s`}
             </span>
           )}
+          </div>
+          {action}
         </div>
 
-        {description && <p className="lede mt-3 max-w-2xl text-sm md:text-base">{description}</p>}
+        {description && <div className="lede mt-3 max-w-2xl text-sm md:text-base">{description}</div>}
       </div>
     </section>
   );

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { SearchBox } from '@/components/layout/search-box';
+import { COLLECTION_LINKS } from '@/lib/collections';
 
 /**
  * One search sheet for the whole storefront, opened from the header icon or the
@@ -17,14 +18,6 @@ interface SearchContextValue {
 
 const SearchContext = createContext<SearchContextValue | null>(null);
 
-const QUICK_LINKS = [
-  { label: 'Electric tables', href: '/collections/electric-lifting' },
-  { label: 'Round & rotating', href: '/collections/round-rotating' },
-  { label: 'Portable', href: '/collections/portable' },
-  { label: 'Hydraulic', href: '/collections/hydraulic' },
-  { label: 'Foldable', href: '/collections/foldable' },
-  { label: 'Accessories', href: '/collections/accessories' },
-];
 
 export function SearchProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -71,7 +64,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
           <div data-lenis-prevent className="flex-1 overflow-y-auto px-4 py-5">
             <p className="eyebrow">Browse</p>
             <ul className="mt-3 flex flex-wrap gap-2">
-              {QUICK_LINKS.map((link) => (
+              {COLLECTION_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}

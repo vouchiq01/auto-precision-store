@@ -1,12 +1,14 @@
-import { existsSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { sql } from 'drizzle-orm';
 import { createDb, isPgliteUrl } from '../client.ts';
 import { bootstrapLocalDatabase } from '../bootstrap.ts';
 import * as s from '../schema/index.ts';
+import { categoryImage, insertProduct } from './insert-product.ts';
 import { hashPassword } from '../lib/password.ts';
-import { CATEGORIES, PRODUCTS } from './products.data.ts';
+import { CATEGORIES as CORE_CATEGORIES, PRODUCTS as CORE_PRODUCTS } from './products.data.ts';
+import { EXTRA_CATEGORIES, EXTRA_PRODUCTS } from './products.extra.ts';
+
+const CATEGORIES = [...CORE_CATEGORIES, ...EXTRA_CATEGORIES];
+const PRODUCTS = [...CORE_PRODUCTS, ...EXTRA_PRODUCTS];
 
 /**
  * Idempotent development seed.
@@ -18,36 +20,6 @@ import { CATEGORIES, PRODUCTS } from './products.data.ts';
 
 const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL ?? 'admin@autoprecision.store';
 const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? 'ChangeMe!2026';
-
-/**
- * Image URLs are read from what is actually on disk in the web app's public
- * folder, rather than assembled from an assumed extension.
- *
- * The catalogue mixes .jpg photographs, a .png, and .svg renders for the round
- * range — and it will mix more as real product shots replace placeholders.
- * Guessing the extension meant every new asset needed a matching code change,
- * and a wrong guess produced a silently broken image rather than an error.
- */
-const IMAGES_PER_PRODUCT = 4;
-
-const PUBLIC_PRODUCTS = resolve(
-  dirname(fileURLToPath(import.meta.url)), '../../../../apps/web/public/products',
-);
-
-function findAsset(slug: string, base: string): string | null {
-  for (const ext of ['jpg', 'jpeg', 'png', 'webp', 'avif', 'svg']) {
-    if (existsSync(join(PUBLIC_PRODUCTS, slug, `${base}.${ext}`))) {
-      return `/products/${slug}/${base}.${ext}`;
-    }
-  }
-  return null;
-}
-
-function imageUrls(slug: string): { url: string; alt: string }[] {
-  return Array.from({ length: IMAGES_PER_PRODUCT }, (_, i) => findAsset(slug, String(i + 1).padStart(2, '0')))
-    .filter((url): url is string => url !== null)
-    .map((url) => ({ url, alt: '' }));
-}
 
 async function main(): Promise<void> {
   const connectionString = process.env.DATABASE_URL ?? '';
@@ -72,7 +44,7 @@ async function main(): Promise<void> {
   const insertedCategories = await db.insert(s.categories).values(
     CATEGORIES.map((c) => ({
       slug: c.slug, name: c.name, description: c.description,
-      imageUrl: `/categories/${c.slug}.jpg`, sortOrder: c.sortOrder,
+      imageUrl: categoryImage(c.slug), sortOrder: c.sortOrder,
     })),
   ).returning();
   const categoryBySlug = new Map(insertedCategories.map((c) => [c.slug, c.id]));
@@ -86,68 +58,9 @@ async function main(): Promise<void> {
     const categoryId = categoryBySlug.get(p.categorySlug);
     if (!categoryId) throw new Error(`Unknown category "${p.categorySlug}" for product ${p.slug}`);
 
-    const [product] = await db.insert(s.products).values({
-      slug: p.slug, sku: p.sku, name: p.name, tagline: p.tagline, summary: p.summary,
-      description: p.description, categoryId, brand: 'Auto Precision',
-      basePrice: p.basePrice, compareAtPrice: p.compareAtPrice,
-      status: 'active', hsnCode: '9403', taxRateBps: 1800,
-      weightG: p.weightG, lengthMm: p.lengthMm, widthMm: p.widthMm,
-      heightMinMm: p.heightMinMm, heightMaxMm: p.heightMaxMm,
-      loadCapacityKg: p.loadCapacityKg, warrantyMonths: p.warrantyMonths,
-      badges: p.badges, isFeatured: p.isFeatured, sortOrder: index,
-      metaTitle: p.name,
-      metaDescription: p.summary.slice(0, 165),
-    }).returning();
-    if (!product) throw new Error(`Failed to insert ${p.slug}`);
-
-    const variants = await db.insert(s.productVariants).values(
-      p.variants.map((v, vi) => ({
-        productId: product.id,
-        sku: `${p.sku}-${v.skuSuffix}`,
-        optionName: v.optionName, optionValue: v.optionValue,
-        priceDelta: v.priceDelta, stockQty: v.stockQty,
-        lowStockThreshold: 2, weightG: v.weightG,
-        hexColour: v.hexColour ?? null, sortOrder: vi,
-      })),
-    ).returning();
-    variantCount += variants.length;
-
-    await db.insert(s.productImages).values(
-      imageUrls(p.slug).map((img, ii) => ({
-        productId: product.id,
-        url: img.url,
-        alt: `${p.name} — view ${ii + 1}`,
-        sortOrder: ii,
-        isPrimary: ii === 0,
-      })),
-    );
-
-    if (p.specs.length > 0) {
-      await db.insert(s.productSpecs).values(
-        p.specs.map((spec, si) => ({
-          productId: product.id, group: spec.group, label: spec.label, value: spec.value, sortOrder: si,
-        })),
-      );
-      specCount += p.specs.length;
-    }
-
-    if (p.features.length > 0) {
-      await db.insert(s.productFeatures).values(
-        p.features.map((f, fi) => ({
-          productId: product.id,
-          eyebrow: f.eyebrow ?? null, title: f.title, body: f.body ?? null,
-          mediaUrl: findAsset(p.slug, `feature-${(fi % IMAGES_PER_PRODUCT) + 1}`),
-          mediaAlt: f.title,
-          layout: f.layout, stats: f.stats ?? [], sortOrder: fi,
-        })),
-      );
-    }
-
-    if (p.faqs.length > 0) {
-      await db.insert(s.productFaqs).values(
-        p.faqs.map((f, fi) => ({ productId: product.id, question: f.question, answer: f.answer, sortOrder: fi })),
-      );
-    }
+    const counts = await insertProduct(db, p, categoryId, index);
+    variantCount += counts.variants;
+    specCount += counts.specs;
   }
   console.log(`  ${PRODUCTS.length} products, ${variantCount} variants, ${specCount} specs`);
 

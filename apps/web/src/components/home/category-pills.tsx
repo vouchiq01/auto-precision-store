@@ -24,7 +24,7 @@ export function CategoryPills({ categories, activeSlug }: { categories: Category
             href="/shop"
             className={cn(pill, !activeSlug ? 'border-ink bg-ink text-on-ink' : 'border-line bg-surface text-content hover:border-crimson hover:text-crimson')}
           >
-            All tables
+            All products
             <span className="numeric rounded-full bg-white/15 px-1.5 py-0.5 text-[0.6875rem] font-normal">{total}</span>
           </Link>
         </li>

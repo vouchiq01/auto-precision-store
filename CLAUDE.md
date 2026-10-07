@@ -9,8 +9,9 @@ the things that are not obvious from the code.
 
 ## What it is
 
-An e-commerce store selling **professional pet grooming tables** in India.
-18 products across 6 collections. Owner: Madan, GitHub `vouchiq01`.
+An e-commerce store selling **pet grooming tables, bath tubs and bundles** in India.
+26 products across 9 collections (18 tables and accessories, plus a second wave
+of fixed tables, tubs and combos — see "The second-wave range" below). Owner: Madan, GitHub `vouchiq01`.
 Repo: `github.com/vouchiq01/auto-precision-store` (private).
 
 The business is in **Bengaluru, Karnataka** — this matters, because it decides
@@ -66,6 +67,41 @@ Three capabilities carry the sale. Every product page leads with them:
 
 **Round tables are a real part of the range** and he raised them specifically.
 The Orbit R collection: ₹27,000 (the one he named), ₹21,400 mini, ₹38,900 LED.
+
+---
+
+## The second-wave range — placeholder, no photos yet
+
+Fixed tables (×3 sizes), stainless bath tubs (×3) and two bundles were added
+because the client pointed at a manufacturer's grooming range and asked for the
+same *kinds* of product. They live in `packages/db/src/seed/products.extra.ts`.
+
+- **Everything in it is invented**: names, prices, capacities, warranty, the
+  tubs' HSN code (7324 is an assumption — his accountant decides). Nothing was
+  copied from the reference site, whose photos carry its own logo and whose
+  listing text is theirs; it was read only to learn which product types exist.
+  Confirm with the owner which of these he really sells before launch.
+- **None has a photograph.** The seeder looks for
+  `apps/web/public/products/<slug>/01.jpg`…`04.jpg` and inserts no image rows if
+  they are absent; cards and product pages then show a "Photo coming soon" tile
+  (`photo-placeholder.tsx`). Dropping photos in and re-seeding is the whole job.
+- Three collections (`fixed-tables`, `bath-tubs`, `combos`) have no collection
+  photo either; the homepage rail renders a plain ink tile for those.
+- Listing counts say "products", not "tables", because tubs and bundles are now
+  in the same lists.
+
+### Seeding a database that has orders — read this
+
+`npm run db:seed` **truncates the catalogue with CASCADE**, which also empties
+every table that references a product: order lines, carts, reviews. Fine on a
+throwaway local database, destructive on one holding real orders — the
+"orders are left alone" comment in the seed is true of `orders` but not of what
+hangs off a product.
+
+To add the second-wave products to a database that is already live, use the
+additive script, which inserts only what is missing (keyed on slug) and deletes
+nothing: `DATABASE_URL=<direct url> npm run seed:extra -w @aps/db`. It is safe
+to run more than once.
 
 ---
 
@@ -251,11 +287,13 @@ account and attaches the order — framed as *confirm your number*, never as
 
 ## Add to cart from a listing card
 
-> **Update:** the round cart icon on the photo became a full-width labelled
-> button under the price — "Add to cart", or "Choose finish" when there is more
-> than one. Everything below about *why* the card asks rather than guesses still
-> holds; only the shape of the control changed, because a labelled button is far
-> harder to miss on a phone than a 40px icon.
+> **Update (supersedes the picker described below):** the card now shows a row
+> of finish swatches (the chosen one ringed and named) above one full-width
+> "Add to cart" button. The first in-stock finish is pre-selected. A "Choose
+> finish" button that opened a pop-up was tried and the client found it
+> confusing — do not bring it back. The reason for not guessing silently still
+> holds: the finish is on screen before the tap and repeated on the cart line,
+> so a default is visible, not hidden.
 
 Every in-stock card carries a **cart icon**. He asked for one twice, and the
 first attempt gave the eight two-finish tables a swatch icon that linked to
@@ -462,6 +500,37 @@ per collection, the demo, the story) comes after.
 - Stay away from DarkOtter's copy, photography and layout — the client's
   reference was for *feel*; their images carry their own logo and are theirs.
 
+## Cart, checkout and account pages
+
+Rebuilt to match the shop-first look (navy `ListingHero` band, white cards,
+sticky summary). The logic did not change; only layout did. Things that are not
+obvious from the markup:
+
+- **One set of cart components serves both the page and the drawer** —
+  `components/cart/{cart-line,qty-stepper,freight-progress,coupon-box,cart-totals}.tsx`,
+  each with a `compact` prop for the drawer. Change a line item once, not twice.
+- **The freight nudge is Karnataka-only on purpose.** `KARNATAKA_FREE_FREIGHT`
+  in `lib/store.ts` (₹25,000) is the only threshold the site advertises. The
+  database holds higher ones for other zones, but we do not know the shopper's
+  zone until the pincode, so the copy says "in Karnataka" rather than promising
+  something a Chennai buyer will not get. It compares the **post-discount**
+  total, like the server does.
+- **`/cart`, `/checkout` and `/order/` hide the phone tab bar**
+  (`HIDDEN_ON` in `mobile-tab-bar.tsx`). The cart page pins its own total and
+  Checkout button to the bottom, and two fixed bars would stack.
+- **Checkout keeps its payment logic untouched** — OTP at the pay step,
+  re-price after verification, `orderError` separate from the quote's `error`,
+  the token threaded from `verifyOtp`. The stepper (Cart ✓ → Delivery → Pay) is
+  decoration; the form is still one `<form>`, and the OTP block is deliberately
+  not a nested form.
+- **`OrderProgress`** (`components/order/order-progress.tsx`) is the shared
+  placed → packed → shipped → delivered track, used on the account page and the
+  order page. Cancelled and refunded orders get a plain note instead of a
+  half-lit track; unpaid orders say the stock is being held.
+- **Signed-out `/account` has a real Sign in button** (`useSignIn().openSignIn`).
+  It used to link to `/`, which left someone on the homepage with no hint of
+  what to do next.
+
 ## Claims must match the data
 
 The old marquee (now the cards in `trust-cards.tsx`) said "36-month frame warranty". Two of the eighteen products have
@@ -547,7 +616,7 @@ release it after 45 minutes.
 
 ## Verifying
 
-`npm test` — 112 tests: 71 unit over pricing and tax, 41 integration running the
+`npm test` — 126 tests: 74 unit over pricing and tax, 52 integration running the
 real Express app against a real database over real HTTP. No mocks; they have
 caught several genuine bugs.
 

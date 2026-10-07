@@ -54,8 +54,8 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
   return (
     <>
       <ListingHero
-        crumb={search ? 'Search' : 'All tables'}
-        title={search ? `Results for “${search}”` : 'All tables'}
+        crumb={search ? 'Search' : 'All products'}
+        title={search ? `Results for “${search}”` : 'All products'}
         description={search ? null : 'Every table in the range, from a folding table for home to a flagship electric lift.'}
         count={search ? result.total : total}
       />

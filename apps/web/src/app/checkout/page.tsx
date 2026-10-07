@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { formatINR, INDIAN_STATES, STORE, type CheckoutQuote } from '@aps/shared';
@@ -9,8 +11,9 @@ import { useAuth } from '@/providers/auth-provider';
 import { useSignIn } from '@/providers/sign-in-provider';
 import { useCart } from '@/providers/cart-provider';
 import { useRazorpay } from '@/hooks/use-razorpay';
-import { Button } from '@/components/ui/button';
-import { Eyebrow, Spinner } from '@/components/ui/primitives';
+import { ListingHero } from '@/components/collection/listing-hero';
+import { Button, ButtonLink } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/primitives';
 
 interface AddressForm {
   fullName: string; phone: string; line1: string; line2: string; landmark: string;
@@ -282,138 +285,208 @@ export default function CheckoutPage() {
   }
 
   if (loading) {
-    return <div className="shell grid min-h-[50vh] place-items-center pt-28"><Spinner className="text-muted" /></div>;
+    return <div className="shell grid min-h-[60vh] place-items-center pt-28"><Spinner className="text-muted" /></div>;
   }
 
   if (!cart || cart.itemCount === 0) {
     return (
-      <div className="shell pt-28 md:pt-36">
-        <h1 className="display-md text-content">Your cart is empty</h1>
-        <p className="lede mt-4">Add a table before checking out.</p>
-      </div>
+      <>
+        <ListingHero crumb="Checkout" title="Checkout" />
+        <div className="shell py-12 md:py-20">
+          <div className="mx-auto max-w-lg rounded-3xl border border-line bg-surface px-6 py-12 text-center shadow-card">
+            <h2 className="font-display text-2xl font-semibold tracking-[-0.02em] text-content">Your cart is empty</h2>
+            <p className="mt-2 text-sm text-muted">Add a table before checking out.</p>
+            <ButtonLink href="/shop" size="lg" className="mt-6">Shop all tables</ButtonLink>
+          </div>
+        </div>
+      </>
     );
   }
 
-  const field = (name: keyof AddressForm, label: string, props: Partial<React.InputHTMLAttributes<HTMLInputElement>> = {}) => (
-    <label className="block">
-      <span className="eyebrow mb-2 block">{label}</span>
-      <input
-        value={address[name]}
-        onChange={(e) => setAddress((prev) => ({ ...prev, [name]: e.target.value }))}
-        className={cn(
-          'h-12 w-full rounded-xl border bg-canvas px-4 text-content outline-none placeholder:text-faint',
-          fieldErrors[`shippingAddress.${name}`] ? 'border-crimson' : 'border-line focus:border-line-strong',
-        )}
-        {...props}
-      />
-      {fieldErrors[`shippingAddress.${name}`] && (
-        <span className="mt-1 block text-xs text-crimson">{fieldErrors[`shippingAddress.${name}`]?.[0]}</span>
-      )}
-    </label>
-  );
+  const inputBase = 'h-12 w-full rounded-xl border bg-surface px-4 text-base text-content outline-none transition-colors placeholder:text-faint focus:ring-2 focus:ring-crimson/15';
+
+  const field = (
+    name: keyof AddressForm,
+    label: string,
+    props: Partial<React.InputHTMLAttributes<HTMLInputElement>> = {},
+    prefix?: string,
+  ) => {
+    const errors = fieldErrors[`shippingAddress.${name}`];
+    return (
+      <label className="block">
+        <span className="mb-1.5 block text-[0.8125rem] font-medium text-content">{label}</span>
+        <span className="relative block">
+          {prefix && (
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-base text-muted">{prefix}</span>
+          )}
+          <input
+            value={address[name]}
+            onChange={(e) => setAddress((prev) => ({ ...prev, [name]: e.target.value }))}
+            className={cn(inputBase, prefix && 'pl-12', errors ? 'border-crimson' : 'border-line focus:border-ink')}
+            {...props}
+          />
+        </span>
+        {errors && <span className="mt-1 block text-xs text-crimson">{errors[0]}</span>}
+      </label>
+    );
+  };
+
+  const total = quote ? quote.grandTotal : cart.estimatedTotal;
+
+  const itemRows = cart.lines.map((line) => (
+    <li key={line.id} className="flex items-center gap-3">
+      <span className="relative size-14 shrink-0 rounded-xl bg-sand">
+        <span className="absolute inset-0 overflow-hidden rounded-xl">
+          {line.product.image && (
+            <Image src={line.product.image.url} alt="" fill sizes="56px" className="object-cover" />
+          )}
+        </span>
+        <span className="numeric absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-ink text-[0.6875rem] font-medium text-on-ink">
+          {line.quantity}
+        </span>
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="line-clamp-2 block text-sm font-medium leading-snug text-content">{line.product.name}</span>
+        <span className="block text-xs text-muted">{line.variant.optionValue}</span>
+      </span>
+      <span className="numeric shrink-0 text-sm font-medium text-content">{formatINR(line.lineTotal)}</span>
+    </li>
+  ));
 
   return (
-    <div className="shell pt-28 md:pt-36">
-      <Eyebrow>Checkout</Eyebrow>
-      <h1 className="display-lg mt-4 text-content">Where is it going<span className="text-crimson">?</span></h1>
+    <>
+      <ListingHero
+        crumb="Checkout"
+        title="Checkout"
+        description={
+          <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm" aria-label="Checkout progress">
+            <li className="flex items-center gap-2 text-on-ink-muted">
+              <span className="grid size-6 place-items-center rounded-full bg-success/25 text-xs text-success" aria-hidden="true">✓</span>
+              <Link href="/cart" className="underline-offset-4 hover:text-on-ink hover:underline">Cart</Link>
+            </li>
+            <span className="h-px w-5 bg-white/20" aria-hidden="true" />
+            <li className="flex items-center gap-2 text-on-ink" aria-current="step">
+              <span className="grid size-6 place-items-center rounded-full bg-amber text-xs font-semibold text-ink" aria-hidden="true">2</span>
+              Delivery details
+            </li>
+            <span className="h-px w-5 bg-white/20" aria-hidden="true" />
+            <li className="flex items-center gap-2 text-on-ink-muted">
+              <span className="grid size-6 place-items-center rounded-full border border-white/30 text-xs" aria-hidden="true">3</span>
+              Pay
+            </li>
+          </ol>
+        }
+      />
 
-      <form onSubmit={placeOrder} className="mt-12 grid gap-12 lg:grid-cols-[1fr_24rem] lg:gap-16">
-        <div className="space-y-8">
-          <fieldset className="space-y-4">
-            <legend className="sr-only">Delivery address</legend>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {field('fullName', 'Recipient name', { required: true, autoComplete: 'name', placeholder: 'Priya Raghavan' })}
-              {field('phone', 'Mobile number', { required: true, inputMode: 'numeric', autoComplete: 'tel-national', placeholder: '98765 43210' })}
-            </div>
-            {field('line1', 'Address', { required: true, autoComplete: 'address-line1', placeholder: '14, 3rd Cross, Indiranagar' })}
-            <div className="grid gap-4 sm:grid-cols-2">
-              {field('line2', 'Apartment, floor (optional)', { autoComplete: 'address-line2' })}
-              {field('landmark', 'Landmark (optional)')}
-            </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {field('city', 'City', { required: true, autoComplete: 'address-level2', placeholder: 'Bengaluru' })}
-              <label className="block">
-                <span className="eyebrow mb-2 block">State</span>
-                <select
-                  value={address.state}
-                  onChange={(e) => setAddress((prev) => ({ ...prev, state: e.target.value }))}
-                  className="h-12 w-full rounded-xl border border-line bg-canvas px-4 text-content outline-none focus:border-line-strong"
-                >
-                  {INDIAN_STATES.map((state) => <option key={state} value={state}>{state}</option>)}
-                </select>
-              </label>
-              {field('pincode', 'Pincode', { required: true, inputMode: 'numeric', maxLength: 6, autoComplete: 'postal-code', placeholder: '560001' })}
-            </div>
-          </fieldset>
+      <form onSubmit={placeOrder} className="shell grid gap-4 pb-14 pt-5 md:pt-8 lg:grid-cols-[minmax(0,1fr)_25rem] lg:items-start lg:gap-8">
+        {/* Phones: the basket folded away at the top, so people can check what
+            they are buying without scrolling past the whole form to find it. */}
+        <details className="group rounded-2xl border border-line bg-surface shadow-card lg:hidden">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-4 [&::-webkit-details-marker]:hidden">
+            <span className="flex items-center gap-2 text-sm font-medium text-content">
+              Order summary
+              <span className="text-xs font-normal text-muted">({cart.itemCount} {cart.itemCount === 1 ? 'item' : 'items'})</span>
+              <svg viewBox="0 0 20 20" className="size-4 text-muted transition-transform group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                <path d="M5 8l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <span className="numeric text-base font-semibold text-content">{formatINR(total)}</span>
+          </summary>
+          <ul className="space-y-3 border-t border-line p-4">{itemRows}</ul>
+        </details>
 
-          <fieldset className="rule space-y-4 pt-8">
-            <legend className="eyebrow">GST invoice</legend>
-            <label className="flex items-start gap-3 text-sm text-muted">
-              <input
-                type="checkbox"
-                checked={wantsInvoice}
-                onChange={(e) => setWantsInvoice(e.target.checked)}
-                className="mt-0.5 size-4 accent-[#CE2B2B]"
-              />
-              <span>
-                I am buying for a business and need a GST invoice
-                <span className="mt-0.5 block text-xs text-faint">
-                  Lets you claim input credit on the GST portion.
+        <div className="space-y-4">
+          <Section n={1} title="Delivery details" description="Where the crate is going, and who the courier should call.">
+            <fieldset className="space-y-4">
+              <legend className="sr-only">Delivery address</legend>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {field('fullName', 'Recipient name', { required: true, autoComplete: 'name', placeholder: 'Priya Raghavan' })}
+                {field('phone', 'Mobile number', { required: true, inputMode: 'numeric', autoComplete: 'tel-national', placeholder: '98765 43210' }, '+91')}
+              </div>
+              {field('line1', 'Address', { required: true, autoComplete: 'address-line1', placeholder: '14, 3rd Cross, Indiranagar' })}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {field('line2', 'Apartment, floor (optional)', { autoComplete: 'address-line2' })}
+                {field('landmark', 'Landmark (optional)')}
+              </div>
+              <div className="grid gap-4 sm:grid-cols-3">
+                {field('city', 'City', { required: true, autoComplete: 'address-level2', placeholder: 'Bengaluru' })}
+                <label className="block">
+                  <span className="mb-1.5 block text-[0.8125rem] font-medium text-content">State</span>
+                  <select
+                    value={address.state}
+                    onChange={(e) => setAddress((prev) => ({ ...prev, state: e.target.value }))}
+                    className={cn(inputBase, 'cursor-pointer border-line focus:border-ink')}
+                  >
+                    {INDIAN_STATES.map((state) => <option key={state} value={state}>{state}</option>)}
+                  </select>
+                </label>
+                {field('pincode', 'Pincode', { required: true, inputMode: 'numeric', maxLength: 6, autoComplete: 'postal-code', placeholder: '560001' })}
+              </div>
+            </fieldset>
+          </Section>
+
+          <Section n={2} title="GST invoice" optional>
+            <fieldset className="space-y-4">
+              <legend className="sr-only">GST invoice</legend>
+              <label className="flex cursor-pointer items-start gap-3">
+                <span className="relative mt-0.5 inline-flex shrink-0">
+                  <input
+                    type="checkbox"
+                    checked={wantsInvoice}
+                    onChange={(e) => setWantsInvoice(e.target.checked)}
+                    className="peer sr-only"
+                  />
+                  <span className="h-6 w-11 rounded-full bg-line-strong transition-colors peer-checked:bg-crimson peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-crimson" aria-hidden="true" />
+                  <span className="absolute left-0.5 top-0.5 size-5 rounded-full bg-white shadow-card transition-transform peer-checked:translate-x-5" aria-hidden="true" />
                 </span>
-              </span>
-            </label>
-
-            {wantsInvoice && (
-              <label className="block">
-                <span className="eyebrow mb-2 block">GSTIN</span>
-                <input
-                  value={gstin}
-                  onChange={(e) => setGstin(e.target.value.toUpperCase())}
-                  maxLength={15}
-                  placeholder="29AAACR5055K1Z3"
-                  className={cn(
-                    'numeric h-12 w-full rounded-xl border bg-canvas px-4 uppercase tracking-wide text-content outline-none placeholder:text-faint',
-                    fieldErrors.gstin ? 'border-crimson' : 'border-line focus:border-line-strong',
-                  )}
-                />
-                {fieldErrors.gstin && <span className="mt-1 block text-xs text-crimson">{fieldErrors.gstin[0]}</span>}
+                <span className="text-sm text-content">
+                  I am buying for a business and need a GST invoice
+                  <span className="mt-0.5 block text-xs text-muted">Lets you claim input credit on the GST portion.</span>
+                </span>
               </label>
-            )}
-          </fieldset>
 
-          <fieldset className="rule pt-8">
-            <legend className="eyebrow mb-3">Delivery notes (optional)</legend>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              maxLength={500}
-              placeholder="Gate code, best time to deliver, anything the courier should know."
-              className="w-full rounded-xl border border-line bg-canvas px-4 py-3 text-content outline-none focus:border-line-strong placeholder:text-faint"
-            />
-          </fieldset>
+              {wantsInvoice && (
+                <label className="block">
+                  <span className="mb-1.5 block text-[0.8125rem] font-medium text-content">GSTIN</span>
+                  <input
+                    value={gstin}
+                    onChange={(e) => setGstin(e.target.value.toUpperCase())}
+                    maxLength={15}
+                    placeholder="29AAACR5055K1Z3"
+                    className={cn(
+                      inputBase, 'numeric uppercase tracking-wide',
+                      fieldErrors.gstin ? 'border-crimson' : 'border-line focus:border-ink',
+                    )}
+                  />
+                  {fieldErrors.gstin && <span className="mt-1 block text-xs text-crimson">{fieldErrors.gstin[0]}</span>}
+                </label>
+              )}
+            </fieldset>
+          </Section>
+
+          <Section n={3} title="Delivery notes" optional>
+            <label className="block">
+              <span className="sr-only">Delivery notes</span>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                maxLength={500}
+                placeholder="Gate code, best time to deliver, anything the courier should know."
+                className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-base text-content outline-none transition-colors placeholder:text-faint focus:border-ink focus:ring-2 focus:ring-crimson/15"
+              />
+            </label>
+          </Section>
         </div>
 
         {/* Live totals */}
-        <aside className="lg:sticky lg:top-28 lg:h-fit">
-          <div className="rounded-2xl border border-line p-6">
-            <h2 className="eyebrow mb-5">Order summary</h2>
+        <aside className="lg:sticky lg:top-32 lg:h-fit">
+          <div className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
+            <h2 className="font-display text-lg font-semibold tracking-[-0.015em] text-content">Order summary</h2>
 
-            <ul className="mb-5 space-y-3 border-b border-line pb-5">
-              {cart.lines.map((line) => (
-                <li key={line.id} className="flex justify-between gap-4 text-sm">
-                  <span className="min-w-0 text-muted">
-                    <span className="block truncate text-content">{line.product.name}</span>
-                    <span className="numeric text-xs text-faint">
-                      {line.variant.optionValue} × {line.quantity}
-                    </span>
-                  </span>
-                  <span className="numeric shrink-0 text-content">{formatINR(line.lineTotal)}</span>
-                </li>
-              ))}
-            </ul>
+            <ul className="mt-4 hidden space-y-3 border-b border-line pb-4 lg:block">{itemRows}</ul>
 
-            <dl className={cn('space-y-2.5 text-sm transition-opacity', quoting && 'opacity-50')}>
+            <dl className={cn('mt-4 space-y-2.5 text-sm transition-opacity lg:mt-4', quoting && 'opacity-50')}>
               <div className="flex justify-between">
                 <dt className="text-muted">Subtotal</dt>
                 <dd className="numeric text-content">{formatINR(quote?.subtotal ?? cart.subtotal)}</dd>
@@ -431,7 +504,7 @@ export default function CheckoutPage() {
                   Freight
                   {quote?.shippingEta && <span className="block text-xs text-faint">{quote.shippingEta}</span>}
                 </dt>
-                <dd className="numeric text-content">
+                <dd className={cn('numeric', quote?.shippingIsFree ? 'font-medium text-success' : 'text-content')}>
                   {quote ? (quote.shippingIsFree ? 'Free' : formatINR(quote.shippingTotal)) : '—'}
                 </dd>
               </div>
@@ -459,11 +532,9 @@ export default function CheckoutPage() {
                 </>
               )}
 
-              <div className="rule flex justify-between pt-3 text-base">
+              <div className="flex items-baseline justify-between border-t border-line pt-3 text-lg">
                 <dt className="font-medium text-content">Total</dt>
-                <dd className="numeric font-medium text-content">
-                  {quote ? formatINR(quote.grandTotal) : formatINR(cart.estimatedTotal)}
-                </dd>
+                <dd className="numeric font-semibold text-content">{formatINR(total)}</dd>
               </div>
             </dl>
 
@@ -471,10 +542,10 @@ export default function CheckoutPage() {
               <p className="mt-3 text-xs text-faint">Calculating freight…</p>
             )}
             {!canQuote && (
-              <p className="mt-3 text-xs text-faint">Enter a pincode to see freight and tax.</p>
+              <p className="mt-3 rounded-lg bg-sand px-3 py-2 text-xs text-muted">Enter a pincode to see freight and tax.</p>
             )}
             {error && <p role="alert" className="mt-4 text-sm text-crimson">{error}</p>}
-            {orderError && <p role="alert" className="mt-4 text-sm text-crimson">{orderError}</p>}
+            {orderError && <p role="alert" className="mt-4 rounded-lg bg-crimson-tint px-3 py-2.5 text-sm text-crimson-deep">{orderError}</p>}
             {razorpay.failed && (
               <p className="mt-4 text-sm text-warning">
                 The payment window could not load. Check any ad blocker and refresh.
@@ -485,8 +556,8 @@ export default function CheckoutPage() {
               /* Deliberately NOT a nested <form> — the whole checkout is one
                  already, and nesting forms is invalid HTML that browsers
                  resolve by dropping the inner one. Enter is handled by hand. */
-              <div className="mt-6 rounded-2xl border border-line bg-canvas p-4">
-                <p className="text-sm font-medium text-content">Confirm your number</p>
+              <div className="mt-5 rounded-2xl border border-line bg-sand p-4">
+                <p className="text-sm font-semibold text-content">Confirm your number</p>
                 <p className="mt-1 text-xs leading-relaxed text-muted">
                   We sent a 6-digit code to +91 {address.phone}. This is how the courier
                   reaches you on delivery day.
@@ -503,7 +574,7 @@ export default function CheckoutPage() {
                   aria-label="6-digit code"
                   autoFocus
                   placeholder="······"
-                  className="numeric mt-3 h-12 w-full rounded-xl border border-line bg-surface px-4 text-center text-lg tracking-[0.4em] text-content outline-none focus:border-line-strong placeholder:text-faint"
+                  className="numeric mt-3 h-12 w-full rounded-xl border border-line bg-surface px-4 text-center text-lg tracking-[0.4em] text-content outline-none transition-colors placeholder:text-faint focus:border-ink focus:ring-2 focus:ring-crimson/15"
                 />
 
                 {devCode && (
@@ -547,9 +618,17 @@ export default function CheckoutPage() {
                   size="lg"
                   loading={placing || otpBusy}
                   disabled={!quote || quoting}
-                  className="mt-6 w-full"
+                  className="mt-5 w-full"
                 >
-                  {quote ? `Pay ${formatINR(quote.grandTotal)}` : 'Enter your address'}
+                  {quote ? (
+                    <>
+                      <svg viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+                        <rect x="4.5" y="9" width="11" height="7.5" rx="1.5" />
+                        <path d="M7 9V6.5a3 3 0 0 1 6 0V9" strokeLinecap="round" />
+                      </svg>
+                      Pay {formatINR(quote.grandTotal)}
+                    </>
+                  ) : 'Enter your address'}
                 </Button>
 
                 {/* Says what happens next, so the code is expected rather than
@@ -572,9 +651,36 @@ export default function CheckoutPage() {
                 </p>
               </>
             )}
+
+            <ul className="mt-5 grid grid-cols-3 gap-2 border-t border-line pt-4 text-center text-[0.6875rem] leading-snug text-muted">
+              {['Encrypted payment', 'GST invoice included', '12–36 month warranty'].map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
           </div>
         </aside>
       </form>
-    </div>
+    </>
+  );
+}
+
+/** A numbered card on the checkout form: the number says "step", the card says "one job". */
+function Section({
+  n, title, description, optional, children,
+}: { n: number; title: string; description?: string; optional?: boolean; children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-line bg-surface p-4 shadow-card sm:p-6">
+      <header className="mb-5 flex items-start gap-3">
+        <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ink text-xs font-semibold text-on-ink" aria-hidden="true">{n}</span>
+        <div className="min-w-0">
+          <h2 className="font-display text-lg font-semibold leading-tight tracking-[-0.015em] text-content">
+            {title}
+            {optional && <span className="ml-2 font-body text-xs font-normal text-faint">Optional</span>}
+          </h2>
+          {description && <p className="mt-0.5 text-sm text-muted">{description}</p>}
+        </div>
+      </header>
+      {children}
+    </section>
   );
 }

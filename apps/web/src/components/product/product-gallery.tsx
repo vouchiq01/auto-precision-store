@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import type { ProductImage } from '@aps/shared';
 import { cn } from '@/lib/cn';
+import { PhotoPlaceholder } from './photo-placeholder';
 import { SpinViewer } from './spin-viewer';
 
 /**
@@ -65,7 +66,7 @@ export function ProductGallery({
             className="animate-[fadeIn_0.5s_var(--ease-out-expo)] object-cover"
           />
         ) : (
-          <div className="grid h-full place-items-center text-faint">No image</div>
+          <PhotoPlaceholder />
         )}
       </div>
 

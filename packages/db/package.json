@@ -30,7 +30,8 @@
     "push": "drizzle-kit push",
     "migrate": "node --experimental-strip-types src/migrate.ts",
     "studio": "drizzle-kit studio",
-    "seed": "node --experimental-strip-types src/seed/index.ts"
+    "seed": "node --experimental-strip-types src/seed/index.ts",
+    "seed:extra": "node --experimental-strip-types src/seed/add-extra.ts"
   },
   "dependencies": {
     "@aps/shared": "*",

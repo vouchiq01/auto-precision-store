@@ -41,13 +41,19 @@ export function CategoryRail({ categories }: { categories: Category[] }) {
             )}
           >
             <div className="relative aspect-[4/5] sm:aspect-[3/4] lg:aspect-auto lg:h-[26rem] xl:h-[32rem]">
-              <Image
-                src={category.imageUrl ?? `/categories/${category.slug}.jpg`}
-                alt=""
-                fill
-                sizes="(min-width: 1024px) 20vw, (min-width: 640px) 33vw, 50vw"
-                className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-105"
-              />
+              {/* A collection can exist before it has a photograph. It gets a
+                  plain ink tile rather than a broken image. */}
+              {category.imageUrl ? (
+                <Image
+                  src={category.imageUrl}
+                  alt=""
+                  fill
+                  sizes="(min-width: 1024px) 20vw, (min-width: 640px) 33vw, 50vw"
+                  className="object-cover transition-transform duration-[900ms] ease-out-expo group-hover:scale-105"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-ink-raised bg-blueprint" />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" />
 
               {/* text-on-ink, not text-content: this sits over the dark
@@ -59,7 +65,7 @@ export function CategoryRail({ categories }: { categories: Category[] }) {
                   {category.name}
                 </h3>
                 <p className="numeric mt-1 text-xs text-on-ink-muted">
-                  {category.productCount ?? 0} {category.productCount === 1 ? 'table' : 'tables'}
+                  {category.productCount ?? 0} {category.productCount === 1 ? 'product' : 'products'}
                 </p>
                 {/* Crimson rule that wipes in on hover — the only accent here */}
                 <span className="mt-3 block h-px w-8 origin-left scale-x-0 bg-crimson transition-transform duration-500 ease-out-expo group-hover:scale-x-100" />

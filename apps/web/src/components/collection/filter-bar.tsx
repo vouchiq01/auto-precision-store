@@ -107,7 +107,7 @@ export function FilterBar({ total }: { total: number }) {
         </label>
 
         <p className="numeric ml-auto hidden text-sm text-muted md:block">
-          {total} {total === 1 ? 'table' : 'tables'}
+          {total} {total === 1 ? 'product' : 'products'}
         </p>
       </div>
 
@@ -116,7 +116,7 @@ export function FilterBar({ total }: { total: number }) {
           row run edge to edge so the cut-off chip says "there is more". */}
       <div className="-mx-4 mt-2.5 flex items-center gap-2 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] md:mx-0 md:px-0 [&::-webkit-scrollbar]:hidden">
         <span className="numeric shrink-0 pr-1 text-xs text-muted md:hidden">
-          {total} {total === 1 ? 'table' : 'tables'}
+          {total} {total === 1 ? 'product' : 'products'}
         </span>
         {PRICE_BANDS.map((band) => {
           const active = String(band.min ?? '') === (activeMin ?? '') && String(band.max ?? '') === (activeMax ?? '');

@@ -16,6 +16,9 @@ const NAV = [
   { href: '/collections/round-rotating', label: 'Round' },
   { href: '/collections/portable', label: 'Portable' },
   { href: '/collections/foldable', label: 'Foldable' },
+  { href: '/collections/fixed-tables', label: 'Fixed' },
+  { href: '/collections/bath-tubs', label: 'Tubs' },
+  { href: '/collections/combos', label: 'Combos' },
   { href: '/collections/accessories', label: 'Accessories' },
 ];
 
@@ -148,12 +151,12 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
             <Link
               href="/shop"
               className={cn(
-                'relative rounded-full px-4 py-2 text-[0.8125rem] font-medium transition-colors',
+                'relative whitespace-nowrap rounded-full px-3 py-2 text-[0.8125rem] font-medium transition-colors xl:px-4',
                 pathname.startsWith('/shop') ? 'text-on-ink' : 'text-on-ink-muted hover:text-on-ink',
               )}
             >
-              All tables
-              {pathname.startsWith('/shop') && <span className="absolute inset-x-4 -bottom-px h-0.5 rounded-full bg-amber" />}
+              All products
+              {pathname.startsWith('/shop') && <span className="absolute inset-x-3 -bottom-px xl:inset-x-4 h-0.5 rounded-full bg-amber" />}
             </Link>
             {NAV.map((item) => {
               const active = pathname.startsWith(item.href);
@@ -162,20 +165,21 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    'relative rounded-full px-4 py-2 text-[0.8125rem] transition-colors',
+                    'relative whitespace-nowrap rounded-full px-3 py-2 text-[0.8125rem] transition-colors xl:px-4',
                     active ? 'font-medium text-on-ink' : 'text-on-ink-muted hover:text-on-ink',
                   )}
                 >
                   {item.label}
-                  {active && <span className="absolute inset-x-4 -bottom-px h-0.5 rounded-full bg-amber" />}
+                  {active && <span className="absolute inset-x-3 -bottom-px xl:inset-x-4 h-0.5 rounded-full bg-amber" />}
                 </Link>
               );
             })}
             <Link
               href="/enquiry"
-              className="ml-auto rounded-full px-4 py-2 text-[0.8125rem] text-amber transition-colors hover:text-on-ink"
+              className="ml-auto whitespace-nowrap rounded-full px-3 py-2 text-[0.8125rem] text-amber transition-colors hover:text-on-ink xl:px-4"
             >
-              Bulk &amp; dealer enquiry
+              <span className="xl:hidden">Dealers</span>
+              <span className="hidden xl:inline">Bulk &amp; dealer enquiry</span>
             </Link>
           </div>
         </nav>
@@ -190,7 +194,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
         aria-hidden={!mobileOpen}
       >
         <nav className="shell flex h-full flex-col justify-center gap-1 pt-16" aria-label="Mobile navigation">
-          {[{ href: '/shop', label: 'All tables' }, ...NAV].map((item, i) => (
+          {[{ href: '/shop', label: 'All products' }, ...NAV].map((item, i) => (
             <Link
               key={item.href}
               href={item.href}

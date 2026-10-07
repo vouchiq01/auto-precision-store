@@ -26,9 +26,12 @@ export interface SeedProduct {
   description: string; categorySlug: string;
   basePrice: number; compareAtPrice: number;
   weightG: number; lengthMm: number; widthMm: number;
-  heightMinMm: number; heightMaxMm: number; loadCapacityKg: number;
+  /** Null for products with no height travel (fixed tables, tubs, bundles). */
+  heightMinMm: number | null; heightMaxMm: number | null; loadCapacityKg: number;
   warrantyMonths: number; badges: string[]; isFeatured: boolean;
   imageCount: number;
+  /** Defaults to 9403 (furniture). Tubs are steel sanitary ware. */
+  hsnCode?: string;
   /** Photographs are .jpg; the round range ships drawn illustrations instead. */
   imageExt?: 'jpg' | 'svg';
   variants: SeedVariant[];
@@ -37,13 +40,15 @@ export interface SeedProduct {
   faqs: SeedFaq[];
 }
 
-export const CATEGORIES = [
+export interface SeedCategory { slug: string; name: string; description: string; sortOrder: number }
+
+export const CATEGORIES: SeedCategory[] = [
   { slug: 'electric-lifting', name: 'Electric Lifting', description: 'Motorised columns that raise a settled dog to working height without a word of protest. Built to take eight hours a day.', sortOrder: 1 },
   { slug: 'hydraulic', name: 'Hydraulic', description: 'Foot-pump lift with nothing to plug in. Mechanically simple, service-friendly, and unbothered by a power cut.', sortOrder: 2 },
   { slug: 'portable', name: 'Portable', description: 'Light enough to carry to a client’s home, rigid enough to work on when you get there.', sortOrder: 3 },
   { slug: 'foldable', name: 'Foldable', description: 'Flat-packing tables for groomers who share a room with something else.', sortOrder: 4 },
   { slug: 'round-rotating', name: 'Round & Rotating', description: 'A circular deck on a single pedestal that spins under the dog. No corners to walk around, the smallest footprint in the range, and the easiest table to live with at home.', sortOrder: 3 },
-  { slug: 'accessories', name: 'Accessories', description: 'Arms, nooses and ramps that turn a table into a working station.', sortOrder: 6 },
+  { slug: 'accessories', name: 'Accessories', description: 'Arms, nooses and ramps that turn a table into a working station.', sortOrder: 8 },
 ];
 
 const WARRANTY_FAQ: SeedFaq = {
@@ -673,7 +678,7 @@ const ROTATING = new Set([
 function liftKind(p: SeedProduct): 'electric' | 'hydraulic' | 'manual' | null {
   if (p.categorySlug === 'electric-lifting') return 'electric';
   if (p.categorySlug === 'hydraulic') return 'hydraulic';
-  if (p.heightMaxMm > p.heightMinMm) return 'manual';
+  if (p.heightMaxMm !== null && p.heightMinMm !== null && p.heightMaxMm > p.heightMinMm) return 'manual';
   return null;
 }
 
@@ -681,7 +686,7 @@ function heightFeature(p: SeedProduct): SeedFeature | null {
   const kind = liftKind(p);
   if (!kind) return null;
 
-  const travel = p.heightMaxMm - p.heightMinMm;
+  const travel = (p.heightMaxMm ?? 0) - (p.heightMinMm ?? 0);
   const how = kind === 'electric'
     ? 'A tap of the foot bar takes it there. You never take a hand off the dog.'
     : kind === 'hydraulic'
@@ -776,7 +781,7 @@ for (const product of PRODUCTS) {
     product.faqs.splice(product.faqs.length - 1, 0, ROTATION_FAQ);
   }
 
-  const travel = product.heightMaxMm - product.heightMinMm;
+  const travel = (product.heightMaxMm ?? 0) - (product.heightMinMm ?? 0);
   if (travel > 0 && !product.specs.some((s) => s.label === 'Height range')) {
     product.specs.push({
       group: 'Lift',

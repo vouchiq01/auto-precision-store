@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
 import {
@@ -8,7 +9,10 @@ import {
 import { apiFetch, API_URL } from '@/lib/api';
 import { formatDate } from '@/lib/format';
 import { useAuth } from '@/providers/auth-provider';
-import { Badge, EmptyState, Eyebrow, Spinner } from '@/components/ui/primitives';
+import { useSignIn } from '@/providers/sign-in-provider';
+import { ListingHero } from '@/components/collection/listing-hero';
+import { OrderProgress } from '@/components/order/order-progress';
+import { Badge, Spinner } from '@/components/ui/primitives';
 import { Button, ButtonLink } from '@/components/ui/button';
 
 /**
@@ -24,6 +28,7 @@ import { Button, ButtonLink } from '@/components/ui/button';
  */
 export default function AccountPage() {
   const { user, token, loading: authLoading, logout } = useAuth();
+  const { openSignIn } = useSignIn();
   const [orders, setOrders] = useState<Paginated<Order> | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,81 +85,94 @@ export default function AccountPage() {
   }
 
   if (authLoading || loading) {
-    return <div className="shell grid min-h-[50vh] place-items-center pt-28"><Spinner className="text-muted" /></div>;
+    return <div className="shell grid min-h-[60vh] place-items-center pt-28"><Spinner className="text-muted" /></div>;
   }
 
   if (!user) {
     return (
-      <div className="shell pt-28 md:pt-36">
-        <Eyebrow>Account</Eyebrow>
-        <h1 className="display-lg mt-4 text-content">Not signed in<span className="text-crimson">.</span></h1>
-        <p className="lede mt-5">
-          Sign in with your phone number to see your orders, addresses and invoices.
-        </p>
-        <ButtonLink href="/" className="mt-8">Back to the store</ButtonLink>
-      </div>
+      <>
+        <ListingHero crumb="Account" title="Your account" />
+        <div className="shell py-10 md:py-16">
+          <div className="mx-auto max-w-md rounded-3xl border border-line bg-surface px-6 py-10 text-center shadow-card md:px-10">
+            <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-ink text-amber">
+              <svg viewBox="0 0 24 24" className="size-7" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" aria-hidden="true">
+                <circle cx="12" cy="8" r="3.5" />
+                <path d="M5 20c.9-3.6 3.6-5.5 7-5.5s6.1 1.9 7 5.5" />
+              </svg>
+            </span>
+            <h2 className="mt-5 font-display text-2xl font-semibold tracking-[-0.02em] text-content">Sign in with your phone</h2>
+            <p className="mt-2 text-sm text-muted">
+              We text you a 6-digit code. No password to remember.
+            </p>
+            <Button size="lg" onClick={openSignIn} className="mt-6 w-full">Sign in</Button>
+
+            <ul className="mt-6 space-y-2 border-t border-line pt-5 text-left text-sm text-muted">
+              {['Track every order, step by step', 'Download your GST invoices', 'Reuse your saved delivery address'].map((item) => (
+                <li key={item} className="flex items-start gap-2">
+                  <svg viewBox="0 0 16 16" className="mt-1 size-3.5 shrink-0 text-success" aria-hidden="true">
+                    <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </>
     );
   }
 
   const firstName = user.fullName?.trim().split(/\s+/)[0];
+  const orderCount = orders?.items.length ?? 0;
 
   return (
-    <div className="shell pt-28 pb-24 md:pt-36">
-      {/* A header, not a headline. The page's job is the lists below it. */}
-      <div className="flex flex-wrap items-end justify-between gap-6 border-b border-line pb-8">
-        <div className="min-w-0">
-          <Eyebrow>Account</Eyebrow>
-          <h1 className="mt-3 truncate font-display text-[clamp(1.75rem,3.4vw,2.75rem)] font-semibold leading-[1.05] tracking-[-0.025em] text-content">
-            {firstName || 'Your account'}<span className="text-crimson">.</span>
-          </h1>
-          <p className="numeric mt-2 text-sm text-muted">{user.phone}</p>
-        </div>
-        <Button variant="secondary" size="sm" onClick={() => void logout()}>Sign out</Button>
-      </div>
+    <>
+      <ListingHero
+        crumb="Account"
+        title={firstName ? `Hello, ${firstName}` : 'Your account'}
+        description={<span className="numeric">{user.phone}</span>}
+        action={
+          <Button variant="onink" size="sm" onClick={() => void logout()}>Sign out</Button>
+        }
+      />
 
-      <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:gap-16">
+      <div className="shell grid gap-8 pb-14 pt-6 md:pt-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] lg:gap-10">
         {/* ---- Orders ------------------------------------------------- */}
-        <section>
+        <section aria-labelledby="orders-heading">
           <div className="flex items-baseline justify-between">
-            <h2 className="eyebrow">Your orders</h2>
-            {orders && orders.items.length > 0 && (
-              <span className="numeric text-xs text-faint">{orders.items.length}</span>
-            )}
+            <h2 id="orders-heading" className="font-display text-xl font-semibold tracking-[-0.02em] text-content">Your orders</h2>
+            {orderCount > 0 && <span className="numeric text-sm text-muted">{orderCount}</span>}
           </div>
 
           {!orders || orders.items.length === 0 ? (
-            <div className="mt-6">
-              <EmptyState
-                title="No orders yet"
-                description="When you buy a table it will appear here, with its invoice and tracking."
-                action={<ButtonLink href="/collections/electric-lifting" variant="secondary">Browse tables</ButtonLink>}
-              />
+            <div className="mt-4 rounded-2xl border border-dashed border-line-strong bg-surface px-6 py-12 text-center">
+              <p className="font-display text-lg font-semibold text-content">No orders yet</p>
+              <p className="mx-auto mt-1 max-w-xs text-sm text-muted">
+                When you buy a table it will appear here, with its tracking and invoice.
+              </p>
+              <ButtonLink href="/shop" className="mt-5">Shop all tables</ButtonLink>
             </div>
           ) : (
-            <ul className="mt-6 space-y-3">
+            <ul className="mt-4 space-y-4">
               {orders.items.map((order) => {
                 const invoiceAvailable = order.status !== 'pending_payment' && order.status !== 'cancelled';
+                const extra = order.lines.length - 3;
                 return (
-                  <li
-                    key={order.id}
-                    className="rounded-2xl border border-line bg-surface p-5 shadow-card transition-shadow hover:shadow-lift"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-4">
+                  <li key={order.id} className="rounded-2xl border border-line bg-surface p-4 shadow-card transition-shadow hover:shadow-lift sm:p-5">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0">
                         <Link
                           href={`/order/${order.orderNumber}`}
-                          className="numeric font-medium text-content transition-colors hover:text-crimson"
+                          className="numeric font-semibold text-content transition-colors hover:text-crimson"
                         >
                           {order.orderNumber}
                         </Link>
-                        <p className="mt-1 text-sm text-muted">
-                          {order.lines.length} {order.lines.length === 1 ? 'item' : 'items'} · {formatDate(order.createdAt)}
-                        </p>
+                        <p className="mt-0.5 text-xs text-muted">Placed {formatDate(order.createdAt)}</p>
                       </div>
                       <div className="text-right">
-                        <p className="numeric font-medium text-content">{formatINR(order.grandTotal)}</p>
+                        <p className="numeric font-semibold text-content">{formatINR(order.grandTotal)}</p>
                         <Badge
-                          className="mt-1.5"
+                          className="mt-1"
                           tone={order.status === 'delivered' ? 'success' : order.status === 'cancelled' ? 'warning' : 'neutral'}
                         >
                           {ORDER_STATUS_LABELS[order.status]}
@@ -162,17 +180,35 @@ export default function AccountPage() {
                       </div>
                     </div>
 
-                    <div className="mt-4 flex items-center gap-4 border-t border-line pt-3 text-sm">
-                      <Link
-                        href={`/order/${order.orderNumber}`}
-                        className="text-muted underline-offset-4 transition-colors hover:text-content hover:underline"
-                      >
-                        Track this order
-                      </Link>
+                    <div className="mt-4 flex items-center gap-3">
+                      <div className="flex -space-x-2">
+                        {order.lines.slice(0, 3).map((line) => (
+                          <span key={line.id} className="relative size-12 overflow-hidden rounded-xl border-2 border-surface bg-sand">
+                            {line.imageUrl && <Image src={line.imageUrl} alt="" fill sizes="48px" className="object-cover" />}
+                          </span>
+                        ))}
+                        {extra > 0 && (
+                          <span className="numeric grid size-12 place-items-center rounded-xl border-2 border-surface bg-sand text-xs font-medium text-muted">
+                            +{extra}
+                          </span>
+                        )}
+                      </div>
+                      <p className="min-w-0 text-sm text-muted">
+                        <span className="line-clamp-1 text-content">{order.lines[0]?.name}</span>
+                        {order.lines.length > 1 ? `and ${order.lines.length - 1} more` : order.lines[0]?.variantLabel}
+                      </p>
+                    </div>
+
+                    <OrderProgress status={order.status} className="mt-5" />
+
+                    <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-line pt-4">
+                      <ButtonLink href={`/order/${order.orderNumber}`} variant="secondary" size="sm">
+                        Track order
+                      </ButtonLink>
                       {invoiceAvailable && (
                         <a
                           href={`${API_URL}/api/account/orders/${order.orderNumber}/invoice`}
-                          className="text-muted underline-offset-4 transition-colors hover:text-content hover:underline"
+                          className="text-sm text-muted underline-offset-4 transition-colors hover:text-content hover:underline"
                         >
                           Download invoice
                         </a>
@@ -186,16 +222,14 @@ export default function AccountPage() {
         </section>
 
         {/* ---- Addresses ---------------------------------------------- */}
-        <section>
+        <section aria-labelledby="addresses-heading">
           <div className="flex items-baseline justify-between">
-            <h2 className="eyebrow">Saved addresses</h2>
-            {addresses.length > 0 && (
-              <span className="numeric text-xs text-faint">{addresses.length}</span>
-            )}
+            <h2 id="addresses-heading" className="font-display text-xl font-semibold tracking-[-0.02em] text-content">Saved addresses</h2>
+            {addresses.length > 0 && <span className="numeric text-sm text-muted">{addresses.length}</span>}
           </div>
 
           {addresses.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-dashed border-line px-5 py-10 text-center">
+            <div className="mt-4 rounded-2xl border border-dashed border-line-strong bg-surface px-5 py-10 text-center">
               <p className="text-sm font-medium text-content">Nothing saved yet</p>
               <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-muted">
                 The address you use at checkout is kept here, so the next table takes
@@ -203,9 +237,9 @@ export default function AccountPage() {
               </p>
             </div>
           ) : (
-            <ul className="mt-6 space-y-3">
+            <ul className="mt-4 space-y-3">
               {addresses.map((address) => (
-                <li key={address.id} className="rounded-2xl border border-line bg-surface p-5 shadow-card">
+                <li key={address.id} className="rounded-2xl border border-line bg-surface p-4 shadow-card sm:p-5">
                   <div className="flex items-start justify-between gap-3">
                     <p className="font-medium text-content">{address.fullName}</p>
                     {address.isDefault && <Badge tone="accent">Default</Badge>}
@@ -253,6 +287,6 @@ export default function AccountPage() {
           </p>
         </section>
       </div>
-    </div>
+    </>
   );
 }

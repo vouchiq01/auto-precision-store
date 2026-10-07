@@ -15,9 +15,9 @@ import { useSignIn } from '@/providers/sign-in-provider';
  * Thumbs reach the bottom of a phone, not the top-right corner where a hamburger
  * lives, and the five things a shopper actually does are all here. It steps
  * aside where a page brings its own fixed bottom bar (the product page's
- * add-to-cart bar, checkout) rather than stacking two bars.
+ * add-to-cart bar, the cart's total-and-checkout bar, checkout) rather than stacking two bars.
  */
-const HIDDEN_ON = ['/products/', '/checkout', '/order/'];
+const HIDDEN_ON = ['/products/', '/cart', '/checkout', '/order/'];
 
 export function useTabBarVisible(): boolean {
   const pathname = usePathname();

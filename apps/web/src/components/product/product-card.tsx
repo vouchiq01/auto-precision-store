@@ -2,11 +2,12 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { formatINR, type ProductSummary } from '@aps/shared';
 import { cn } from '@/lib/cn';
 import { useCart } from '@/providers/cart-provider';
 import { Badge, Spinner } from '@/components/ui/primitives';
+import { PhotoPlaceholder } from './photo-placeholder';
 
 /**
  * A product card built to be compared, not admired.
@@ -26,23 +27,7 @@ export function ProductCard({
 }: { product: ProductSummary; priority?: boolean; className?: string }) {
   const { addItem } = useCart();
   const [adding, setAdding] = useState(false);
-  const [picking, setPicking] = useState(false);
-  const pickerRef = useRef<HTMLDivElement>(null);
-
-  /* Dismiss the finish picker on an outside click or Escape, like any popover. */
-  useEffect(() => {
-    if (!picking) return;
-    const onDown = (event: MouseEvent) => {
-      if (!pickerRef.current?.contains(event.target as Node)) setPicking(false);
-    };
-    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setPicking(false); };
-    document.addEventListener('mousedown', onDown);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onDown);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [picking]);
+  const [chosenId, setChosenId] = useState<string | null>(null);
 
   const outOfStock = !product.inStock;
 
@@ -52,28 +37,25 @@ export function ProductCard({
      response shaped by the previous release. */
   const sellable = (product.options ?? []).filter((option) => option.inStock);
 
-  async function add(variantId: string) {
-    if (adding) return;
+  /* The finish is always visible on the card: swatches with the chosen one
+     ringed and named. The first finish is pre-selected so the button can say
+     one plain thing, "Add to cart" — an earlier "Choose finish" button that
+     opened a pop-up read as confusing. Because the choice is on screen, and
+     repeated on the cart line, a default is no longer a hidden guess. */
+  const selected = sellable.find((option) => option.id === chosenId) ?? sellable[0];
+
+  async function add() {
+    if (adding || !selected) return;
     setAdding(true);
     try {
       /* The cart drawer opens itself on a successful add, which is the
          confirmation — no toast needed, and it shows the running total. */
-      await addItem(variantId);
-      setPicking(false);
+      await addItem(selected.id);
     } catch {
       /* The cart provider surfaces the reason in the drawer. */
     } finally {
       setAdding(false);
     }
-  }
-
-  /* One variant goes straight in. More than one asks first — on the card,
-     because eight of the eighteen tables come in two finishes and adding
-     whichever sorts first to a ₹38,400 order is a wrong order, not a small
-     annoyance. Asking costs one tap; guessing costs a return shipment. */
-  function onAddClick() {
-    if (sellable.length === 1) { void add(sellable[0]!.id); return; }
-    setPicking((open) => !open);
   }
 
   const canAdd = !outOfStock && sellable.length > 0;
@@ -101,7 +83,7 @@ export function ProductCard({
             )}
           />
         ) : (
-          <div className="absolute inset-0 grid place-items-center text-sm text-faint">No image</div>
+          <PhotoPlaceholder />
         )}
 
         {/* One badge, solid backing: it sits over an arbitrary photograph, and
@@ -153,59 +135,52 @@ export function ProductCard({
           {product.emiTeaser ? `EMI from ${product.emiTeaser}` : ''}
         </p>
 
-        {/* ---- Add to cart ------------------------------------------- */}
-        <div ref={pickerRef} className="relative z-20 mt-auto pt-3">
-          {picking && (
-            <div
-              role="group"
-              aria-label={`Choose a finish for ${product.name}`}
-              className="absolute inset-x-0 bottom-full mb-1.5 overflow-hidden rounded-xl border border-line bg-surface p-1.5 shadow-lift"
-            >
-              <p className="px-2 pb-1 pt-1 text-[0.6875rem] uppercase tracking-[0.14em] text-faint">
-                Choose a finish
-              </p>
-              {sellable.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  disabled={adding}
-                  onClick={() => void add(option.id)}
-                  className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm text-content transition-colors hover:bg-sand disabled:opacity-60"
-                >
-                  <span
-                    aria-hidden="true"
-                    className="size-3.5 shrink-0 rounded-full border border-line-strong"
-                    style={option.hexColour ? { backgroundColor: option.hexColour } : undefined}
-                  />
-                  {option.label}
-                </button>
-              ))}
+        {/* ---- Finish + add to cart ---------------------------------- */}
+        <div className="relative z-20 mt-auto pt-3">
+          {sellable.length > 1 && (
+            <div role="radiogroup" aria-label={`Finish for ${product.name}`} className="mb-2.5 flex items-center gap-2">
+              {sellable.map((option) => {
+                const active = option.id === selected?.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={active}
+                    aria-label={option.label}
+                    title={option.label}
+                    onClick={() => setChosenId(option.id)}
+                    className={cn(
+                      'grid size-7 cursor-pointer place-items-center rounded-full border transition-shadow',
+                      active ? 'border-content ring-2 ring-content/15' : 'border-line-strong hover:ring-2 hover:ring-content/10',
+                    )}
+                  >
+                    <span
+                      className="size-4 rounded-full border border-black/10"
+                      style={option.hexColour ? { backgroundColor: option.hexColour } : undefined}
+                    />
+                  </button>
+                );
+              })}
+              <span className="min-w-0 truncate text-xs text-muted">{selected?.label}</span>
             </div>
           )}
 
           <button
             type="button"
-            onClick={onAddClick}
+            onClick={() => void add()}
             disabled={!canAdd || adding}
-            aria-expanded={canAdd && sellable.length > 1 ? picking : undefined}
-            aria-label={
-              !canAdd
-                ? `${product.name} is sold out`
-                : sellable.length > 1
-                  ? `Add ${product.name} to cart — choose a finish`
-                  : `Add ${product.name} to cart`
-            }
+            aria-label={canAdd ? `Add ${product.name}${sellable.length > 1 ? ` in ${selected?.label}` : ''} to cart` : `${product.name} is sold out`}
             className={cn(
               'flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl text-[0.8125rem] font-medium',
               'transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2',
               canAdd
                 ? 'bg-crimson text-white hover:bg-crimson-deep active:scale-[0.98]'
                 : 'cursor-not-allowed bg-sand text-faint',
-              picking && 'bg-crimson-deep',
             )}
           >
             {adding ? <Spinner className="size-4" /> : canAdd ? <BagIcon /> : null}
-            {canAdd ? (sellable.length > 1 ? 'Choose finish' : 'Add to cart') : 'Sold out'}
+            {canAdd ? 'Add to cart' : 'Sold out'}
           </button>
         </div>
       </div>

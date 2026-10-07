@@ -1,19 +1,19 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { formatINR } from '@aps/shared';
 import { cn } from '@/lib/cn';
 import { useCart } from '@/providers/cart-provider';
-import { AvailableCoupons } from '@/components/cart/available-coupons';
-import { Button, ButtonLink } from '@/components/ui/button';
-import { Eyebrow } from '@/components/ui/primitives';
+import { CartLineItem } from '@/components/cart/cart-line';
+import { CartTotals } from '@/components/cart/cart-totals';
+import { CouponBox } from '@/components/cart/coupon-box';
+import { FreightProgress } from '@/components/cart/freight-progress';
+import { ButtonLink } from '@/components/ui/button';
 
 export function CartDrawer() {
-  const { cart, isOpen, close, updateItem, removeItem, applyCoupon, removeCoupon, mutating, error } = useCart();
-  const [couponInput, setCouponInput] = useState('');
+  const { cart, isOpen, close } = useCart();
   const pathname = usePathname();
   const openedAt = useRef(pathname);
 
@@ -46,12 +46,13 @@ export function CartDrawer() {
 
   const lines = cart?.lines ?? [];
   const hasBlockingWarning = lines.some((line) => line.stockWarning !== null);
+  const tab = isOpen ? 0 : -1;
 
   return (
     <>
       <div
         className={cn(
-          'fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm transition-opacity duration-500',
+          'fixed inset-0 z-[60] bg-ink/70 backdrop-blur-sm transition-opacity duration-500',
           isOpen ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
         onClick={close}
@@ -60,7 +61,7 @@ export function CartDrawer() {
 
       <aside
         className={cn(
-          'fixed right-0 top-0 z-[65] flex h-dvh w-full max-w-[26rem] flex-col border-l border-line bg-surface',
+          'fixed right-0 top-0 z-[65] flex h-dvh w-full max-w-[26rem] flex-col bg-canvas shadow-[-24px_0_60px_-30px_rgba(0,0,0,0.5)]',
           'transition-transform duration-[600ms] ease-out-expo',
           isOpen ? 'translate-x-0' : 'translate-x-full',
         )}
@@ -69,189 +70,77 @@ export function CartDrawer() {
         aria-label="Shopping cart"
         aria-hidden={!isOpen}
       >
-        <header className="flex items-center justify-between border-b border-line px-6 py-5">
-          <div>
-            <Eyebrow>Your cart</Eyebrow>
-            <p className="numeric mt-1 text-sm text-content">
-              {cart?.itemCount ?? 0} {cart?.itemCount === 1 ? 'item' : 'items'}
-            </p>
+        {/* Navy header, like the site's: the drawer reads as part of the same
+            shop rather than a white sheet laid over it. */}
+        <header className="flex items-center justify-between bg-ink px-5 py-4 text-on-ink">
+          <div className="flex items-center gap-3">
+            <span className="grid size-10 place-items-center rounded-xl bg-white/10 text-amber">
+              <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M4.5 8h15l-1.2 11.5H5.7L4.5 8z" />
+                <path d="M8.5 8V6.5a3.5 3.5 0 0 1 7 0V8" />
+              </svg>
+            </span>
+            <div>
+              <p className="font-display text-base font-semibold leading-tight">Your cart</p>
+              <p className="numeric text-xs text-on-ink-muted">
+                {cart?.itemCount ?? 0} {cart?.itemCount === 1 ? 'item' : 'items'}
+              </p>
+            </div>
           </div>
           <button
             type="button"
             onClick={close}
             aria-label="Close cart"
-            tabIndex={isOpen ? 0 : -1}
-            className="grid size-9 place-items-center rounded-full text-muted transition-colors hover:bg-sand hover:text-content"
+            tabIndex={tab}
+            className="grid size-9 cursor-pointer place-items-center rounded-full bg-white/10 text-on-ink transition-colors hover:bg-white/20"
           >
             ✕
           </button>
         </header>
 
         {lines.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-5 px-8 text-center">
-            <p className="display-sm text-content">Nothing here yet</p>
-            <p className="text-sm text-muted">
-              Every table here is built for a different room.
-            </p>
-            <ButtonLink href="/collections/electric-lifting" variant="secondary" onClick={close}>
-              Browse tables
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center">
+            <p className="font-display text-xl font-semibold tracking-[-0.02em] text-content">Your cart is empty</p>
+            <p className="text-sm text-muted">Every table here is built for a different room.</p>
+            <ButtonLink href="/shop" onClick={close} tabIndex={tab} className="mt-2">
+              Shop all tables
             </ButtonLink>
           </div>
         ) : (
           <>
-            <ul className="flex-1 divide-y divide-line overflow-y-auto px-6">
-              {lines.map((line) => (
-                <li key={line.id} className="flex gap-4 py-5">
-                  <Link
-                    href={`/products/${line.product.slug}`}
-                    onClick={close}
-                    tabIndex={isOpen ? 0 : -1}
-                    className="relative size-20 shrink-0 overflow-hidden rounded-xl border border-line bg-canvas"
-                  >
-                    {line.product.image && (
-                      <Image
-                        src={line.product.image.url}
-                        alt={line.product.image.alt || line.product.name}
-                        fill
-                        sizes="80px"
-                        className="object-cover"
-                      />
-                    )}
-                  </Link>
+            {/* data-lenis-prevent: smooth-scroll otherwise swallows wheel and
+                touch scrolling inside a fixed panel. */}
+            <div data-lenis-prevent className="flex-1 overflow-y-auto px-4 py-4">
+              <FreightProgress total={cart?.estimatedTotal ?? 0} compact />
+              <ul className="mt-1 divide-y divide-line">
+                {lines.map((line) => (
+                  <CartLineItem key={line.id} line={line} compact onNavigate={close} tabIndex={tab} />
+                ))}
+              </ul>
+            </div>
 
-                  <div className="min-w-0 flex-1">
-                    <Link
-                      href={`/products/${line.product.slug}`}
-                      onClick={close}
-                      tabIndex={isOpen ? 0 : -1}
-                      className="block truncate text-sm font-medium text-content transition-colors hover:text-crimson"
-                    >
-                      {line.product.name}
-                    </Link>
-                    <p className="mt-0.5 text-xs text-muted">
-                      {line.variant.optionName}: {line.variant.optionValue}
-                    </p>
-
-                    {line.stockWarning && (
-                      <p className="mt-1.5 text-xs text-warning">{line.stockWarning}</p>
-                    )}
-
-                    <div className="mt-3 flex items-center justify-between gap-3">
-                      <div className="flex items-center rounded-full border border-line">
-                        <button
-                          type="button"
-                          onClick={() => void updateItem(line.id, line.quantity - 1)}
-                          disabled={mutating}
-                          tabIndex={isOpen ? 0 : -1}
-                          aria-label={line.quantity === 1 ? 'Remove item' : 'Decrease quantity'}
-                          className="grid size-8 place-items-center rounded-full text-muted transition-colors hover:text-content disabled:opacity-40"
-                        >
-                          −
-                        </button>
-                        <span className="numeric w-7 text-center text-sm text-content">{line.quantity}</span>
-                        <button
-                          type="button"
-                          onClick={() => void updateItem(line.id, line.quantity + 1)}
-                          disabled={mutating || line.quantity >= line.variant.stockQty}
-                          tabIndex={isOpen ? 0 : -1}
-                          aria-label="Increase quantity"
-                          className="grid size-8 place-items-center rounded-full text-muted transition-colors hover:text-content disabled:opacity-40"
-                        >
-                          +
-                        </button>
-                      </div>
-
-                      <p className="numeric text-sm font-medium text-content">{formatINR(line.lineTotal)}</p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => void removeItem(line.id)}
-                      disabled={mutating}
-                      tabIndex={isOpen ? 0 : -1}
-                      className="mt-2 text-xs text-faint underline-offset-2 transition-colors hover:text-crimson hover:underline"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            <footer className="border-t border-line px-6 py-5">
-              {cart?.couponCode ? (
-                <div className="mb-4 flex items-center justify-between rounded-xl border border-success/30 bg-success/5 px-4 py-2.5">
-                  <span className="text-sm text-success">
-                    {cart.couponCode} applied · −{formatINR(cart.discountTotal)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => void removeCoupon()}
-                    tabIndex={isOpen ? 0 : -1}
-                    className="text-xs text-muted transition-colors hover:text-content"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <AvailableCoupons onPick={setCouponInput} />
-                  <form
-                    className="mb-4 flex gap-2"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      if (couponInput.trim()) void applyCoupon(couponInput).then(() => setCouponInput(''));
-                    }}
-                  >
-                    <input
-                      value={couponInput}
-                      onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
-                      placeholder="Coupon code"
-                      aria-label="Coupon code"
-                      tabIndex={isOpen ? 0 : -1}
-                      className="h-10 min-w-0 flex-1 rounded-full border border-line bg-canvas px-4 text-sm uppercase tracking-wide text-content outline-none focus:border-line-strong placeholder:normal-case placeholder:tracking-normal placeholder:text-faint"
-                    />
-                    <Button type="submit" variant="secondary" size="sm" loading={mutating} disabled={!couponInput.trim()}>
-                      Apply
-                    </Button>
-                  </form>
-                </>
-              )}
-
-              {cart?.couponMessage && (
-                <p className="mb-3 text-xs text-warning">{cart.couponMessage}</p>
-              )}
-              {error && <p role="alert" className="mb-3 text-xs text-crimson">{error}</p>}
-
-              <div className="mb-4 space-y-1.5">
-                <div className="flex justify-between text-sm text-muted">
-                  <span>Subtotal</span>
-                  <span className="numeric">{formatINR(cart?.subtotal ?? 0)}</span>
-                </div>
-                {(cart?.discountTotal ?? 0) > 0 && (
-                  <div className="flex justify-between text-sm text-success">
-                    <span>Discount</span>
-                    <span className="numeric">− {formatINR(cart?.discountTotal ?? 0)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between pt-1.5 text-base text-content">
-                  <span className="font-medium">Total</span>
-                  <span className="numeric font-medium">{formatINR(cart?.estimatedTotal ?? 0)}</span>
-                </div>
-                <p className="text-xs text-faint">
-                  Inclusive of GST. Freight calculated at checkout.
-                </p>
-              </div>
+            <footer className="border-t border-line bg-surface px-4 py-4 shadow-[0_-10px_30px_-20px_rgba(0,0,0,0.25)]">
+              <CouponBox collapsible tabIndex={tab} />
+              <div className="my-4 border-t border-line" />
+              <CartTotals cart={cart} compact />
 
               <ButtonLink
                 href="/checkout"
                 size="lg"
                 onClick={close}
-                tabIndex={isOpen ? 0 : -1}
-                className={cn('w-full', hasBlockingWarning && 'pointer-events-none opacity-50')}
+                tabIndex={tab}
+                className={cn('mt-4 w-full', hasBlockingWarning && 'pointer-events-none opacity-50')}
               >
-                {hasBlockingWarning ? 'Fix stock issues to continue' : 'Checkout'}
+                {hasBlockingWarning ? 'Fix stock issues to continue' : `Checkout · ${formatINR(cart?.estimatedTotal ?? 0)}`}
               </ButtonLink>
+              <Link
+                href="/cart"
+                onClick={close}
+                tabIndex={tab}
+                className="mt-3 block text-center text-sm text-muted underline-offset-4 transition-colors hover:text-content hover:underline"
+              >
+                View full cart
+              </Link>
             </footer>
           </>
         )}

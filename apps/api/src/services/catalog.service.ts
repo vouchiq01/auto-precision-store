@@ -78,9 +78,19 @@ export async function listProducts(filter: ProductFilter, page = 1, perPage = 24
   if (typeof filter.maxPrice === 'number') conditions.push(lte(products.basePrice, filter.maxPrice));
   if (filter.search) {
     const term = `%${filter.search}%`;
+    /* Also matches the collection's name, so "portable" finds every table in the
+       Portable collection even where the word is not in the product's own name.
+       The outer reference is written as products.category_id by hand: Drizzle
+       renders ${products.categoryId} unqualified, which inside a subquery binds
+       to the INNER table (see CLAUDE.md). */
     conditions.push(
-      or(ilike(products.name, term), ilike(products.summary, term), ilike(products.sku, term)) ??
-      sql`true`,
+      or(
+        ilike(products.name, term),
+        ilike(products.tagline, term),
+        ilike(products.summary, term),
+        ilike(products.sku, term),
+        sql`exists (select 1 from categories search_cat where search_cat.id = products.category_id and search_cat.name ilike ${term})`,
+      ) ?? sql`true`,
     );
   }
   if (filter.inStock) {

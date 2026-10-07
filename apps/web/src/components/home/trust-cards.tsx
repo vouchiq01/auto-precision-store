@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 
 /**
- * Four promises, as cards that straddle the bottom edge of the dark hero.
+ * Four promises in one slim bar, under the first shelf.
  *
- * This replaced a one-line ticker and a three-tick checklist that said the same
- * things in small grey type. As cards they are scannable at a glance and they
- * give the white-on-navy break between the hero and the page a reason to exist.
+ * They were large floating cards straddling the hero, which spent the first
+ * screen on reassurance before a single product. Here they are a quiet strip
+ * the shopper meets just after the products, when the question has become
+ * "and what if something goes wrong?".
  *
  * Every claim is one the platform really keeps: freight is the Karnataka rule,
  * the warranty range is the true 12–36 months across the catalogue (not a flat
@@ -59,17 +60,17 @@ const ITEMS: { title: string; body: string; icon: ReactNode }[] = [
 
 export function TrustCards() {
   return (
-    <section aria-label="Why buy from us" className="shell relative z-10 -mt-14 md:-mt-16">
-      <ul className="grid grid-cols-2 gap-2.5 lg:grid-cols-4 lg:gap-4">
+    <section aria-label="Why buy from us" className="shell py-6 md:py-8">
+      {/* gap-px over a line-coloured background draws the dividers for both the
+          2×2 phone grid and the 4-across desktop row without per-breakpoint
+          border rules. */}
+      <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line shadow-card lg:grid-cols-4">
         {ITEMS.map((item) => (
-          <li
-            key={item.title}
-            className="flex items-start gap-3 rounded-2xl border border-line bg-surface p-3.5 shadow-lift md:p-5"
-          >
-            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-ink text-amber md:size-11">
+          <li key={item.title} className="flex items-center gap-3 bg-surface p-3.5 md:p-4">
+            <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-ink text-amber md:size-10">
               <svg
                 viewBox="0 0 24 24"
-                className="size-5 md:size-[1.375rem]"
+                className="size-5"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="1.6"
@@ -81,9 +82,7 @@ export function TrustCards() {
               </svg>
             </span>
             <span className="min-w-0">
-              <span className="block text-[0.8125rem] font-medium leading-snug text-content md:text-sm">
-                {item.title}
-              </span>
+              <span className="block text-[0.8125rem] font-medium leading-snug text-content">{item.title}</span>
               <span className="mt-0.5 block text-xs leading-snug text-muted">{item.body}</span>
             </span>
           </li>

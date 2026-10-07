@@ -6,7 +6,9 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/cn';
 import { useAuth } from '@/providers/auth-provider';
 import { useCart } from '@/providers/cart-provider';
+import { useSearch } from '@/providers/search-provider';
 import { Logo } from './logo';
+import { SearchBox } from './search-box';
 
 const NAV = [
   { href: '/collections/electric-lifting', label: 'Electric' },
@@ -17,16 +19,23 @@ const NAV = [
   { href: '/collections/accessories', label: 'Accessories' },
 ];
 
+/**
+ * Two rows on a desktop: the brand, a search field and the account/cart
+ * controls on top; the collections underneath. On a phone it is one slim row —
+ * logo, search, cart, menu — and the bottom tab bar carries the rest.
+ *
+ * The collections used to be the only way into the catalogue and search did not
+ * exist; a visitor who knew they wanted "round" had to guess which link it hid
+ * behind. Search is now the centrepiece of the bar.
+ */
 export function Header({ onSignIn }: { onSignIn: () => void }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
   const { cart, open: openCart } = useCart();
+  const { openSearch } = useSearch();
 
-  /* The header only gains its backdrop after the hero has begun to pass under
-     it — over the hero itself it stays fully transparent so the artwork is not
-     cropped by a bar of frosted glass. */
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
@@ -55,37 +64,33 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
 
       <header
         className={cn(
-          'fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,backdrop-filter] duration-500',
-          scrolled
-            ? 'border-b border-ink-line bg-ink/90 text-on-ink backdrop-blur-xl'
-            : 'border-b border-transparent bg-ink text-on-ink',
+          'fixed inset-x-0 top-0 z-50 text-on-ink transition-[background-color,border-color,backdrop-filter] duration-300',
+          scrolled ? 'border-b border-ink-line bg-ink/90 backdrop-blur-xl' : 'border-b border-transparent bg-ink',
         )}
       >
-        <div className="shell flex h-16 items-center justify-between gap-6 md:h-20">
-          <Link href="/" aria-label="Auto Precision — home" className="text-on-ink transition-opacity hover:opacity-70">
+        {/* ---- Row 1: brand, search, account, cart ------------------- */}
+        <div className="shell flex h-16 items-center gap-3 lg:gap-8">
+          <Link href="/" aria-label="Auto Precision — home" className="shrink-0 text-on-ink transition-opacity hover:opacity-70">
             <Logo />
           </Link>
 
-          <nav aria-label="Product categories" className="hidden items-center gap-1 lg:flex">
-            {NAV.map((item) => {
-              const active = pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={cn(
-                    'relative rounded-full px-4 py-2 text-[0.8125rem] transition-colors duration-300',
-                    active ? 'text-on-ink' : 'text-on-ink-muted hover:text-on-ink',
-                  )}
-                >
-                  {item.label}
-                  {active && <span className="absolute inset-x-4 -bottom-0.5 h-0.5 rounded-full bg-amber" />}
-                </Link>
-              );
-            })}
-          </nav>
+          <div className="mx-auto hidden w-full max-w-xl lg:block">
+            <SearchBox variant="bar" />
+          </div>
 
-          <div className="flex items-center gap-1">
+          <div className="ml-auto flex items-center gap-1.5 lg:ml-0">
+            <button
+              type="button"
+              onClick={openSearch}
+              aria-label="Search"
+              className="grid size-10 cursor-pointer place-items-center rounded-full border border-white/20 text-on-ink transition-colors hover:border-white/40 hover:bg-white/5 lg:hidden"
+            >
+              <svg viewBox="0 0 20 20" className="size-[1.125rem]" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
+                <circle cx="9" cy="9" r="5.5" />
+                <path d="M13.5 13.5L17 17" strokeLinecap="round" />
+              </svg>
+            </button>
+
             {user ? (
               <Link
                 href="/account"
@@ -97,7 +102,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
               <button
                 type="button"
                 onClick={onSignIn}
-                className="hidden cursor-pointer rounded-full bg-crimson px-5 py-2 text-[0.8125rem] font-medium text-white shadow-card transition-colors hover:bg-crimson-deep sm:block"
+                className="hidden h-10 shrink-0 cursor-pointer whitespace-nowrap rounded-full bg-crimson px-5 text-[0.8125rem] font-medium text-white shadow-card transition-colors hover:bg-crimson-deep sm:block"
               >
                 Sign in
               </button>
@@ -106,7 +111,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
             <button
               type="button"
               onClick={openCart}
-              className="group relative flex h-10 cursor-pointer items-center gap-2 rounded-full border border-white/20 px-4 text-[0.8125rem] text-on-ink transition-colors hover:border-white/40 hover:bg-white/5"
+              className="group relative flex h-10 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border border-white/20 px-4 text-[0.8125rem] text-on-ink transition-colors hover:border-white/40 hover:bg-white/5"
               aria-label={`Cart, ${itemCount} ${itemCount === 1 ? 'item' : 'items'}`}
             >
               <span>Cart</span>
@@ -123,7 +128,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
             <button
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
-              className="ml-1 grid size-10 cursor-pointer place-items-center rounded-full border border-white/20 text-on-ink lg:hidden"
+              className="ml-0.5 grid size-10 cursor-pointer place-items-center rounded-full border border-white/20 text-on-ink lg:hidden"
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
             >
@@ -136,6 +141,44 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
             </button>
           </div>
         </div>
+
+        {/* ---- Row 2: the collections (desktop) ---------------------- */}
+        <nav aria-label="Product categories" className="hidden border-t border-white/10 lg:block">
+          <div className="shell flex h-11 items-center gap-1">
+            <Link
+              href="/shop"
+              className={cn(
+                'relative rounded-full px-4 py-2 text-[0.8125rem] font-medium transition-colors',
+                pathname.startsWith('/shop') ? 'text-on-ink' : 'text-on-ink-muted hover:text-on-ink',
+              )}
+            >
+              All tables
+              {pathname.startsWith('/shop') && <span className="absolute inset-x-4 -bottom-px h-0.5 rounded-full bg-amber" />}
+            </Link>
+            {NAV.map((item) => {
+              const active = pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'relative rounded-full px-4 py-2 text-[0.8125rem] transition-colors',
+                    active ? 'font-medium text-on-ink' : 'text-on-ink-muted hover:text-on-ink',
+                  )}
+                >
+                  {item.label}
+                  {active && <span className="absolute inset-x-4 -bottom-px h-0.5 rounded-full bg-amber" />}
+                </Link>
+              );
+            })}
+            <Link
+              href="/enquiry"
+              className="ml-auto rounded-full px-4 py-2 text-[0.8125rem] text-amber transition-colors hover:text-on-ink"
+            >
+              Bulk &amp; dealer enquiry
+            </Link>
+          </div>
+        </nav>
       </header>
 
       {/* Mobile navigation */}
@@ -147,14 +190,14 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
         aria-hidden={!mobileOpen}
       >
         <nav className="shell flex h-full flex-col justify-center gap-1 pt-16" aria-label="Mobile navigation">
-          {NAV.map((item, i) => (
+          {[{ href: '/shop', label: 'All tables' }, ...NAV].map((item, i) => (
             <Link
               key={item.href}
               href={item.href}
               tabIndex={mobileOpen ? 0 : -1}
               className="display-sm border-b border-ink-line py-4 text-on-ink transition-[transform,opacity] duration-500"
               style={{
-                transitionDelay: mobileOpen ? `${i * 60 + 80}ms` : '0ms',
+                transitionDelay: mobileOpen ? `${i * 50 + 80}ms` : '0ms',
                 transform: mobileOpen ? 'translateY(0)' : 'translateY(18px)',
                 opacity: mobileOpen ? 1 : 0,
               }}
@@ -162,7 +205,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
               {item.label}
             </Link>
           ))}
-          <div className="mt-8 flex gap-3">
+          <div className="mt-8 flex items-center gap-5">
             {user ? (
               <Link href="/account" tabIndex={mobileOpen ? 0 : -1} className="text-sm text-on-ink-muted">
                 Your account
@@ -172,6 +215,9 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
                 Sign in
               </button>
             )}
+            <Link href="/enquiry" tabIndex={mobileOpen ? 0 : -1} className="text-sm text-amber">
+              Bulk &amp; dealer enquiry
+            </Link>
           </div>
         </nav>
       </div>

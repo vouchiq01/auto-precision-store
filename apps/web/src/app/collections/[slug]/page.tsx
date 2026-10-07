@@ -3,9 +3,10 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getCategories, getProducts } from '@/lib/queries';
 import { FilterBar } from '@/components/collection/filter-bar';
+import { ListingHero } from '@/components/collection/listing-hero';
+import { CategoryPills } from '@/components/home/category-pills';
 import { ProductCard } from '@/components/product/product-card';
-import { Reveal } from '@/components/motion/reveal';
-import { Eyebrow, EmptyState } from '@/components/ui/primitives';
+import { EmptyState } from '@/components/ui/primitives';
 import { ButtonLink } from '@/components/ui/button';
 
 export const revalidate = 300;
@@ -45,6 +46,7 @@ export default async function CollectionPage({ params, searchParams }: PageProps
 
   const result = await getProducts({
     category: slug,
+    search: single(query.search),
     sort: single(query.sort) ?? 'featured',
     minPrice: single(query.minPrice),
     maxPrice: single(query.maxPrice),
@@ -54,52 +56,33 @@ export default async function CollectionPage({ params, searchParams }: PageProps
   });
 
   return (
-    <div className="shell pt-28 md:pt-36">
-      <nav aria-label="Breadcrumb" className="mb-8 text-xs text-faint">
-        <ol className="flex items-center gap-2">
-          <li><a href="/" className="transition-colors hover:text-content">Home</a></li>
-          <li aria-hidden="true">/</li>
-          <li className="text-muted">{category.name}</li>
-        </ol>
-      </nav>
+    <>
+      <ListingHero crumb={category.name} title={category.name} description={category.description} count={category.productCount ?? result.total} />
+      <CategoryPills categories={categories} activeSlug={slug} />
 
-      <header className="max-w-3xl">
-        <Eyebrow>Collection</Eyebrow>
-        <h1 className="display-lg mt-4 text-content">{category.name}<span className="text-crimson">.</span></h1>
-        {category.description && <p className="lede mt-6">{category.description}</p>}
-      </header>
+      <div className="shell pb-10 md:pb-16">
+        <Suspense fallback={<div className="mt-5 h-[5.5rem]" />}>
+          <FilterBar total={result.total} />
+        </Suspense>
 
-      <Suspense fallback={<div className="rule py-5 text-sm text-muted">Loading filters…</div>}>
-        <FilterBar total={result.total} />
-      </Suspense>
-
-      {result.items.length === 0 ? (
-        <div className="py-16">
-          <EmptyState
-            title="Nothing matches those filters"
-            description="Try widening the price range, or clear the filters to see the whole collection."
-            action={<ButtonLink href={`/collections/${slug}`} variant="secondary">Clear filters</ButtonLink>}
-          />
-        </div>
-      ) : (
-        <Reveal stagger={0.06} className="mt-6 grid grid-cols-2 gap-x-3 gap-y-8 sm:mt-10 sm:gap-x-5 sm:gap-y-12 lg:grid-cols-3 xl:grid-cols-4">
-          {result.items.map((product, i) => (
-            <ProductCard key={product.id} product={product} index={i} priority={i < 4} />
-          ))}
-        </Reveal>
-      )}
-
-      {/* Cross-links to the rest of the range */}
-      <section className="rule mt-16 py-10 sm:mt-24 sm:py-12">
-        <Eyebrow>Other collections</Eyebrow>
-        <div className="mt-5 flex flex-wrap gap-2">
-          {categories.filter((c) => c.slug !== slug).map((other) => (
-            <ButtonLink key={other.id} href={`/collections/${other.slug}`} variant="secondary" size="sm">
-              {other.name}
-            </ButtonLink>
-          ))}
-        </div>
-      </section>
-    </div>
+        {result.items.length === 0 ? (
+          <div className="py-12">
+            <EmptyState
+              title="Nothing matches those filters"
+              description="Try widening the price range, or clear the filters to see the whole collection."
+              action={<ButtonLink href={`/collections/${slug}`} variant="secondary">Clear filters</ButtonLink>}
+            />
+          </div>
+        ) : (
+          <ul className="mt-5 grid grid-cols-2 gap-3 md:mt-6 md:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+            {result.items.map((product, i) => (
+              <li key={product.id}>
+                <ProductCard product={product} priority={i < 4} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </>
   );
 }

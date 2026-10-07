@@ -13,6 +13,7 @@ import { Reviews } from '@/components/product/reviews';
 import { StickyBar } from '@/components/product/sticky-bar';
 import { ProductCard } from '@/components/product/product-card';
 import { Reveal } from '@/components/motion/reveal';
+import { SectionHead } from '@/components/ui/section-head';
 import { Eyebrow } from '@/components/ui/primitives';
 
 export const revalidate = 300;
@@ -132,7 +133,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </ol>
         </nav>
 
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-16">
           <ProductGallery
             images={product.images}
             name={product.name}
@@ -160,14 +161,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <Reviews reviews={reviews} />
 
       {product.related.length > 0 && (
-        <section className="shell rule py-20 md:py-28">
-          <Eyebrow>Also consider</Eyebrow>
-          <h2 className="display-md mt-4 text-content">Others in {product.category.name.toLowerCase()}.</h2>
-          <Reveal stagger={0.08} className="mt-12 grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
-            {product.related.map((related, i) => (
-              <ProductCard key={related.id} product={related} index={i} />
+        <section className="shell rule py-10 md:py-16">
+          <SectionHead
+            eyebrow="Also consider"
+            title={`Others in ${product.category.name.toLowerCase()}.`}
+            href={`/collections/${product.category.slug}`}
+          />
+          <ul className="mt-5 grid grid-cols-2 gap-3 md:mt-6 md:gap-4 lg:grid-cols-4">
+            {product.related.map((related) => (
+              <li key={related.id}>
+                <ProductCard product={related} />
+              </li>
             ))}
-          </Reveal>
+          </ul>
         </section>
       )}
 

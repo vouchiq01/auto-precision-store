@@ -43,13 +43,13 @@ reader already has. Keep that register. The word "salon" has been deliberately
 removed from every page and all 18 products; do not reintroduce it.
 
 What he asked for, in his words: *convince them how our products will be helpful
-and easy for them, and show them properly.* The homepage is ordered to do that —
-convince first, browse second:
-
-1. Hero — the problem
-2. **It lifts, it turns, it holds the dog still** — the three mechanical things
-3. **There are three steps, and that is all there is** — answers "is this hard?"
-4. Categories, flagship story, bestsellers, proof, enquiry
+and easy for them, and show them properly.* The story sections still do that,
+but they now sit **below the shopping**, not above it. A client looked at the
+site and said it was not attractive, and that "to see products we still need to
+scroll" — and he wanted a full redesign, not a recolour. The homepage is now
+shop-first (see "Shop-first layout" below): a short hero, the collections as
+pills, and the bestsellers all inside the first screen; the lift / turn / hold
+story, the demo and the flagship follow for people who want the reason.
 
 ---
 
@@ -251,6 +251,12 @@ account and attaches the order — framed as *confirm your number*, never as
 
 ## Add to cart from a listing card
 
+> **Update:** the round cart icon on the photo became a full-width labelled
+> button under the price — "Add to cart", or "Choose finish" when there is more
+> than one. Everything below about *why* the card asks rather than guesses still
+> holds; only the shape of the control changed, because a labelled button is far
+> harder to miss on a phone than a 40px icon.
+
 Every in-stock card carries a **cart icon**. He asked for one twice, and the
 first attempt gave the eight two-finish tables a swatch icon that linked to
 the product page instead — which on a collection page of electric tables meant
@@ -423,6 +429,38 @@ both the cart page and the drawer) copies the code to the clipboard **and**
 drops it into the coupon input — it does not apply the coupon itself. Clicking
 a code must never change the cart total on its own; the shopper still presses
 Apply.
+
+## Shop-first layout, search and the phone tab bar
+
+Do not push the products back below the fold. The first screen of the homepage
+is: header (search + collections) → a hero about 300px tall → collection pills
+→ the four bestsellers. On a phone the hero drops its photo and the bestsellers
+are a two-column grid. Everything that explains or reassures (trust bar, shelves
+per collection, the demo, the story) comes after.
+
+- **Product cards** (`product-card.tsx`) are built to be compared: category,
+  name, rating, price with the percent saved, EMI line, one button. Every shelf
+  — bestsellers, the per-collection rails (`product-rail.tsx`), `/shop`,
+  collection pages, "also consider" — renders this one card, two across on a
+  phone. The card no longer tilts toward the cursor and no longer shows an
+  index numeral.
+- **Search** is real. `search-box.tsx` calls `/api/catalog/products?search=`,
+  which matches name, tagline, summary, SKU **and the collection's name**
+  ("portable" finds the whole Portable collection). On a desktop it is the bar
+  in the header; on a phone the header icon and the tab bar open a full-screen
+  sheet (`providers/search-provider.tsx`). Enter goes to `/shop?search=`.
+- **`/shop`** lists every product, with the same sticky search / sort / price
+  toolbar as the collection pages (`filter-bar.tsx`). Filters live in the URL.
+- **Phone tab bar** (`mobile-tab-bar.tsx`): Home / Shop / Search / Cart /
+  Account. It hides on `/products/`, `/checkout` and `/order/` because those
+  bring their own fixed bottom bar — never stack two. `<main>` gets `pb-16`
+  while it is showing.
+- **Header height** is 64px on a phone and 108px on a desktop (two rows). Pages
+  reserve `pt-28 md:pt-36` (144px), and hero/listing bands use
+  `lg:pt-[8.5rem]`; the sticky toolbar sits at `top-16` / `lg:top-[6.75rem]`. If
+  the header changes height, change those together.
+- Stay away from DarkOtter's copy, photography and layout — the client's
+  reference was for *feel*; their images carry their own logo and are theirs.
 
 ## Claims must match the data
 

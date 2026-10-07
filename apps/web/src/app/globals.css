@@ -117,6 +117,11 @@
   to   { width: 100%; }
 }
 
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: none; }
+}
+
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
 
@@ -305,4 +310,16 @@
   }
   .js [data-reveal] { opacity: 1 !important; transform: none !important; }
   .grain::after { display: none; }
+}
+
+/* Entrance for above-the-fold content. CSS rather than a script, so the hero
+   is visible the moment it is painted and never waits on JavaScript to un-hide. */
+@layer utilities {
+  .anim-fade-up {
+    animation: fadeUp 0.7s var(--ease-out-expo) both;
+    animation-delay: var(--delay, 0ms);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .anim-fade-up { animation: none; }
+  }
 }

@@ -5,26 +5,25 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { formatINR, type ProductSummary } from '@aps/shared';
 import { cn } from '@/lib/cn';
-import { useReducedMotion } from '@/hooks/use-reduced-motion';
 import { useCart } from '@/providers/cart-provider';
 import { Badge, Spinner } from '@/components/ui/primitives';
 
 /**
- * A product card that behaves like an object rather than a link with a picture.
+ * A product card built to be compared, not admired.
  *
- * On hover the artwork lifts and tilts very slightly toward the cursor. The
- * rotation is capped at 4 degrees: past that it stops reading as "this is a
- * physical thing" and starts reading as a gimmick.
+ * Everything a shopper weighs sits in the same place on every card: category,
+ * name, rating, price with what they save, then one obvious button. The photo
+ * carries a single badge. The earlier card put the cart action in a small
+ * round icon on the photo and tilted toward the cursor; on a phone the icon
+ * was easy to miss and the tilt did nothing, so both went.
  *
- * The card is a container with a stretched link on the title, not one big <a>.
- * A <button> inside an <a> is invalid HTML and browsers disagree about what to
- * do with it, so the quick-add control could not exist until this was split.
+ * The card is a container with a stretched link on the title, not one large
+ * <a>: a <button> inside an <a> is invalid HTML and browsers disagree about it.
+ * Keep the button above the stretched link's ::after (z-20).
  */
 export function ProductCard({
-  product, priority = false, index,
-}: { product: ProductSummary; priority?: boolean; index?: number }) {
-  const mediaRef = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion();
+  product, priority = false, className,
+}: { product: ProductSummary; priority?: boolean; className?: string }) {
   const { addItem } = useCart();
   const [adding, setAdding] = useState(false);
   const [picking, setPicking] = useState(false);
@@ -44,21 +43,6 @@ export function ProductCard({
       document.removeEventListener('keydown', onKey);
     };
   }, [picking]);
-
-  const onMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (reduced) return;
-    const media = mediaRef.current;
-    if (!media) return;
-    const rect = media.getBoundingClientRect();
-    const px = (event.clientX - rect.left) / rect.width - 0.5;
-    const py = (event.clientY - rect.top) / rect.height - 0.5;
-    media.style.transform = `perspective(1000px) rotateX(${-py * 4}deg) rotateY(${px * 4}deg) scale(1.02)`;
-  };
-
-  const onLeave = () => {
-    const media = mediaRef.current;
-    if (media) media.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
-  };
 
   const outOfStock = !product.inStock;
 
@@ -92,185 +76,156 @@ export function ProductCard({
     setPicking((open) => !open);
   }
 
+  const canAdd = !outOfStock && sellable.length > 0;
+
   return (
-    <div
-      className="group relative rounded-2xl border border-line bg-surface p-2 shadow-card transition-shadow duration-500 hover:shadow-lift sm:p-2.5"
-      onMouseMove={onMove}
-      onMouseLeave={onLeave}
+    <article
+      className={cn(
+        'group relative flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface',
+        'shadow-card transition-[box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:shadow-lift',
+        className,
+      )}
     >
-      {/* Wrapper carries no transform, so the control above it is not dragged
-          around by the tilt and keeps a stable hit area. */}
-      <div className="relative">
-        <div
-          ref={mediaRef}
-          className={cn(
-            'relative aspect-[4/5] overflow-hidden rounded-xl bg-sand',
-            'transition-transform duration-[600ms] ease-out-expo will-change-transform',
-          )}
-        >
-          {product.primaryImage ? (
-            <Image
-              src={product.primaryImage.url}
-              alt={product.primaryImage.alt || product.name}
-              fill
-              priority={priority}
-              sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 50vw"
-              className={cn(
-                'object-cover transition-[transform,opacity] duration-[900ms] ease-out-expo',
-                'group-hover:scale-[1.04]',
-                outOfStock && 'opacity-45 saturate-0',
-              )}
-            />
-          ) : (
-            <div className="absolute inset-0 grid place-items-center text-faint">No image</div>
-          )}
+      {/* ---- Photo ---------------------------------------------------- */}
+      <div className="relative aspect-square overflow-hidden bg-sand sm:aspect-[4/3]">
+        {product.primaryImage ? (
+          <Image
+            src={product.primaryImage.url}
+            alt={product.primaryImage.alt || product.name}
+            fill
+            priority={priority}
+            sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 50vw"
+            className={cn(
+              'object-cover transition-transform duration-700 ease-out-expo group-hover:scale-[1.04]',
+              outOfStock && 'opacity-45 saturate-0',
+            )}
+          />
+        ) : (
+          <div className="absolute inset-0 grid place-items-center text-sm text-faint">No image</div>
+        )}
 
-          {/* Wash that deepens on hover, so the type below stays readable over any photo */}
-          <div className="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-transparent opacity-60 transition-opacity duration-500 group-hover:opacity-80" />
+        {/* One badge, solid backing: it sits over an arbitrary photograph, and
+            an outlined pill vanishes the moment the image behind it is mid-tone. */}
+        <div className="absolute left-2.5 top-2.5 flex max-w-[calc(100%-1.25rem)] sm:left-3 sm:top-3">
+          {outOfStock ? (
+            <Badge tone="warning" className="border-transparent bg-surface/95 text-warning backdrop-blur-sm">Sold out</Badge>
+          ) : product.badges[0] ? (
+            <Badge tone="accent" className="border-transparent bg-amber text-ink backdrop-blur-sm">
+              {product.badges[0]}
+            </Badge>
+          ) : null}
+        </div>
+      </div>
 
-          {/* Solid backing, because these sit over an arbitrary photograph —
-              an outlined pill in crimson vanishes the moment the image behind
-              it is mid-tone, which is most product shots. */}
-          {/* On a phone the card is ~175px wide: one badge across the top, and
-              the discount pill drops to the bottom-left (below) so the two never
-              collide. The second badge and the top-right pill join from `sm`. */}
-          <div className="absolute left-2.5 right-2.5 top-2.5 flex flex-wrap gap-1.5 sm:left-4 sm:right-auto sm:top-4">
-            {outOfStock
-              ? <Badge tone="warning" className="border-transparent bg-surface/95 text-warning backdrop-blur-sm">Sold out</Badge>
-              : product.badges.slice(0, 2).map((badge, badgeIndex) => (
-                  <Badge
-                    key={badge}
-                    tone="accent"
-                    className={cn(
-                      'border-transparent bg-surface/95 text-crimson backdrop-blur-sm',
-                      badgeIndex > 0 && 'hidden sm:inline-flex',
-                    )}
-                  >
-                    {badge}
-                  </Badge>
-                ))}
-          </div>
+      {/* ---- Details -------------------------------------------------- */}
+      <div className="flex flex-1 flex-col p-3 sm:p-4">
+        <p className="eyebrow text-crimson!">{product.category.name}</p>
 
+        <h3 className="mt-1.5 line-clamp-2 min-h-[2.5rem] font-display text-[0.9375rem] font-medium leading-tight tracking-[-0.015em] text-content transition-colors group-hover:text-crimson sm:text-base">
+          <Link href={`/products/${product.slug}`} className="after:absolute after:inset-0 after:content-['']">
+            {product.name}
+          </Link>
+        </h3>
+
+        {product.rating ? (
+          <p className="numeric mt-1.5 flex items-center gap-1 text-xs text-muted">
+            <StarIcon />
+            <span className="font-medium text-content">{product.rating.average.toFixed(1)}</span>
+            <span className="text-faint">({product.rating.count})</span>
+          </p>
+        ) : null}
+
+        {/* Price and what you save first; the old price drops to its own line on
+            a narrow card rather than pushing the saving off the edge. */}
+        <div className="mt-2.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+          <span className="numeric text-[1.0625rem] font-semibold tracking-tight text-content sm:text-lg">{formatINR(product.price)}</span>
           {product.discountPercent !== null && !outOfStock && (
-            <span className="numeric absolute bottom-2.5 left-2.5 rounded-full bg-crimson px-2 py-0.5 text-[0.625rem] font-medium text-white sm:bottom-auto sm:left-auto sm:right-4 sm:top-4 sm:px-2.5 sm:py-1 sm:text-[0.6875rem]">
-              −{product.discountPercent}%
+            <span className="numeric order-2 rounded-md bg-success/10 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-success sm:order-3">
+              {product.discountPercent}% off
             </span>
           )}
-
-          {/* Moved to the left: the quick-add control owns the bottom-right.
-              Decorative, and clutter on a small card, so desktop only. */}
-          {index !== undefined && (
-            <span
-              aria-hidden="true"
-              className="numeric absolute bottom-4 left-4 hidden font-display text-3xl font-semibold text-white/10 sm:block"
-            >
-              {String(index + 1).padStart(2, '0')}
-            </span>
+          {product.compareAtPrice && (
+            <span className="numeric order-3 text-xs text-faint line-through sm:order-2">{formatINR(product.compareAtPrice)}</span>
           )}
         </div>
 
-        {/* ---- Add to cart -------------------------------------------------
-            Always rendered rather than hover-only: a control that appears on
-            hover is invisible on a touch screen and unfindable by keyboard.
-            z-20 keeps it above the title's stretched link. */}
-        {!outOfStock && sellable.length > 0 && (
-          <div ref={pickerRef} className="absolute bottom-2 right-2 z-20 sm:bottom-3 sm:right-3">
-            {picking && (
-              <div
-                role="group"
-                aria-label={`Choose a finish for ${product.name}`}
-                className="absolute bottom-full right-0 mb-2 w-44 overflow-hidden rounded-xl border border-line bg-surface p-1.5 shadow-lift"
-              >
-                <p className="px-2 pb-1.5 pt-1 text-[0.6875rem] uppercase tracking-[0.14em] text-faint">
-                  Choose a finish
-                </p>
-                {sellable.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    disabled={adding}
-                    onClick={() => void add(option.id)}
-                    className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm text-content transition-colors hover:bg-sand disabled:opacity-60"
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="size-3.5 shrink-0 rounded-full border border-line-strong"
-                      style={option.hexColour ? { backgroundColor: option.hexColour } : undefined}
-                    />
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            )}
+        <p className="numeric mt-1 h-4 text-[0.6875rem] text-muted">
+          {product.emiTeaser ? `EMI from ${product.emiTeaser}` : ''}
+        </p>
 
-            <button
-              type="button"
-              onClick={onAddClick}
-              disabled={adding}
-              aria-expanded={sellable.length > 1 ? picking : undefined}
-              aria-label={
-                sellable.length > 1
+        {/* ---- Add to cart ------------------------------------------- */}
+        <div ref={pickerRef} className="relative z-20 mt-auto pt-3">
+          {picking && (
+            <div
+              role="group"
+              aria-label={`Choose a finish for ${product.name}`}
+              className="absolute inset-x-0 bottom-full mb-1.5 overflow-hidden rounded-xl border border-line bg-surface p-1.5 shadow-lift"
+            >
+              <p className="px-2 pb-1 pt-1 text-[0.6875rem] uppercase tracking-[0.14em] text-faint">
+                Choose a finish
+              </p>
+              {sellable.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  disabled={adding}
+                  onClick={() => void add(option.id)}
+                  className="flex w-full cursor-pointer items-center gap-2.5 rounded-lg px-2 py-2 text-left text-sm text-content transition-colors hover:bg-sand disabled:opacity-60"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="size-3.5 shrink-0 rounded-full border border-line-strong"
+                    style={option.hexColour ? { backgroundColor: option.hexColour } : undefined}
+                  />
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={onAddClick}
+            disabled={!canAdd || adding}
+            aria-expanded={canAdd && sellable.length > 1 ? picking : undefined}
+            aria-label={
+              !canAdd
+                ? `${product.name} is sold out`
+                : sellable.length > 1
                   ? `Add ${product.name} to cart — choose a finish`
                   : `Add ${product.name} to cart`
-              }
-              className={cn(
-                'grid size-10 cursor-pointer place-items-center rounded-full sm:size-11',
-                'bg-surface/95 text-content shadow-card backdrop-blur-sm',
-                'transition-colors duration-300 hover:bg-crimson hover:text-white',
-                'focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60',
-                picking && 'bg-crimson text-white',
-              )}
-            >
-              {adding ? <Spinner className="size-4" /> : <BagIcon />}
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Stacked on a phone — name over price — because two columns side by
-          side leave no room for a title and a price on one row. From `sm` up it
-          goes back to name left, price right. */}
-      <div className="mt-3 flex flex-col gap-1.5 px-1 sm:mt-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-        <div className="min-w-0">
-          <p className="eyebrow mb-1 sm:mb-1.5">{product.category.name}</p>
-          <h3 className="font-display text-[0.9375rem] font-medium leading-tight tracking-[-0.015em] text-content transition-colors group-hover:text-crimson sm:text-[1.0625rem]">
-            {/* The stretched link: the whole card is clickable, but only this
-                is announced, so a screen reader hears one link per product. */}
-            <Link href={`/products/${product.slug}`} className="after:absolute after:inset-0 after:content-['']">
-              {product.name}
-            </Link>
-          </h3>
-          {product.tagline && (
-            <p className="mt-1 hidden line-clamp-1 text-[0.8125rem] text-muted sm:block">{product.tagline}</p>
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-baseline gap-x-2 sm:block sm:shrink-0 sm:text-right">
-          <p className="numeric text-base font-semibold text-content sm:text-[1.0625rem]">{formatINR(product.price)}</p>
-          {product.compareAtPrice && (
-            <p className="numeric text-xs text-faint line-through">{formatINR(product.compareAtPrice)}</p>
-          )}
-          {product.emiTeaser && (
-            <p className="numeric mt-0.5 hidden text-[0.6875rem] text-muted sm:block">from {product.emiTeaser}</p>
-          )}
+            }
+            className={cn(
+              'flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl text-[0.8125rem] font-medium',
+              'transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2',
+              canAdd
+                ? 'bg-crimson text-white hover:bg-crimson-deep active:scale-[0.98]'
+                : 'cursor-not-allowed bg-sand text-faint',
+              picking && 'bg-crimson-deep',
+            )}
+          >
+            {adding ? <Spinner className="size-4" /> : canAdd ? <BagIcon /> : null}
+            {canAdd ? (sellable.length > 1 ? 'Choose finish' : 'Add to cart') : 'Sold out'}
+          </button>
         </div>
       </div>
-
-      {product.rating && (
-        <p className="numeric mt-1.5 px-1 pb-1 text-xs text-muted sm:mt-2">
-          ★ {product.rating.average.toFixed(1)}
-          <span className="text-faint"> · {product.rating.count} reviews</span>
-        </p>
-      )}
-    </div>
+    </article>
   );
 }
 
 function BagIcon() {
   return (
-    <svg viewBox="0 0 20 20" className="size-[1.125rem]" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+    <svg viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
       <path d="M4 6.5h12l-1 9.5H5l-1-9.5z" strokeLinejoin="round" />
       <path d="M7.25 6.5V5a2.75 2.75 0 0 1 5.5 0v1.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function StarIcon() {
+  return (
+    <svg viewBox="0 0 20 20" className="size-3.5 text-amber-deep" fill="currentColor" aria-hidden="true">
+      <path d="M10 1.8l2.4 5 5.4.7-4 3.8 1 5.4L10 14l-4.8 2.7 1-5.4-4-3.8 5.4-.7z" />
     </svg>
   );
 }

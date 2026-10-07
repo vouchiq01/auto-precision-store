@@ -93,6 +93,17 @@ describe('catalogue', () => {
     assert.ok(category.productCount > 0, `expected a non-zero product count, got ${category.productCount}`);
   });
 
+  test('search also matches the collection a product lives in', async () => {
+    /* "electric lifting" is the fixture's category name; no product is named
+       that, so a hit can only have come from the collection match. */
+    const byCollection = await client.request('GET', '/api/catalog/products?search=electric%20lifting');
+    assert.equal(byCollection.status, 200);
+    assert.ok(byCollection.body.items.length > 0, 'a search for the collection name should find its products');
+
+    const nothing = await client.request('GET', '/api/catalog/products?search=zzzznomatch');
+    assert.equal(nothing.body.items.length, 0);
+  });
+
   test('the in-stock filter actually returns products', async () => {
     const res = await client.request('GET', '/api/catalog/products?inStock=true');
     assert.equal(res.status, 200);

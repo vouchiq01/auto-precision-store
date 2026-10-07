@@ -28,7 +28,7 @@ export function ProductGallery({
   const current = images[active] ?? images[0];
 
   return (
-    <div className="lg:sticky lg:top-28 lg:self-start">
+    <div className="min-w-0 lg:sticky lg:top-36 lg:self-start">
       {spinSlug && spinFrames && spinFrames.length > 1 && (
         <div className="mb-3 inline-flex rounded-full border border-line p-1" role="tablist" aria-label="View mode">
           {([['stills', 'Photos'], ['spin', '360° view']] as const).map(([value, label]) => (
@@ -70,7 +70,7 @@ export function ProductGallery({
       </div>
 
       {images.length > 1 && (
-        <div className="mt-3 flex gap-3" role="tablist" aria-label={`${name} images`}>
+        <div className="mt-3 flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" role="tablist" aria-label={`${name} images`}>
           {images.map((image, i) => (
             <button
               key={image.id}

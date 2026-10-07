@@ -9,6 +9,8 @@ import { Header } from './header';
 import { Footer } from './footer';
 import { CartDrawer } from './cart-drawer';
 import { SignInProvider, useSignIn } from '@/providers/sign-in-provider';
+import { SearchProvider } from '@/providers/search-provider';
+import { MobileTabBar, useTabBarVisible } from './mobile-tab-bar';
 
 /**
  * Everything that must be a client component, in one boundary.
@@ -36,9 +38,11 @@ export function SiteChrome({ children }: { children: ReactNode }) {
     <AuthProvider>
       <CartProvider>
         <SignInProvider>
-          <SmoothScroll>
-            <ChromeInner>{children}</ChromeInner>
-          </SmoothScroll>
+          <SearchProvider>
+            <SmoothScroll>
+              <ChromeInner>{children}</ChromeInner>
+            </SmoothScroll>
+          </SearchProvider>
         </SignInProvider>
       </CartProvider>
     </AuthProvider>
@@ -48,11 +52,15 @@ export function SiteChrome({ children }: { children: ReactNode }) {
 /** Split out so it sits BELOW SignInProvider and can therefore use it. */
 function ChromeInner({ children }: { children: ReactNode }) {
   const { openSignIn } = useSignIn();
+  const tabBarVisible = useTabBarVisible();
   return (
     <>
       <Header onSignIn={openSignIn} />
-      <main id="main">{children}</main>
+      {/* Room at the foot of the page for the phone tab bar, so it never sits
+          on top of the footer's last line. */}
+      <main id="main" className={tabBarVisible ? 'pb-16 lg:pb-0' : undefined}>{children}</main>
       <Footer />
+      <MobileTabBar />
       <CartDrawer />
     </>
   );

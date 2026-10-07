@@ -93,14 +93,18 @@ export function ProductCard({
   }
 
   return (
-    <div className="group relative" onMouseMove={onMove} onMouseLeave={onLeave}>
+    <div
+      className="group relative rounded-2xl border border-line bg-surface p-2 shadow-card transition-shadow duration-500 hover:shadow-lift sm:p-2.5"
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+    >
       {/* Wrapper carries no transform, so the control above it is not dragged
           around by the tilt and keeps a stable hit area. */}
       <div className="relative">
         <div
           ref={mediaRef}
           className={cn(
-            'relative aspect-[4/5] overflow-hidden rounded-2xl border border-line bg-surface',
+            'relative aspect-[4/5] overflow-hidden rounded-xl bg-sand',
             'transition-transform duration-[600ms] ease-out-expo will-change-transform',
           )}
         >
@@ -226,7 +230,7 @@ export function ProductCard({
       {/* Stacked on a phone — name over price — because two columns side by
           side leave no room for a title and a price on one row. From `sm` up it
           goes back to name left, price right. */}
-      <div className="mt-3 flex flex-col gap-1.5 sm:mt-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+      <div className="mt-3 flex flex-col gap-1.5 px-1 sm:mt-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0">
           <p className="eyebrow mb-1 sm:mb-1.5">{product.category.name}</p>
           <h3 className="font-display text-[0.9375rem] font-medium leading-tight tracking-[-0.015em] text-content transition-colors group-hover:text-crimson sm:text-[1.0625rem]">
@@ -242,7 +246,7 @@ export function ProductCard({
         </div>
 
         <div className="flex flex-wrap items-baseline gap-x-2 sm:block sm:shrink-0 sm:text-right">
-          <p className="numeric text-[0.9375rem] font-medium text-content">{formatINR(product.price)}</p>
+          <p className="numeric text-base font-semibold text-content sm:text-[1.0625rem]">{formatINR(product.price)}</p>
           {product.compareAtPrice && (
             <p className="numeric text-xs text-faint line-through">{formatINR(product.compareAtPrice)}</p>
           )}
@@ -253,7 +257,7 @@ export function ProductCard({
       </div>
 
       {product.rating && (
-        <p className="numeric mt-1.5 text-xs text-muted sm:mt-2">
+        <p className="numeric mt-1.5 px-1 pb-1 text-xs text-muted sm:mt-2">
           ★ {product.rating.average.toFixed(1)}
           <span className="text-faint"> · {product.rating.count} reviews</span>
         </p>

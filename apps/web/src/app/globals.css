@@ -70,11 +70,18 @@
      Dark is now the exception, not the canvas: the flagship story and the
      footer. Used sparingly it buys back the premium contrast the all-dark
      site was spending everywhere and therefore getting nothing for. */
-  --color-ink: #14110E;
-  --color-ink-raised: #201B16;
-  --color-ink-line: #352D24;
-  --color-on-ink: #F5F0E8;
-  --color-on-ink-muted: #A99C8B;
+  --color-ink: #0D1322;
+  --color-ink-raised: #151D33;
+  --color-ink-line: #263151;
+  --color-on-ink: #F3F5FB;
+  --color-on-ink-muted: #9FAAC6;
+
+  /* ---- The highlight ----------------------------------------------------
+     Amber is the spark on the dark bands only — the emphasised word in a
+     headline, the cart count, an icon. It fails contrast as text on paper, so
+     it never appears on the light canvas. Crimson stays the button colour. */
+  --color-amber: #F5A524;
+  --color-amber-deep: #C27A00;
 
   /* ---- The single accent ------------------------------------------------
      Deepened from #CE2B2B: on a light canvas that hit only 4.1:1 and failed
@@ -218,6 +225,28 @@
   @media (min-width: 1280px) { .shell { padding-inline: 4rem; } }
 
   .rule { border-top: 1px solid var(--color-line); }
+
+  /* Midnight navy with a faint engineering grid and two soft glows — one cool,
+     one the brand crimson. Used on the hero. It is the "workshop at night"
+     that makes the white product cards below it pop. */
+  .bg-blueprint {
+    background-color: var(--color-ink);
+    background-image:
+      radial-gradient(55% 70% at 85% 12%, rgba(79, 99, 214, 0.40), transparent 70%),
+      radial-gradient(42% 55% at 6% 100%, rgba(200, 32, 43, 0.30), transparent 70%),
+      linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    background-size: auto, auto, 44px 44px, 44px 44px;
+  }
+
+  /* Short crimson-to-amber rule under a section heading. */
+  .accent-bar {
+    display: block;
+    width: 2.75rem;
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--color-crimson), var(--color-amber));
+  }
 
   /* ---- Vertical rotated label (from the Nhale reference) ----------------- */
   .vertical-label {

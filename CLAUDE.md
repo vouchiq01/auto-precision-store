@@ -116,9 +116,15 @@ glowing gadget, not a large piece of equipment bought on trust, and not the long
 spec tables that actually close the sale. Light is also far kinder to a small
 catalogue; eighteen products in a dark grid read as empty rather than spare.
 
-So: **warm paper canvas, ink reserved for exactly two bands** — the flagship
-story and the footer. Two dark moments in a light page read as deliberate. Do
-not add a third without a reason.
+So: **warm paper canvas, white cards, and midnight-navy "ink" bands** — the
+header, the hero, the flagship story and the footer. The hero and header
+joined the dark bands later, at a client's request: he looked at darkotter.in
+and said ours was not attractive and its colour combination was not as good.
+The shape that works there — dark header and hero over a light page of white
+cards, one vivid accent — is what we took, in our own colours (navy + the logo
+crimson + amber), not their purple. **Do not go back to the all-light first
+screen, and do not push the dark further than this**: a fully dark page is
+what he rejected twice. Do not copy their layout, copy or imagery.
 
 Semantic token names, all defined in `apps/web/src/app/globals.css`:
 
@@ -127,7 +133,8 @@ Semantic token names, all defined in `apps/web/src/app/globals.css`:
 | `canvas` / `surface` / `sand` | page, cards, warm panels |
 | `content` / `muted` / `faint` | text, in descending emphasis |
 | `line` / `line-strong` | hairlines, borders |
-| `ink` / `ink-raised` / `on-ink` / `on-ink-muted` | the dark bands only |
+| `ink` / `ink-raised` / `on-ink` / `on-ink-muted` | the dark bands only — midnight navy, not black |
+| `amber` / `amber-deep` | the highlight on dark bands only (headline word, cart count, icons). Fails contrast as text on paper, so never on the canvas |
 | `crimson` / `crimson-deep` / `crimson-tint` | the single accent |
 
 Two things to keep straight:
@@ -419,7 +426,7 @@ Apply.
 
 ## Claims must match the data
 
-The marquee said "36-month frame warranty". Two of the eighteen products have
+The old marquee (now the cards in `trust-cards.tsx`) said "36-month frame warranty". Two of the eighteen products have
 36 months; ten have 24 and four have 12. It now states the real range. Before
 putting a number on the homepage, check it against `products.data.ts` — a flat
 claim that is true of two SKUs is a misleading one.

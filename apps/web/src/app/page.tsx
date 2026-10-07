@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { STORE } from '@aps/shared';
 import { getBanners, getCategories, getProduct, getProducts } from '@/lib/queries';
 import { Hero } from '@/components/home/hero';
-import { Marquee } from '@/components/home/marquee';
+import { TrustCards } from '@/components/home/trust-cards';
+import { CategoryPills } from '@/components/home/category-pills';
 import { CouponStrip } from '@/components/home/coupon-strip';
 import { CategoryRail } from '@/components/home/category-rail';
 import { WhatItDoes } from '@/components/home/what-it-does';
@@ -41,12 +42,13 @@ export default async function HomePage() {
   return (
     <>
       <Hero banner={heroBanners[0] ?? null} totalProducts={totalProducts} />
+      <TrustCards />
+      <CategoryPills categories={categories} />
       {/* Bestsellers 2nd, categories 3rd: social proof — what people actually
           buy — lands before the full range does, then the range itself,
           before the "does this even work" pitch below. */}
       <Bestsellers products={featured.items} />
       <CategoryRail categories={categories} />
-      <Marquee />
       <CouponStrip />
       {/* Show, then explain: the demo answers "what even is this and is it
           hard?", WhatItDoes then backs it with the numbers. */}

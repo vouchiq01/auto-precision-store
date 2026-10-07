@@ -15,6 +15,7 @@ export function Bestsellers({ products }: { products: ProductSummary[] }) {
           <h2 className="display-md mt-4 max-w-xl text-content">
             What people actually buy.
           </h2>
+          <span className="accent-bar mt-5" aria-hidden="true" />
         </div>
         <SectionNumber value="01" className="hidden md:block" />
       </div>

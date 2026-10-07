@@ -5,7 +5,7 @@ import { forwardRef, useRef, type ButtonHTMLAttributes, type ReactNode } from 'r
 import { cn } from '@/lib/cn';
 import { useReducedMotion } from '@/hooks/use-reduced-motion';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'contrast' | 'danger';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'contrast' | 'danger' | 'onink';
 type Size = 'sm' | 'md' | 'lg';
 
 const VARIANTS: Record<Variant, string> = {
@@ -19,6 +19,9 @@ const VARIANTS: Record<Variant, string> = {
   ghost: 'bg-transparent text-muted hover:text-content',
   contrast: 'bg-content text-canvas hover:bg-ink',
   danger: 'bg-transparent text-crimson border border-crimson/40 hover:bg-crimson-tint',
+  /* The quiet button on a dark band: a frosted outline, so the crimson one
+     beside it stays the single obvious action. */
+  onink: 'bg-white/10 text-on-ink border border-white/20 hover:bg-white/15 hover:border-white/35',
 };
 
 const SIZES: Record<Size, string> = {

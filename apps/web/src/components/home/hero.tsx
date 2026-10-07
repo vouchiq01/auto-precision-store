@@ -14,8 +14,10 @@ import { Eyebrow, VerticalLabel } from '@/components/ui/primitives';
  * for a glowing gadget and the wrong one for us. Two things were wrong with it:
  * the headline's legibility depended entirely on how dark the photo happened to
  * be behind it, and the wash existed to dim the very product we are asking
- * people to buy. Splitting copy from image fixes both — the type sits on paper
- * at ~16:1 whatever the photo does, and the photo is shown at full strength.
+ * people to buy. Splitting copy from image fixes both — the type sits on a solid
+ * navy band at ~16:1 whatever the photo does, and the photo is shown at full
+ * strength. (Navy, not black: the client asked for a bolder, more colourful
+ * first screen, and a dark hero over white cards is what delivers it.)
  *
  * Everything visible here is a photograph. A drawn dog stood on a floor line at
  * the foot of this section for a while; it read as a drawing however much
@@ -47,7 +49,6 @@ export function Hero({ banner, totalProducts }: { banner: Banner | null; totalPr
           .fromTo('[data-hero-word] > span', { yPercent: 115 }, { yPercent: 0, duration: 1.1, stagger: 0.07 })
           .fromTo('[data-hero-sub]', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.85 }, '-=0.7')
           .fromTo('[data-hero-cta]', { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.75 }, '-=0.65')
-          .fromTo('[data-hero-trust] > li', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.08 }, '-=0.5')
           .fromTo(mediaRef.current, { opacity: 0, scale: 1.06 }, { opacity: 1, scale: 1, duration: 1.4 }, 0.15);
 
         /* The photo drifts slower than the page. Scrubbed against scroll rather
@@ -77,7 +78,7 @@ export function Hero({ banner, totalProducts }: { banner: Banner | null; totalPr
   const ctaLabel = banner?.ctaLabel ?? 'See the Apex E9';
 
   return (
-    <section ref={sectionRef} className="relative overflow-hidden pt-28 md:pt-32">
+    <section ref={sectionRef} className="on-ink bg-blueprint relative overflow-hidden pb-24 pt-28 md:pb-32 md:pt-36">
       <div className="shell">
         <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16">
           <div className="relative">
@@ -85,9 +86,9 @@ export function Hero({ banner, totalProducts }: { banner: Banner | null; totalPr
               <VerticalLabel>Bengaluru · Est. 2026</VerticalLabel>
             </div>
 
-            <Eyebrow>{eyebrow}</Eyebrow>
+            <Eyebrow className="text-amber">{eyebrow}</Eyebrow>
 
-            <h1 className="mt-5 font-display text-[clamp(2.75rem,5.6vw,5.25rem)] font-semibold leading-[0.92] tracking-[-0.035em] text-content">
+            <h1 className="mt-5 font-display text-[clamp(2.75rem,5.6vw,5.25rem)] font-semibold leading-[0.92] tracking-[-0.035em] text-on-ink">
               <span className="sr-only">{headlineWords.join(' ')}</span>
               <span aria-hidden="true">
                 {headlineWords.map((word, i) => (
@@ -96,9 +97,10 @@ export function Hero({ banner, totalProducts }: { banner: Banner | null; totalPr
                   <Fragment key={i}>
                     <span data-hero-word className="inline-block overflow-hidden align-bottom">
                       <span className="inline-block will-change-transform">
-                        {/* The full stop is the one crimson mark on this screen. */}
+                        {/* "floor" is the amber spark on this screen; the full
+                            stop stays the brand crimson. */}
                         {word === 'floor.' ? (
-                          <>floor<span className="text-crimson">.</span></>
+                          <><span className="text-amber">floor</span><span className="text-crimson">.</span></>
                         ) : word}
                       </span>
                     </span>
@@ -110,37 +112,17 @@ export function Hero({ banner, totalProducts }: { banner: Banner | null; totalPr
 
             <p data-hero-sub className="lede mt-7">{subtitle}</p>
 
-            <div data-hero-cta className="mt-9 flex flex-wrap items-center gap-3">
-              <ButtonLink href={ctaHref} size="lg">{ctaLabel}</ButtonLink>
-              <ButtonLink href="/collections/electric-lifting" variant="secondary" size="lg">
+            {/* Side by side on a phone — stacked, two 56px buttons ate a
+                quarter of the first screen. */}
+            <div data-hero-cta className="mt-8 flex items-center gap-2.5 sm:mt-9 sm:gap-3">
+              <ButtonLink href={ctaHref} size="lg" className="h-12 flex-1 px-4 text-sm sm:h-14 sm:flex-none sm:px-8 sm:text-[0.9375rem]">
+                {ctaLabel}
+              </ButtonLink>
+              <ButtonLink href="/collections/electric-lifting" variant="onink" size="lg" className="h-12 px-5 text-sm sm:h-14 sm:px-8 sm:text-[0.9375rem]">
                 All {totalProducts} tables
               </ButtonLink>
             </div>
 
-            {/* Only claims the platform can actually keep: freight is the
-                Karnataka rule, warranty is the per-product floor, and every
-                order really is invoiced with GST. */}
-            <ul data-hero-trust className="mt-10 flex flex-wrap gap-x-7 gap-y-3">
-              {[
-                'Free freight in Karnataka over ₹25,000',
-                '12-month warranty, minimum',
-                'GST invoice with every order',
-              ].map((item) => (
-                <li key={item} className="flex items-center gap-2 text-[0.8125rem] text-muted">
-                  <svg viewBox="0 0 16 16" className="size-4 shrink-0 text-crimson" aria-hidden="true">
-                    <path
-                      d="M3.5 8.5l3 3 6-7"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  {item}
-                </li>
-              ))}
-            </ul>
           </div>
 
           <div
@@ -152,7 +134,7 @@ export function Hero({ banner, totalProducts }: { banner: Banner | null; totalPr
                the whole hero balloons well past its content, shoving every
                section below it down the page. The cap lets object-cover crop
                the photo rather than the layout stretching to fit it. */
-            className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-sand shadow-lift will-change-transform sm:aspect-[5/4] lg:aspect-[4/5] lg:max-h-[34rem]"
+            className="relative aspect-[4/3] overflow-hidden rounded-[1.75rem] bg-ink-raised shadow-[0_40px_90px_-30px_rgba(0,0,0,0.75)] ring-1 ring-white/15 will-change-transform sm:aspect-[5/4] sm:rounded-[2rem] lg:aspect-[4/5] lg:max-h-[34rem]"
           >
             <Image
               src={banner?.imageDesktop ?? '/banners/hero-apex-mobile.jpg'}

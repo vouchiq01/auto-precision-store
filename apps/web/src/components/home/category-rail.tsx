@@ -22,6 +22,7 @@ export function CategoryRail({ categories }: { categories: Category[] }) {
           <h2 className="display-md mt-4 max-w-xl text-content">
             Five ways to put a dog at working height.
           </h2>
+          <span className="accent-bar mt-5" aria-hidden="true" />
         </div>
         <SectionNumber value="02" className="hidden md:block" />
       </div>

@@ -48,7 +48,7 @@ export const CATEGORIES: SeedCategory[] = [
   { slug: 'portable', name: 'Portable', description: 'Light enough to carry to a client’s home, rigid enough to work on when you get there.', sortOrder: 3 },
   { slug: 'foldable', name: 'Foldable', description: 'Flat-packing tables for groomers who share a room with something else.', sortOrder: 4 },
   { slug: 'round-rotating', name: 'Round & Rotating', description: 'A circular deck on a single pedestal that spins under the dog. No corners to walk around, the smallest footprint in the range, and the easiest table to live with at home.', sortOrder: 3 },
-  { slug: 'accessories', name: 'Accessories', description: 'Arms, nooses and ramps that turn a table into a working station.', sortOrder: 8 },
+  { slug: 'accessories', name: 'Accessories', description: 'Arms, nooses and ramps that turn a table into a working station.', sortOrder: 9 },
 ];
 
 const WARRANTY_FAQ: SeedFaq = {

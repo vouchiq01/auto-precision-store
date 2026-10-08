@@ -19,6 +19,7 @@ const NAV = [
   { href: '/collections/fixed-tables', label: 'Fixed' },
   { href: '/collections/bath-tubs', label: 'Tubs' },
   { href: '/collections/combos', label: 'Combos' },
+  { href: '/collections/cages', label: 'Cages' },
   { href: '/collections/accessories', label: 'Accessories' },
 ];
 
@@ -67,14 +68,14 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
 
       <header
         className={cn(
-          'fixed inset-x-0 top-0 z-50 text-on-ink transition-[background-color,border-color,backdrop-filter] duration-300',
-          scrolled ? 'border-b border-ink-line bg-ink/90 backdrop-blur-xl' : 'border-b border-transparent bg-ink',
+          'fixed inset-x-0 top-0 z-50 text-content transition-[background-color,border-color,box-shadow] duration-300',
+          scrolled ? 'border-b border-line bg-surface/90 shadow-card backdrop-blur-xl' : 'border-b border-line bg-surface',
         )}
       >
         {/* ---- Row 1: brand, search, account, cart ------------------- */}
         <div className="shell flex h-16 items-center gap-3 lg:gap-8">
-          <Link href="/" aria-label="Auto Precision — home" className="shrink-0 text-on-ink transition-opacity hover:opacity-70">
-            <Logo />
+          <Link href="/" aria-label="Auto Precision — home" className="shrink-0 transition-opacity hover:opacity-80">
+            <Logo className="h-8 lg:h-10" priority />
           </Link>
 
           <div className="mx-auto hidden w-full max-w-xl lg:block">
@@ -86,7 +87,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
               type="button"
               onClick={openSearch}
               aria-label="Search"
-              className="grid size-10 cursor-pointer place-items-center rounded-full border border-white/20 text-on-ink transition-colors hover:border-white/40 hover:bg-white/5 lg:hidden"
+              className="grid size-10 cursor-pointer place-items-center rounded-full border border-line text-content transition-colors hover:border-line-strong hover:bg-sand lg:hidden"
             >
               <svg viewBox="0 0 20 20" className="size-[1.125rem]" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
                 <circle cx="9" cy="9" r="5.5" />
@@ -97,7 +98,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
             {user ? (
               <Link
                 href="/account"
-                className="hidden rounded-full px-4 py-2 text-[0.8125rem] text-on-ink-muted transition-colors hover:text-on-ink sm:block"
+                className="hidden rounded-full px-4 py-2 text-[0.8125rem] text-muted transition-colors hover:text-content sm:block"
               >
                 {user.fullName?.split(' ')[0] ?? 'Account'}
               </Link>
@@ -114,14 +115,14 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
             <button
               type="button"
               onClick={openCart}
-              className="group relative flex h-10 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border border-white/20 px-4 text-[0.8125rem] text-on-ink transition-colors hover:border-white/40 hover:bg-white/5"
+              className="group relative flex h-10 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border border-line px-4 text-[0.8125rem] text-content transition-colors hover:border-line-strong hover:bg-sand"
               aria-label={`Cart, ${itemCount} ${itemCount === 1 ? 'item' : 'items'}`}
             >
               <span>Cart</span>
               <span
                 className={cn(
                   'numeric grid size-5 place-items-center rounded-full text-[0.6875rem] font-medium transition-colors',
-                  itemCount > 0 ? 'bg-amber text-ink' : 'bg-white/15 text-on-ink-muted',
+                  itemCount > 0 ? 'bg-crimson text-white' : 'bg-sand text-muted',
                 )}
               >
                 {itemCount}
@@ -131,7 +132,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
             <button
               type="button"
               onClick={() => setMobileOpen((v) => !v)}
-              className="ml-0.5 grid size-10 cursor-pointer place-items-center rounded-full border border-white/20 text-on-ink lg:hidden"
+              className="ml-0.5 grid size-10 cursor-pointer place-items-center rounded-full border border-line text-content lg:hidden"
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
             >
@@ -146,17 +147,17 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
         </div>
 
         {/* ---- Row 2: the collections (desktop) ---------------------- */}
-        <nav aria-label="Product categories" className="hidden border-t border-white/10 lg:block">
+        <nav aria-label="Product categories" className="hidden border-t border-line lg:block">
           <div className="shell flex h-11 items-center gap-1">
             <Link
               href="/shop"
               className={cn(
                 'relative whitespace-nowrap rounded-full px-3 py-2 text-[0.8125rem] font-medium transition-colors xl:px-4',
-                pathname.startsWith('/shop') ? 'text-on-ink' : 'text-on-ink-muted hover:text-on-ink',
+                pathname.startsWith('/shop') ? 'text-content' : 'text-muted hover:text-content',
               )}
             >
               All products
-              {pathname.startsWith('/shop') && <span className="absolute inset-x-3 -bottom-px xl:inset-x-4 h-0.5 rounded-full bg-amber" />}
+              {pathname.startsWith('/shop') && <span className="absolute inset-x-3 -bottom-px xl:inset-x-4 h-0.5 rounded-full bg-crimson" />}
             </Link>
             {NAV.map((item) => {
               const active = pathname.startsWith(item.href);
@@ -166,17 +167,17 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
                   href={item.href}
                   className={cn(
                     'relative whitespace-nowrap rounded-full px-3 py-2 text-[0.8125rem] transition-colors xl:px-4',
-                    active ? 'font-medium text-on-ink' : 'text-on-ink-muted hover:text-on-ink',
+                    active ? 'font-medium text-content' : 'text-muted hover:text-content',
                   )}
                 >
                   {item.label}
-                  {active && <span className="absolute inset-x-3 -bottom-px xl:inset-x-4 h-0.5 rounded-full bg-amber" />}
+                  {active && <span className="absolute inset-x-3 -bottom-px xl:inset-x-4 h-0.5 rounded-full bg-crimson" />}
                 </Link>
               );
             })}
             <Link
               href="/enquiry"
-              className="ml-auto whitespace-nowrap rounded-full px-3 py-2 text-[0.8125rem] text-amber transition-colors hover:text-on-ink xl:px-4"
+              className="ml-auto whitespace-nowrap rounded-full px-3 py-2 text-[0.8125rem] font-medium text-crimson transition-colors hover:text-crimson-deep xl:px-4"
             >
               <span className="xl:hidden">Dealers</span>
               <span className="hidden xl:inline">Bulk &amp; dealer enquiry</span>
@@ -188,7 +189,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
       {/* Mobile navigation */}
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-ink text-on-ink transition-[opacity,visibility] duration-500 lg:hidden',
+          'fixed inset-0 z-40 bg-surface text-content transition-[opacity,visibility] duration-500 lg:hidden',
           mobileOpen ? 'visible opacity-100' : 'invisible opacity-0',
         )}
         aria-hidden={!mobileOpen}
@@ -199,7 +200,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
               key={item.href}
               href={item.href}
               tabIndex={mobileOpen ? 0 : -1}
-              className="display-sm border-b border-ink-line py-4 text-on-ink transition-[transform,opacity] duration-500"
+              className="display-sm border-b border-line py-4 text-content transition-[transform,opacity] duration-500"
               style={{
                 transitionDelay: mobileOpen ? `${i * 50 + 80}ms` : '0ms',
                 transform: mobileOpen ? 'translateY(0)' : 'translateY(18px)',
@@ -211,7 +212,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
           ))}
           <div className="mt-8 flex items-center gap-5">
             {user ? (
-              <Link href="/account" tabIndex={mobileOpen ? 0 : -1} className="text-sm text-on-ink-muted">
+              <Link href="/account" tabIndex={mobileOpen ? 0 : -1} className="text-sm text-muted">
                 Your account
               </Link>
             ) : (
@@ -219,7 +220,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
                 Sign in
               </button>
             )}
-            <Link href="/enquiry" tabIndex={mobileOpen ? 0 : -1} className="text-sm text-amber">
+            <Link href="/enquiry" tabIndex={mobileOpen ? 0 : -1} className="text-sm font-medium text-crimson">
               Bulk &amp; dealer enquiry
             </Link>
           </div>

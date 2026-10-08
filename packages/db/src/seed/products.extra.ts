@@ -5,7 +5,10 @@
  *
  * ALL OF THIS IS PLACEHOLDER. Names, prices, capacities and finishes are ours
  * and invented to sit sensibly beside the existing range — they are not from a
- * supplier's datasheet. None of these products has a photograph yet: the seeder
+ * supplier's datasheet. That includes the "was" prices: they are set to about
+ * 20-25% above the selling price, like the rest of the catalogue, because a
+ * strike-through price that was never charged is a misleading claim. Replace
+ * them with the real MRP. None of these products has a photograph yet: the seeder
  * looks for apps/web/public/products/<slug>/01.jpg … 04.jpg and inserts none if
  * they are absent, so a card shows "No image" until real photos are dropped in
  * and the catalogue is re-seeded.
@@ -20,6 +23,7 @@ export const EXTRA_CATEGORIES: SeedCategory[] = [
   { slug: 'fixed-tables', name: 'Fixed Tables', description: 'No motor, no pump, no hinge. A fixed-height table is the simplest thing that works, and the cheapest way to stop grooming on the floor.', sortOrder: 5 },
   { slug: 'bath-tubs', name: 'Bath Tubs', description: 'Stainless steel tubs with a proper drain and a non-slip floor, so a wash does not end with a wet floor and a wet groomer.', sortOrder: 6 },
   { slug: 'combos', name: 'Combos', description: 'A table and a tub bought together, priced below buying them apart.', sortOrder: 7 },
+  { slug: 'cages', name: 'Cages', description: 'Stainless steel cages on castors, from a compact single to a large modular unit, for keeping a dog comfortable before and after grooming.', sortOrder: 8 },
 ];
 
 const WARRANTY: SeedFaq = {
@@ -152,23 +156,58 @@ function bathTub(o: {
   });
 }
 
+function cage(o: {
+  slug: string; sku: string; name: string; tagline: string; summary: string; price: number; was: number;
+  lengthMm: number; widthMm: number; heightMm: number; weightG: number; dogs: string;
+  badges?: string[]; featured?: boolean;
+}): SeedProduct {
+  return make({
+    slug: o.slug, sku: o.sku, name: o.name, tagline: o.tagline, summary: o.summary,
+    description: `${o.summary}\n\nThe frame is stainless steel with a removable tray, a smooth door latch and locking castors, so the cage can be wheeled to the table, the tub or the drying area and then held still. ${o.dogs}`,
+    categorySlug: 'cages',
+    price: o.price, was: o.was, weightG: o.weightG, lengthMm: o.lengthMm, widthMm: o.widthMm,
+    loadKg: 0, warrantyMonths: 12, badges: o.badges, featured: o.featured,
+    hsnCode: '9402',
+    specs: [
+      { group: 'Cage', label: 'External size', value: `${o.lengthMm} × ${o.widthMm} × ${o.heightMm} mm` },
+      { group: 'Cage', label: 'Material', value: 'Stainless steel frame and bars' },
+      { group: 'Cage', label: 'Floor', value: 'Removable tray for cleaning' },
+      { group: 'Cage', label: 'Mobility', value: 'Castors, with locking brakes' },
+      { group: 'Cage', label: 'Door', value: 'Front door with secure latch' },
+      { group: 'Shipping', label: 'Boxed weight', value: `${Math.round(o.weightG / 1000) + 5} kg` },
+      { group: 'Warranty', label: 'Term', value: '12 months on the frame' },
+    ],
+    featureTitle: 'Easy to keep clean.',
+    featureBody: 'Smooth stainless steel wipes down in a minute, and the removable tray means the floor of the cage is never out of reach.',
+    stats: [
+      { value: 'SS', label: 'Stainless steel' },
+      { value: '4', label: 'Locking castors' },
+      { value: '12mo', label: 'Frame warranty' },
+    ],
+    faqs: [
+      { question: 'Which size should I choose?', answer: 'Pick the cage in which the dog can stand up, turn round and lie down comfortably. The external size is listed above so you can check it against the space you have.' },
+      { question: 'Can it be stacked?', answer: 'Do not stack cages unless the product page says the model is built for it. Ask us before you plan a stacked setup.' },
+    ],
+  });
+}
+
 export const EXTRA_PRODUCTS: SeedProduct[] = [
   fixedTable({
-    size: 'Small', suffix: 'S', price: 990_000, was: 1_590_000, kg: 40,
+    size: 'Small', suffix: 'S', price: 990_000, was: 1_290_000, kg: 40,
     lengthMm: 600, widthMm: 450, deckHeightMm: 800, weightG: 9_000,
     summary: 'A compact fixed-height table for cats and small breeds, light enough to move between rooms.',
     who: 'It is the one to buy if the dog weighs less than a school bag.',
     badges: ['Entry price'],
   }),
   fixedTable({
-    size: 'Medium', suffix: 'M', price: 1_190_000, was: 1_890_000, kg: 75,
+    size: 'Medium', suffix: 'M', price: 1_190_000, was: 1_550_000, kg: 75,
     lengthMm: 900, widthMm: 560, deckHeightMm: 850, weightG: 14_000,
     summary: 'The all-rounder: a fixed table big enough for a labrador and small enough for a spare room.',
     who: 'Most households and small studios end up here.',
     badges: ['Popular'],
   }),
   fixedTable({
-    size: 'Large', suffix: 'L', price: 1_790_000, was: 2_690_000, kg: 120,
+    size: 'Large', suffix: 'L', price: 1_790_000, was: 2_300_000, kg: 120,
     lengthMm: 1_200, widthMm: 600, deckHeightMm: 900, weightG: 22_000,
     summary: 'A heavy-duty fixed table for large breeds, with a deck long enough to groom without the dog hanging off the end.',
     who: 'Choose this for anything from a golden retriever up.',
@@ -179,7 +218,7 @@ export const EXTRA_PRODUCTS: SeedProduct[] = [
     name: 'Aqua S Stainless Bath Tub — Small',
     tagline: 'A proper wash, at a sensible size.',
     summary: 'A compact stainless tub for cats and small breeds, with a non-slip floor and a drain that actually drains.',
-    price: 3_490_000, was: 5_290_000, kg: 45, lengthMm: 800, widthMm: 520, weightG: 18_000, warrantyMonths: 12,
+    price: 3_490_000, was: 4_500_000, kg: 45, lengthMm: 800, widthMm: 520, weightG: 18_000, warrantyMonths: 12,
     extra: [
       { group: 'Tub', label: 'Wall height', value: '300 mm' },
       { group: 'Fitted', label: 'Drain', value: '40 mm waste outlet' },
@@ -194,7 +233,7 @@ export const EXTRA_PRODUCTS: SeedProduct[] = [
     name: 'Aqua F Front-Entry Stainless Tub',
     tagline: 'The door that saves your back.',
     summary: 'A full-size stainless tub with a front entry, so a large dog walks in instead of being lifted over the wall. A tap is included.',
-    price: 4_690_000, was: 7_490_000, kg: 100, lengthMm: 1_200, widthMm: 650, weightG: 38_000, warrantyMonths: 12,
+    price: 4_690_000, was: 6_000_000, kg: 100, lengthMm: 1_200, widthMm: 650, weightG: 38_000, warrantyMonths: 12,
     extra: [
       { group: 'Tub', label: 'Entry', value: 'Front door with ramp' },
       { group: 'Fitted', label: 'Tap', value: 'Mixer tap with hose, included' },
@@ -210,7 +249,7 @@ export const EXTRA_PRODUCTS: SeedProduct[] = [
     name: 'Aqua E Electric Lift Bath Tub',
     tagline: 'Raise it for the wash, lower it for the dog.',
     summary: 'A stainless tub on an electric lift: set it low for the dog to step in, then raise it to a comfortable working height.',
-    price: 8_490_000, was: 13_490_000, kg: 150, lengthMm: 1_300, widthMm: 700, weightG: 62_000, warrantyMonths: 24,
+    price: 8_490_000, was: 10_900_000, kg: 150, lengthMm: 1_300, widthMm: 700, weightG: 62_000, warrantyMonths: 24,
     extra: [
       { group: 'Lift', label: 'Mechanism', value: 'Electric actuator with foot control' },
       { group: 'Lift', label: 'Height range', value: '450 – 900 mm' },
@@ -271,5 +310,34 @@ export const EXTRA_PRODUCTS: SeedProduct[] = [
     faqs: [
       { question: 'Can I choose the finishes?', answer: 'The kit ships in the standard finish of each table. If you want a specific finish, order the tables separately.' },
     ],
+  }),
+
+  cage({
+    slug: 'compact-stainless-cage', sku: 'APS-CAGE-C', name: 'Compact Stainless Cage',
+    tagline: 'Small dogs, small footprint.',
+    summary: 'A compact stainless steel cage on castors for small breeds, easy to wheel beside the table and wipe clean.',
+    price: 1_890_000, was: 2_350_000, lengthMm: 650, widthMm: 480, heightMm: 600, weightG: 18_000,
+    dogs: 'Suited to small breeds such as a Maltese or a Pomeranian.', badges: ['Compact'],
+  }),
+  cage({
+    slug: 'modular-cage-small', sku: 'APS-CAGE-MS', name: 'Modular Cage — Small',
+    tagline: 'A modular cage that fits the room.',
+    summary: 'A small modular stainless steel cage with a front door and removable tray, for dogs up to the size of a Dachshund or a Beagle.',
+    price: 1_990_000, was: 2_490_000, lengthMm: 750, widthMm: 520, heightMm: 650, weightG: 22_000,
+    dogs: 'Suited to dogs up to the size of a Dachshund or a Beagle.',
+  }),
+  cage({
+    slug: 'modular-cage-medium', sku: 'APS-CAGE-MM', name: 'Modular Cage — Medium',
+    tagline: 'Room to stand, turn and settle.',
+    summary: 'A medium modular stainless steel cage on castors, with room for a Corgi or a Cocker Spaniel to stand and turn.',
+    price: 2_490_000, was: 3_100_000, lengthMm: 900, widthMm: 620, heightMm: 750, weightG: 30_000,
+    dogs: 'Suited to dogs up to the size of a Corgi or a Cocker Spaniel.', featured: true, badges: ['Popular'],
+  }),
+  cage({
+    slug: 'modular-cage-large', sku: 'APS-CAGE-ML', name: 'Modular Cage — Large',
+    tagline: 'For the big breeds.',
+    summary: 'A large modular stainless steel cage on heavy castors, with a wide door for large breeds.',
+    price: 2_990_000, was: 3_700_000, lengthMm: 1_100, widthMm: 720, heightMm: 850, weightG: 42_000,
+    dogs: 'Suited to large breeds such as a Bernese Mountain Dog or a Labrador.',
   }),
 ];

@@ -114,8 +114,8 @@ export default function OrderPage() {
               <ul className="divide-y divide-line">
                 {order.lines.map((line) => (
                   <li key={line.id} className="flex items-center gap-4 p-4 sm:p-5">
-                    <span className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-sand sm:size-24">
-                      {line.imageUrl && <Image src={line.imageUrl} alt="" fill sizes="96px" className="object-cover" />}
+                    <span className="relative size-20 shrink-0 overflow-hidden rounded-xl border border-line bg-white sm:size-24">
+                      {line.imageUrl && <Image src={line.imageUrl} alt="" fill sizes="96px" className="object-contain p-2" />}
                     </span>
                     <div className="min-w-0 flex-1">
                       <Link href={`/products/${line.productSlug}`} className="font-medium text-content transition-colors hover:text-crimson">

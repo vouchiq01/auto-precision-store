@@ -54,7 +54,7 @@ export function ProductGallery({
         <SpinViewer slug={spinSlug} frameFiles={spinFrames} alt={name} />
       ) : (
       <>
-      <div className="relative aspect-square overflow-hidden rounded-3xl border border-line bg-surface">
+      <div className="relative aspect-square overflow-hidden rounded-3xl border border-line bg-white">
         {current ? (
           <Image
             key={current.id}
@@ -63,7 +63,7 @@ export function ProductGallery({
             fill
             priority
             sizes="(min-width: 1024px) 50vw, 100vw"
-            className="animate-[fadeIn_0.5s_var(--ease-out-expo)] object-cover"
+            className="animate-[fadeIn_0.5s_var(--ease-out-expo)] object-contain p-6 sm:p-10"
           />
         ) : (
           <PhotoPlaceholder />
@@ -81,13 +81,13 @@ export function ProductGallery({
               aria-label={`View image ${i + 1} of ${images.length}`}
               onClick={() => setActive(i)}
               className={cn(
-                'relative size-20 overflow-hidden rounded-xl border transition-colors duration-300',
+                'relative size-20 overflow-hidden rounded-xl border bg-white transition-colors duration-300',
                 i === active
                   ? 'border-line-strong'
                   : 'border-line opacity-60 hover:opacity-100',
               )}
             >
-              <Image src={image.url} alt="" fill sizes="80px" className="object-cover" />
+              <Image src={image.url} alt="" fill sizes="80px" className="object-contain p-1.5" />
             </button>
           ))}
         </div>

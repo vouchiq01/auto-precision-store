@@ -34,7 +34,7 @@ export function CartLineItem({
         onClick={onNavigate}
         tabIndex={tabIndex}
         className={cn(
-          'relative shrink-0 overflow-hidden rounded-xl bg-sand',
+          'relative shrink-0 overflow-hidden rounded-xl border border-line bg-white',
           compact ? 'size-[4.5rem]' : 'size-24 sm:size-32',
         )}
       >
@@ -44,7 +44,7 @@ export function CartLineItem({
             alt={line.product.image.alt || line.product.name}
             fill
             sizes={compact ? '72px' : '128px'}
-            className="object-cover"
+            className="object-contain p-1.5"
           />
         )}
       </Link>

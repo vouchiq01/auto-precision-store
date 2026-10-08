@@ -3,12 +3,17 @@ import type { Category } from '@aps/shared';
 import { cn } from '@/lib/cn';
 
 /**
- * The collections as a row of pills, directly under the hero, on every screen.
+ * The collections as a row of pills, directly under the hero, on phones and
+ * tablets only.
  *
- * On a phone the header's links hide behind the menu button, so the first
- * screen offered no way to jump straight to "Round" or "Portable"; on a
- * desktop this is the quickest route into a collection from the top of the
- * page. One tap, no menu, and a pill cut off at the edge says the row scrolls.
+ * Below the desktop breakpoint the header's links hide behind the menu button,
+ * so without this the first screen offered no way to jump straight to "Round"
+ * or "Portable". One tap, no menu, and a pill cut off at the edge says the row
+ * scrolls.
+ *
+ * It is hidden from `lg` up because the desktop header already carries the same
+ * list on its second row — showing both put "All products / Electric /
+ * Hydraulic…" on screen twice, one directly above the other. One set per screen.
  */
 export function CategoryPills({ categories, activeSlug }: { categories: Category[]; activeSlug?: string }) {
   if (categories.length === 0) return null;
@@ -17,7 +22,7 @@ export function CategoryPills({ categories, activeSlug }: { categories: Category
   const pill = 'flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-[0.8125rem] font-medium shadow-card transition-colors';
 
   return (
-    <nav aria-label="Browse by type" className="shell mt-5">
+    <nav aria-label="Browse by type" className="shell mt-5 lg:hidden">
       <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:-mx-10 md:px-10 xl:mx-0 xl:px-0 [&::-webkit-scrollbar]:hidden">
         <li className="shrink-0">
           <Link

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getCategories, getProducts } from '@/lib/queries';
 import { FilterBar } from '@/components/collection/filter-bar';
-import { ListingHero } from '@/components/collection/listing-hero';
+import { ListingHeader } from '@/components/collection/listing-header';
 import { CategoryPills } from '@/components/home/category-pills';
 import { ProductCard } from '@/components/product/product-card';
 import { EmptyState } from '@/components/ui/primitives';
@@ -57,7 +57,7 @@ export default async function CollectionPage({ params, searchParams }: PageProps
 
   return (
     <>
-      <ListingHero crumb={category.name} title={category.name} description={category.description} count={category.productCount ?? result.total} />
+      <ListingHeader crumb={category.name} title={category.name} description={category.description} count={category.productCount ?? result.total} />
       <CategoryPills categories={categories} activeSlug={slug} />
 
       <div className="shell pb-10 md:pb-16">

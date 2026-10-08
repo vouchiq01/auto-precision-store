@@ -183,8 +183,8 @@ export default function AccountPage() {
                     <div className="mt-4 flex items-center gap-3">
                       <div className="flex -space-x-2">
                         {order.lines.slice(0, 3).map((line) => (
-                          <span key={line.id} className="relative size-12 overflow-hidden rounded-xl border-2 border-surface bg-sand">
-                            {line.imageUrl && <Image src={line.imageUrl} alt="" fill sizes="48px" className="object-cover" />}
+                          <span key={line.id} className="relative size-12 overflow-hidden rounded-xl border border-line bg-white">
+                            {line.imageUrl && <Image src={line.imageUrl} alt="" fill sizes="48px" className="object-contain p-1" />}
                           </span>
                         ))}
                         {extra > 0 && (

@@ -1,67 +1,37 @@
+import Image from 'next/image';
 import { cn } from '@/lib/cn';
 
 /**
- * The Auto Precision mark: a lowercase "ap" hanging from a full-width bar,
- * echoing the shirorekha of Devanagari.
+ * The Auto Precision logo, as supplied by the client: a red "ap" mark hanging
+ * from a bar, "Auto" in red and "Precision" in black.
  *
- * Drawn as SOLID letterforms, not outlined strokes. The first version stroked
- * the shapes at 3.4 units on a 52-unit box; rendered at its actual 28px that
- * put roughly 1.8px of line around counters only a few px across, which close
- * up and turn the mark into an unreadable glyph. Filled shapes with the
- * counters knocked out hold their shape at 20px and at 400px.
+ * It is designed for a LIGHT background — the black "Precision" disappears on
+ * navy — which is why the header is white. On a dark surface (the footer) use
+ * `variant="white"`, a one-colour version cut from the same artwork. Do not
+ * redraw the mark in code or recolour the full-colour file: use these files.
  *
- * The one detail that decides whether this reads "ap" or "dp": in a
- * single-storey "a" the bowl and its stem are the SAME height. The moment the
- * stem rises above the bowl you have drawn a "d". "p" then drops its descender
- * well below the baseline, which is the only vertical that breaks the line and
- * gives the mark its asymmetry.
- *
- * The holes are a mask rather than counter-coloured circles painted on top,
- * so the mark carries correctly onto the canvas, onto the ink footer, and onto
- * crimson without anyone having to remember to restate the background.
+ * `public/brand/logo.png` is the transparent full-colour artwork;
+ * `logo-white.png` is the same shape in solid white. The favicon
+ * (`app/icon.png`) is the "ap" mark alone.
  */
-
-/* Fixed rather than useId(): every instance renders identical geometry, so a
-   shared definition is correct — and a constant keeps this a server component. */
-const MASK_ID = 'ap-mark-counters';
-
 export function Logo({
   className,
-  showWordmark = true,
+  variant = 'colour',
+  priority = false,
 }: {
+  /** Sets the height; the width follows the artwork's 5.3:1 ratio. */
   className?: string;
-  showWordmark?: boolean;
+  variant?: 'colour' | 'white';
+  priority?: boolean;
 }) {
   return (
-    <span className={cn('inline-flex items-center gap-2.5', className)}>
-      <svg
-        viewBox="0 0 64 56"
-        className="h-7 w-auto"
-        role="img"
-        aria-label="Auto Precision"
-      >
-        <mask id={MASK_ID}>
-          <rect width="64" height="56" fill="#000" />
-          {/* the bar */}
-          <rect x="0" y="0" width="64" height="6.5" rx="3.25" fill="#fff" />
-          {/* a — bowl hung from the bar, stem stopping level with it */}
-          <circle cx="17" cy="24" r="12.5" fill="#fff" />
-          <rect x="24.5" y="3" width="6.5" height="33.5" fill="#fff" />
-          {/* p — same bowl height, descender running well past the baseline */}
-          <rect x="37" y="3" width="6.5" height="51" rx="0.5" fill="#fff" />
-          <circle cx="50" cy="24" r="12.5" fill="#fff" />
-          {/* counters */}
-          <circle cx="16" cy="24" r="6.4" fill="#000" />
-          <circle cx="51" cy="24" r="6.4" fill="#000" />
-        </mask>
-        <rect width="64" height="56" fill="currentColor" mask={`url(#${MASK_ID})`} />
-      </svg>
-
-      {showWordmark && (
-        <span className="font-display text-[0.9375rem] font-bold tracking-[-0.01em] leading-none">
-          Auto Precision
-        </span>
-      )}
-    </span>
+    <Image
+      src={variant === 'white' ? '/brand/logo-white.png' : '/brand/logo.png'}
+      alt="Auto Precision"
+      width={1200}
+      height={225}
+      priority={priority}
+      className={cn('h-8 w-auto', className)}
+    />
   );
 }

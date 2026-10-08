@@ -38,12 +38,12 @@ export function MobileTabBar() {
   const isShop = pathname.startsWith('/shop') || pathname.startsWith('/collections');
 
   const item = 'relative flex flex-1 cursor-pointer flex-col items-center gap-1 py-2 text-[0.6875rem] font-medium transition-colors';
-  const tone = (active: boolean) => (active ? 'text-on-ink' : 'text-on-ink-muted');
+  const tone = (active: boolean) => (active ? 'text-crimson' : 'text-muted');
 
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-ink-line bg-ink/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_-14px_rgba(0,0,0,0.18)] backdrop-blur-xl lg:hidden"
     >
       <div className="flex">
         <Link href="/" className={cn(item, tone(pathname === '/'))}>
@@ -65,7 +65,7 @@ export function MobileTabBar() {
           </Icon>
           Cart
           {count > 0 && (
-            <span className="numeric absolute right-[calc(50%-1.5rem)] top-1 grid min-w-4 place-items-center rounded-full bg-amber px-1 text-[0.625rem] font-semibold leading-4 text-ink">
+            <span className="numeric absolute right-[calc(50%-1.5rem)] top-1 grid min-w-4 place-items-center rounded-full bg-crimson px-1 text-[0.625rem] font-semibold leading-4 text-white">
               {count}
             </span>
           )}
@@ -90,7 +90,7 @@ function Icon({ children, active }: { children: ReactNode; active: boolean }) {
   return (
     <svg
       viewBox="0 0 20 20"
-      className={cn('size-[1.375rem]', active && 'text-amber')}
+      className="size-[1.375rem]"
       fill="none"
       stroke="currentColor"
       strokeWidth="1.6"

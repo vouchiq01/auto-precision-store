@@ -93,7 +93,7 @@ export function SearchBox({
           viewBox="0 0 20 20"
           className={cn(
             'pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2',
-            isBar ? 'text-on-ink-muted group-focus-within:text-faint' : 'text-faint',
+            'text-faint',
           )}
           fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"
         >
@@ -119,7 +119,7 @@ export function SearchBox({
             'w-full rounded-full pl-11 pr-4 text-sm outline-none transition-colors',
             '[&::-webkit-search-cancel-button]:hidden',
             isBar
-              ? 'h-10 border border-white/15 bg-white/10 text-on-ink placeholder:text-on-ink-muted focus:border-transparent focus:bg-surface focus:text-content focus:placeholder:text-faint'
+              ? 'h-10 border border-line bg-sand text-content placeholder:text-faint focus:border-line-strong focus:bg-surface'
               : 'h-12 border border-line bg-surface text-base text-content placeholder:text-faint focus:border-line-strong',
           )}
         />
@@ -148,9 +148,9 @@ export function SearchBox({
                 index === active ? 'bg-sand' : 'hover:bg-sand',
               )}
             >
-              <span className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-sand">
+              <span className="relative size-12 shrink-0 overflow-hidden rounded-lg border border-line bg-white">
                 {product.primaryImage && (
-                  <Image src={product.primaryImage.url} alt="" fill sizes="48px" className="object-cover" />
+                  <Image src={product.primaryImage.url} alt="" fill sizes="48px" className="object-contain p-1" />
                 )}
               </span>
               <span className="min-w-0 flex-1">

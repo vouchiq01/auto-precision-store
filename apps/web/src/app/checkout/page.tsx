@@ -336,9 +336,9 @@ export default function CheckoutPage() {
   const itemRows = cart.lines.map((line) => (
     <li key={line.id} className="flex items-center gap-3">
       <span className="relative size-14 shrink-0 rounded-xl bg-sand">
-        <span className="absolute inset-0 overflow-hidden rounded-xl">
+        <span className="absolute inset-0 overflow-hidden rounded-xl border border-line bg-white">
           {line.product.image && (
-            <Image src={line.product.image.url} alt="" fill sizes="56px" className="object-cover" />
+            <Image src={line.product.image.url} alt="" fill sizes="56px" className="object-contain p-1" />
           )}
         </span>
         <span className="numeric absolute -right-1.5 -top-1.5 grid size-5 place-items-center rounded-full bg-ink text-[0.6875rem] font-medium text-on-ink">

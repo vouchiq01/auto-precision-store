@@ -69,7 +69,7 @@ export function ProductCard({
       )}
     >
       {/* ---- Photo ---------------------------------------------------- */}
-      <div className="relative aspect-square overflow-hidden bg-sand sm:aspect-[4/3]">
+      <div className="relative aspect-square overflow-hidden border-b border-line bg-white">
         {product.primaryImage ? (
           <Image
             src={product.primaryImage.url}
@@ -78,7 +78,7 @@ export function ProductCard({
             priority={priority}
             sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 50vw"
             className={cn(
-              'object-cover transition-transform duration-700 ease-out-expo group-hover:scale-[1.04]',
+              'object-contain p-3 transition-transform duration-700 ease-out-expo group-hover:scale-[1.03] sm:p-5',
               outOfStock && 'opacity-45 saturate-0',
             )}
           />

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getCategories, getProducts } from '@/lib/queries';
 import { FilterBar } from '@/components/collection/filter-bar';
-import { ListingHero } from '@/components/collection/listing-hero';
+import { ListingHeader } from '@/components/collection/listing-header';
 import { CategoryPills } from '@/components/home/category-pills';
 import { ProductCard } from '@/components/product/product-card';
 import { EmptyState } from '@/components/ui/primitives';
@@ -53,10 +53,10 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
 
   return (
     <>
-      <ListingHero
+      <ListingHeader
         crumb={search ? 'Search' : 'All products'}
         title={search ? `Results for “${search}”` : 'All products'}
-        description={search ? null : 'Every table in the range, from a folding table for home to a flagship electric lift.'}
+        description={search ? null : 'Every table, tub and bundle in the range, from a folding table for home to a flagship electric lift.'}
         count={search ? result.total : total}
       />
       <CategoryPills categories={categories} />

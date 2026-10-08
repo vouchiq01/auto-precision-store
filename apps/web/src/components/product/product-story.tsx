@@ -65,24 +65,27 @@ export function ProductStory({ features }: { features: ProductFeature[] }) {
           }
 
           const mediaLeft = feature.layout === 'media_left';
+          /* A section can exist before its picture does. Without one it is
+             plain text, not an empty bordered box. */
+          const hasMedia = Boolean(feature.mediaUrl);
 
           return (
-            <Reveal key={feature.id} className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-              <div className={cn('relative aspect-[4/3] overflow-hidden rounded-3xl border border-line',
-                mediaLeft ? 'lg:order-1' : 'lg:order-2')}
-              >
-                {feature.mediaUrl && (
+            <Reveal key={feature.id} className={cn('grid items-center gap-10 lg:gap-16', hasMedia && 'lg:grid-cols-2')}>
+              {hasMedia && (
+                <div className={cn('relative aspect-[4/3] overflow-hidden rounded-3xl border border-line',
+                  mediaLeft ? 'lg:order-1' : 'lg:order-2')}
+                >
                   <Image
-                    src={feature.mediaUrl}
+                    src={feature.mediaUrl!}
                     alt={feature.mediaAlt ?? ''}
                     fill
                     sizes="(min-width: 1024px) 50vw, 100vw"
                     className="object-cover"
                   />
-                )}
-              </div>
+                </div>
+              )}
 
-              <div className={mediaLeft ? 'lg:order-2' : 'lg:order-1'}>
+              <div className={cn(hasMedia && (mediaLeft ? 'lg:order-2' : 'lg:order-1'))}>
                 <span aria-hidden="true" className="numeric font-display text-sm text-crimson">
                   {String(index + 1).padStart(2, '0')}
                 </span>

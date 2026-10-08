@@ -27,20 +27,19 @@ export function CategoryRail({ categories }: { categories: Category[] }) {
         <SectionNumber value="02" className="hidden md:block" />
       </div>
 
-      {/* A flex row on desktop so the hovered panel can actually take space
-          from its neighbours — inside a grid, flex-grow does nothing. */}
-      <Reveal stagger={0.09} className="mt-8 grid grid-cols-2 gap-2.5 sm:mt-14 sm:grid-cols-3 sm:gap-3 lg:flex lg:gap-3">
+      {/* A grid, not a single flex row: with ten collections a one-row strip
+          squeezed each photograph to a sliver and cut the dogs in half. */}
+      <Reveal stagger={0.09} className="mt-8 grid grid-cols-2 gap-2.5 sm:mt-10 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5 lg:gap-4">
         {categories.map((category) => (
           <Link
             key={category.id}
             href={`/collections/${category.slug}`}
             className={cn(
               'group relative block overflow-hidden rounded-2xl border border-line bg-surface',
-              'transition-[border-color,flex-grow] duration-[700ms] ease-out-expo hover:border-faint',
-              'lg:flex-1 lg:hover:grow-[1.8]',
+              'transition-[border-color,box-shadow] duration-300 hover:border-faint hover:shadow-lift',
             )}
           >
-            <div className="relative aspect-[4/5] sm:aspect-[3/4] lg:aspect-auto lg:h-[26rem] xl:h-[32rem]">
+            <div className="relative aspect-[4/5]">
               {/* A collection can exist before it has a photograph. It gets a
                   plain ink tile rather than a broken image. */}
               {category.imageUrl ? (

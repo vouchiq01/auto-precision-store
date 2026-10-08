@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { createDb } from '../client.ts';
@@ -23,7 +23,27 @@ const PUBLIC_PRODUCTS = resolve(
   dirname(fileURLToPath(import.meta.url)), '../../../../apps/web/public/products',
 );
 
-function findAsset(slug: string, base: string): string | null {
+/**
+ * Optional `images.json` next to a product's photographs:
+ *   { "gallery": ["01.jpg", "02.jpg"], "features": ["feature-1.jpg"] }
+ * When present it says exactly which files the product uses, in order, and the
+ * site ignores any other file in the folder. That lets old or unwanted images
+ * stay on disk without appearing on the page. `features: []` means the story
+ * sections have no pictures. Omit a key to fall back to scanning the folder.
+ */
+interface ImageManifest { gallery?: string[]; features?: string[] }
+
+function readManifest(slug: string): ImageManifest | null {
+  try {
+    const file = join(PUBLIC_PRODUCTS, slug, 'images.json');
+    if (!existsSync(file)) return null;
+    return JSON.parse(readFileSync(file, 'utf8')) as ImageManifest;
+  } catch {
+    return null;
+  }
+}
+
+export function findAsset(slug: string, base: string): string | null {
   for (const ext of ['jpg', 'jpeg', 'png', 'webp', 'avif', 'svg']) {
     if (existsSync(join(PUBLIC_PRODUCTS, slug, `${base}.${ext}`))) {
       return `/products/${slug}/${base}.${ext}`;
@@ -32,13 +52,29 @@ function findAsset(slug: string, base: string): string | null {
   return null;
 }
 
+/** The media for story section `index` (0-based), or null when it has none. */
+export function featureMedia(slug: string, index: number): string | null {
+  const listed = readManifest(slug)?.features;
+  if (listed) {
+    const file = listed[index];
+    return file && existsSync(join(PUBLIC_PRODUCTS, slug, file)) ? `/products/${slug}/${file}` : null;
+  }
+  return findAsset(slug, `feature-${(index % IMAGES_PER_PRODUCT) + 1}`);
+}
+
 /** A collection photo, or null while there is none — the storefront copes. */
 export function categoryImage(slug: string): string | null {
   const file = `${slug}.jpg`;
   return existsSync(join(PUBLIC_PRODUCTS, '../categories', file)) ? `/categories/${file}` : null;
 }
 
-function imageUrls(slug: string): { url: string; alt: string }[] {
+export function imageUrls(slug: string): { url: string; alt: string }[] {
+  const listed = readManifest(slug)?.gallery;
+  if (listed) {
+    return listed
+      .filter((file) => existsSync(join(PUBLIC_PRODUCTS, slug, file)))
+      .map((file) => ({ url: `/products/${slug}/${file}`, alt: '' }));
+  }
   return Array.from({ length: IMAGES_PER_PRODUCT }, (_, i) => findAsset(slug, String(i + 1).padStart(2, '0')))
     .filter((url): url is string => url !== null)
     .map((url) => ({ url, alt: '' }));
@@ -105,7 +141,7 @@ export async function insertProduct(
       p.features.map((f, fi) => ({
         productId: product.id,
         eyebrow: f.eyebrow ?? null, title: f.title, body: f.body ?? null,
-        mediaUrl: findAsset(p.slug, `feature-${(fi % IMAGES_PER_PRODUCT) + 1}`),
+        mediaUrl: featureMedia(p.slug, fi),
         mediaAlt: f.title,
         layout: f.layout, stats: f.stats ?? [], sortOrder: fi,
       })),

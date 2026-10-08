@@ -61,7 +61,7 @@ export default async function HomePage() {
       {/* Shop first: a short hero, the collections as pills, and the products —
           all inside the first screen. The story that explains the tables sits
           below, for the people who want it. */}
-      <Hero banner={heroBanners[0] ?? null} totalProducts={totalProducts} featured={featured.items[0] ?? null} />
+      <Hero banner={heroBanners[0] ?? null} totalProducts={totalProducts} spotlight={rails[1]?.items.find((p) => p.slug === 'orbit-r-round-rotating-table') ?? rails[1]?.items[0] ?? null} />
       <CategoryPills categories={categories} />
       <Bestsellers products={featured.items} />
       <TrustCards />

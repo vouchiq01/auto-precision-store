@@ -28,7 +28,12 @@ async function main(): Promise<void> {
   /* Keep the collection order in step with the seed (accessories moved last). */
   for (const c of [...CATEGORIES, ...EXTRA_CATEGORIES]) {
     if (categoryBySlug.has(c.slug)) {
-      await db.update(s.categories).set({ sortOrder: c.sortOrder }).where(eq(s.categories.slug, c.slug));
+      /* Order, and the collection photo when there is one on disk (a collection
+         inserted before its photo existed has none). */
+      const image = categoryImage(c.slug);
+      await db.update(s.categories)
+        .set(image ? { sortOrder: c.sortOrder, imageUrl: image } : { sortOrder: c.sortOrder })
+        .where(eq(s.categories.slug, c.slug));
     }
   }
 

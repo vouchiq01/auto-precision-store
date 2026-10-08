@@ -9,9 +9,9 @@ the things that are not obvious from the code.
 
 ## What it is
 
-An e-commerce store selling **pet grooming tables, bath tubs and bundles** in India.
-26 products across 9 collections (18 tables and accessories, plus a second wave
-of fixed tables, tubs and combos — see "The second-wave range" below). Owner: Madan, GitHub `vouchiq01`.
+An e-commerce store selling **pet grooming tables, bath tubs, cages and bundles** in India.
+30 products across 10 collections (18 tables and accessories, plus a second wave
+of fixed tables, tubs, combos and cages — see "The second-wave range" below). Owner: Madan, GitHub `vouchiq01`.
 Repo: `github.com/vouchiq01/auto-precision-store` (private).
 
 The business is in **Bengaluru, Karnataka** — this matters, because it decides
@@ -70,9 +70,9 @@ The Orbit R collection: ₹27,000 (the one he named), ₹21,400 mini, ₹38,900 
 
 ---
 
-## The second-wave range — placeholder, no photos yet
+## The second-wave range — placeholder products
 
-Fixed tables (×3 sizes), stainless bath tubs (×3) and two bundles were added
+Fixed tables (×3 sizes), stainless bath tubs (×3), two bundles and four stainless cages were added
 because the client pointed at a manufacturer's grooming range and asked for the
 same *kinds* of product. They live in `packages/db/src/seed/products.extra.ts`.
 
@@ -81,12 +81,14 @@ same *kinds* of product. They live in `packages/db/src/seed/products.extra.ts`.
   copied from the reference site, whose photos carry its own logo and whose
   listing text is theirs; it was read only to learn which product types exist.
   Confirm with the owner which of these he really sells before launch.
-- **None has a photograph.** The seeder looks for
-  `apps/web/public/products/<slug>/01.jpg`…`04.jpg` and inserts no image rows if
-  they are absent; cards and product pages then show a "Photo coming soon" tile
-  (`photo-placeholder.tsx`). Dropping photos in and re-seeding is the whole job.
-- Three collections (`fixed-tables`, `bath-tubs`, `combos`) have no collection
-  photo either; the homepage rail renders a plain ink tile for those.
+- **Their photographs are the client's AI-generated images** (a groomer and a dog on
+  a table, in a tub, in a cage), assigned to products in `public/products/<slug>/`
+  with an `images.json`. They are placeholders: the same picture serves several
+  sizes of a product, and the tables shown are not necessarily the real ones.
+  A product with no photograph shows a "Photo coming soon" tile
+  (`photo-placeholder.tsx`); the seeder inserts no image rows for it.
+- Four collections (`fixed-tables`, `bath-tubs`, `combos`, `cages`) have no
+  collection photo; the homepage rail renders a plain ink tile for those.
 - Listing counts say "products", not "tables", because tubs and bundles are now
   in the same lists.
 
@@ -118,14 +120,36 @@ again before anyone treats the prices as real.
 
 ## Imagery — read before touching
 
-`apps/web/public/products/ROUND-PHOTO-CREDITS.txt` is not decoration.
+**The competitor-sourced round-table photos are no longer shown.** They were
+taken from Lohas Pets, Sanglepet, Alibaba and Amazon listings — other companies'
+copyrighted photography — and one still carried a retailer's logo once images
+stopped being cropped. The round range now uses a client-supplied photograph
+(`01.jpg`, cropped from his image), and each round product's `images.json`
+lists only that file, so the leftover competitor files in those folders
+(`02`–`04`, `feature-*`, `*.png`, `spin/`) are ignored by the site. **They are
+still on disk and in git history.** Delete them, and rewrite history, before this
+repo is ever made public. `spin/frames.json` is emptied so the 360° tab no longer
+appears for the round range.
 
-The round-table photos were taken from Lohas Pets, Sanglepet, Alibaba and
-Amazon listings. They are **other companies' copyrighted product photography**,
-not licensed, and not photographs of his products. He was told twice, reaffirmed
-twice, and they went in as placeholders. The repo is private, which makes them
-working material rather than republished — **do not make this repo public
-without replacing them and rewriting history.**
+The electric tables (Apex ×2, Vertex ×4) use four client-supplied images: a
+table on white, a feature infographic, and a studio photo (`01`–`03`, listed in
+each `images.json`). They are AI-generated, the same picture on all six models,
+and **the table in them is a scissor lift** while some product copy describes a
+single-column or twin-actuator mechanism — confirm against the real products.
+Two further showcase images the client sent (a table branded "ProGroom", with
+"28–100 cm" and "60–110 cm" printed in them) were deliberately NOT used: the
+printed figures and brand contradict our product data.
+
+### Adding photos: `images.json` and `seed:images`
+
+Drop files in `apps/web/public/products/<slug>/` (`01.jpg`…, `feature-1.jpg`…).
+An optional `images.json` — `{ "gallery": ["01.jpg"], "features": [] }` — says
+exactly which to use, in order, and the site ignores the rest; `features: []`
+makes the story sections text-only. Then deploy the web app and run
+`DATABASE_URL=<direct url> npm run seed:images -w @aps/db`, which re-syncs only
+`product_images` and each story section's media — safe on a database with orders.
+Next caches optimised images by path, so `rm -rf apps/web/.next` locally after
+replacing a file in place.
 
 The rest is Pexels stock (licensed for commercial use, but still not his tables).
 
@@ -152,15 +176,17 @@ glowing gadget, not a large piece of equipment bought on trust, and not the long
 spec tables that actually close the sale. Light is also far kinder to a small
 catalogue; eighteen products in a dark grid read as empty rather than spare.
 
-So: **warm paper canvas, white cards, and midnight-navy "ink" bands** — the
-header, the hero, the flagship story and the footer. The hero and header
-joined the dark bands later, at a client's request: he looked at darkotter.in
-and said ours was not attractive and its colour combination was not as good.
-The shape that works there — dark header and hero over a light page of white
-cards, one vivid accent — is what we took, in our own colours (navy + the logo
-crimson + amber), not their purple. **Do not go back to the all-light first
-screen, and do not push the dark further than this**: a fully dark page is
-what he rejected twice. Do not copy their layout, copy or imagery.
+So: **warm paper canvas, white cards, and a white header.** The client supplied
+his real logo — a red "ap" mark, "Auto" in red and "Precision" in black — and it
+is designed for a light background: the black wordmark vanishes on navy. So the
+header (both rows, the search field, the mobile menu and the phone tab bar) is
+**white**, with crimson as the active/accent colour. Navy "ink" survives only in
+the footer (which uses the one-colour `logo-white.png`), the flagship story, the
+cart drawer's title bar, and the slim `ListingHero` on cart/checkout/account/order.
+The first screen of the homepage is a warm cream-to-blush gradient. **Do not put
+the full-colour logo on a dark surface and do not redraw it in code** — use
+`public/brand/logo.png` / `logo-white.png` through the `Logo` component. The
+favicon is `app/icon.png`, the "ap" mark alone. `amber` is for dark bands only.
 
 Semantic token names, all defined in `apps/web/src/app/globals.css`:
 
@@ -205,7 +231,13 @@ twice and he was right: an illustration of a dog reads as an illustration no
 matter how much anatomy goes into it, and the entire job of this section is to
 make the thing look real. There is no illustration anywhere on the site now.
 
-- Every image is Pexels-licensed and recorded in `products/CREDITS.txt`.
+- **Four of the five beats now use the client's AI-generated salon photos**
+  (`banners/demo-low|raised|turn|hold.jpg`, 4:3 crops chosen so the dog, the
+  groomer and the table all show). The first beat, "Right now, it happens on the
+  floor", still uses a Pexels photo (`banners/demo-floor.jpg`) because no photo of
+  grooming on a floor has been supplied — it is the contrast the section exists to
+  make. Ask the client for one. The remaining Pexels images are recorded in
+  `products/CREDITS.txt`.
   Deliberately NOT the round-table set — that imagery is taken from
   competitors' listings, which is tolerable as a placeholder on a product page
   and not as the animated centrepiece of the homepage.
@@ -487,6 +519,11 @@ per collection, the demo, the story) comes after.
   ("portable" finds the whole Portable collection). On a desktop it is the bar
   in the header; on a phone the header icon and the tab bar open a full-screen
   sheet (`providers/search-provider.tsx`). Enter goes to `/shop?search=`.
+- **One collection list per screen.** The desktop header's second row is the
+  navigation; the pill row under the hero (`category-pills.tsx`) is for phones and
+  tablets only (`lg:hidden`), where the header links hide behind the menu. Showing
+  both put the same list on screen twice, one above the other, and the client
+  noticed. If either changes, keep the other from reappearing beside it.
 - **`/shop`** lists every product, with the same sticky search / sort / price
   toolbar as the collection pages (`filter-bar.tsx`). Filters live in the URL.
 - **Phone tab bar** (`mobile-tab-bar.tsx`): Home / Shop / Search / Cart /
@@ -499,6 +536,84 @@ per collection, the demo, the story) comes after.
   the header changes height, change those together.
 - Stay away from DarkOtter's copy, photography and layout — the client's
   reference was for *feel*; their images carry their own logo and are theirs.
+
+## Homepage pictures: tiles, "up and down" sections, flagship
+
+- **Collection tiles** (`category-rail.tsx`) are a 5-column grid (two rows for ten
+  collections), not one flex row: ten tiles in a row were slivers that cut every
+  dog in half. Their photographs are `public/categories/<slug>.jpg`; the database
+  holds the path, so after changing one run `seed:extra` (it now refreshes
+  `imageUrl` on existing collections) or the full seed locally.
+- The three "goes up and down / rotates / folds away" sections use
+  `banners/wid-updown|rotate|fold.jpg`; the flagship story and every electric,
+  portable and foldable product page use `feature-1..4.jpg` in the product folder.
+  These are 4:3 landscape crops of the client's portrait photos — crop to include
+  the dog, the groomer and the table, not the centre of the frame.
+
+## Product images: white stage, whole product
+
+The client showed a competitor's product page — the product alone on white,
+nothing cropped — and said he did not like our look. So **every product image
+sits on a white stage and is shown whole** (`object-contain` with padding, never
+`object-cover`): cards, the product gallery and its thumbnails, the hero tiles,
+search results, cart, checkout, account and order thumbnails. Do not put a
+cropped lifestyle photo back into those places.
+
+- **The photos themselves are still the old ones.** Only the three round tables
+  have a true table-alone-on-white shot (and those are competitors' placeholders —
+  see "Imagery"). The other products still show dog-and-groomer photos, now
+  letterboxed on white, because they are all we have. The real fix is
+  white-background product photography from the client or his supplier; drop
+  `01.jpg`… in `public/products/<slug>/` and re-seed, no code change.
+- **The hero is light, not navy** (client: the dark background "is not looking
+  attractive"). It is a warm cream-to-blush gradient with the header still navy
+  above it, the client-supplied photograph of a groomer, a dog and a round
+  table (`public/banners/hero-round-table.jpg`, cropped from his image — the
+  crop also drops a corner watermark) on the right, and one price card for the
+  Orbit R round table under it. This supersedes the "keep the first screen dark"
+  line in "The palette": the client has now rejected the dark hero too. The
+  photo is shot on white, so its edges are feathered with nested masks and a
+  white glow sits behind it. **Do not use `mix-blend-mode` there** — a mask
+  isolates its layer so the blend has nothing to blend with — and **do not
+  combine two mask layers with `mask-composite`**; nest two single-gradient masks.
+  **On a phone** the photo sits beside the headline (a two-column grid, with a
+  "From ₹8,900" tag in place of the price card) and the chips become a tidy
+  block: EMI and warranty on one row, the Karnataka freight chip on its own full
+  row so the qualifier is never cut off, and the GST chip dropped. Keep the hero
+  to about 400px there so the products stay on the first screen; an earlier
+  stacked version (headline, subtitle, two buttons, a sideways-scrolling chip
+  row, no photo) was called messy by the client.
+- Four chips of checkable facts sit under the buttons (EMI, 12–36 month
+  warranty, Karnataka free-freight threshold, GST invoice). Every chip must stay
+  true to the data — see "Claims must match the data". Never print a discount
+  that is not the real compare-at price: the second-wave "was" prices are
+  placeholders set to ~20–25% like the rest of the catalogue, because an invented
+  40% "was" price is a misleading claim.
+- The browser pane does not paint nested masks; verify masked/blended imagery in
+  real Chromium (Playwright) before trusting a blank screenshot.
+
+## Listing pages: slim header, one toolbar
+
+The shop and all nine collections open with `ListingHeader`
+(`components/collection/listing-header.tsx`): a white strip with the breadcrumb,
+the title, a quiet "26 products" count and one line of description — about 150px
+under the site header. A tall gradient "cover" with a best-seller tile and two
+chips was built first and the client rejected it twice ("so much space"); do not
+rebuild it. Cart, checkout, account and order keep the navy `ListingHero`.
+
+Under it is **one toolbar** (`filter-bar.tsx`): a Price menu, an "In stock"
+toggle, and a Sort menu on the right; "Clear all" and a "N results" count appear
+only while a filter is on.
+
+- **There is no search box on the page.** The site header already searches the
+  whole catalogue; a second field did the same job and the client asked why there
+  were two. A live search shows as a dismissable `“term” ✕` pill in the toolbar.
+- **One collection list per screen.** The desktop header's second row is the
+  navigation; the pill row under the header (`category-pills.tsx`) is for phones
+  and tablets only (`lg:hidden`). Do not add a category list to a filter sidebar —
+  it would be a third copy.
+- The Price and Sort controls are small menus (`Menu` / `MenuOption`), not
+  native `<select>`s. Filters live in the URL, so a filtered view is shareable.
 
 ## Cart, checkout and account pages
 

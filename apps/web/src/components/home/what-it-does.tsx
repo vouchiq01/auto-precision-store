@@ -28,7 +28,8 @@ const CAPABILITIES = [
       { value: '1,050mm', label: 'Highest working' },
       { value: '11s', label: 'Full travel, powered' },
     ],
-    image: '/products/apex-e9-electric-grooming-table/feature-1.jpg',
+    image: '/banners/wid-updown.jpg',
+    alt: 'A groomer standing upright beside a Rottweiler on a black electric lift table, the table raised to her working height',
   },
   {
     n: '02',
@@ -44,7 +45,8 @@ const CAPABILITIES = [
       { value: 'Lock', label: 'At any angle' },
       { value: '2s', label: 'To reposition' },
     ],
-    image: '/products/orbit-r-round-rotating-table/feature-1.jpg',
+    image: '/banners/wid-rotate.jpg',
+    alt: 'A groomer combing a small dog standing on a round grooming table, with a locking arm behind it',
   },
   {
     n: '03',
@@ -62,7 +64,8 @@ const CAPABILITIES = [
       { value: '₹8,900', label: 'From' },
       { value: '110mm', label: 'Folded, against a wall' },
     ],
-    image: '/products/stride-air-ultralight-table-medium/feature-1.jpg',
+    image: '/banners/wid-fold.jpg',
+    alt: 'A groomer trimming a Cocker Spaniel on a light folding grooming table with slender silver legs',
   },
 ];
 
@@ -97,7 +100,7 @@ export function WhatItDoes() {
               >
                 <Image
                   src={item.image}
-                  alt=""
+                  alt={item.alt}
                   fill
                   sizes="(min-width: 1024px) 50vw, 100vw"
                   className="object-cover"

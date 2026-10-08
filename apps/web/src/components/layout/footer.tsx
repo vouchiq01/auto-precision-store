@@ -11,6 +11,10 @@ const COLUMNS = [
       { href: '/collections/round-rotating', label: 'Round & rotating' },
       { href: '/collections/portable', label: 'Portable' },
       { href: '/collections/foldable', label: 'Foldable' },
+      { href: '/collections/fixed-tables', label: 'Fixed tables' },
+      { href: '/collections/bath-tubs', label: 'Bath tubs' },
+      { href: '/collections/combos', label: 'Combos' },
+      { href: '/collections/cages', label: 'Cages' },
       { href: '/collections/accessories', label: 'Accessories' },
     ],
   },
@@ -42,7 +46,7 @@ export function Footer() {
         <div className="grid gap-12 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
             <Link href="/" className="text-on-ink" aria-label="Auto Precision — home">
-              <Logo />
+              <Logo variant="white" className="h-9" />
             </Link>
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-on-ink-muted">
               We build grooming tables in Bengaluru for people who stand at them all day.

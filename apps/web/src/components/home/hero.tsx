@@ -2,96 +2,156 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { CSSProperties } from 'react';
 import { formatINR, type Banner, type ProductSummary } from '@aps/shared';
+import { KARNATAKA_FREE_FREIGHT } from '@/lib/store';
 import { ButtonLink } from '@/components/ui/button';
 import { Eyebrow } from '@/components/ui/primitives';
 
 /**
- * The hero — now a short one.
+ * The hero: the reader's problem, the reasons to buy today, and one photograph
+ * of the thing actually working — a groomer, a dog, a table.
  *
- * It used to fill the screen: a headline, a 5/4 portrait photo, a checklist.
- * On a laptop that pushed every product below the fold, and a shop whose
- * products need a scroll to be seen is a poster. This is a band about 300px
- * tall: the line that names the reader's problem, two buttons, and — on
- * desktop — the flagship as a card you can click straight into. Products start
- * immediately beneath it.
+ * It sits on a light, warm gradient rather than the navy of the header. The
+ * photograph is shot on white; its edges are feathered into the cream ground
+ * with a mask so the table appears to stand in the hero instead of sitting in
+ * a pasted rectangle. (A dark ground would have made that white box the loudest
+ * thing on the page.) Do not use mix-blend-mode here: a mask isolates its layer,
+ * so the blend has nothing behind it to blend with.
  *
- * It is a server component with a CSS entrance rather than a scripted one, so
- * it paints complete and never waits on JavaScript to un-hide.
+ * The chips under the buttons are facts, each checkable against the data: the
+ * warranty range (12 to 36 months across the range), the Karnataka
+ * free-freight threshold, GST invoices. Do not add a claim here without
+ * checking it — see "Claims must match the data" in CLAUDE.md.
  *
- * The headline names the reader's problem, not our market. Segmenting it by
- * buyer ("for salons") makes everyone else read past it; almost nobody
- * grooming a dog thinks of themselves as a segment.
+ * Server component with a CSS entrance, so it paints complete and never waits
+ * on JavaScript to un-hide. On a phone the photograph is dropped so the
+ * products stay inside the first screen.
  */
+/* Soft edges on all four sides: the subject sits well inside, so only the white
+   margin of the photograph fades away. */
+const FADE_X = 'linear-gradient(to right, transparent 0%, #000 22%, #000 78%, transparent 100%)';
+const FADE_Y = 'linear-gradient(to bottom, transparent 0%, #000 12%, #000 90%, transparent 100%)';
+
 export function Hero({
-  banner, totalProducts, featured,
-}: { banner: Banner | null; totalProducts: number; featured: ProductSummary | null }) {
-  const eyebrow = banner?.eyebrow ?? 'Grooming tables';
+  banner, totalProducts, spotlight,
+}: { banner: Banner | null; totalProducts: number; spotlight: ProductSummary | null }) {
+  const eyebrow = banner?.eyebrow ?? 'Grooming tables, tubs & more';
   const subtitle = banner?.subtitle
     ?? 'A table that rises to your height, turns the dog to your hand, and holds it still. From ₹8,900.';
   const ctaHref = banner?.ctaUrl ?? '/shop';
-  const ctaLabel = banner?.ctaLabel ?? `Shop all ${totalProducts} tables`;
-  const cardImage = banner?.imageDesktop ?? featured?.primaryImage?.url ?? '/banners/hero-apex-mobile.jpg';
+  const ctaLabel = banner?.ctaLabel ?? `Shop all ${totalProducts} products`;
 
   const delay = (ms: number) => ({ '--delay': `${ms}ms` }) as CSSProperties;
 
+  /* The freight chip takes a full row on a phone so the Karnataka qualifier is
+     never cut off; the GST chip is dropped there to keep the block to two rows. */
+  const chips = [
+    { text: 'Easy EMI at checkout', full: false, phone: true },
+    { text: '12 to 36 month warranty', full: false, phone: true },
+    { text: `Free freight over ${formatINR(KARNATAKA_FREE_FREIGHT)} in Karnataka`, full: true, phone: true },
+    { text: 'GST invoice on every order', full: false, phone: false },
+  ];
+
   return (
-    <section className="on-ink bg-blueprint relative overflow-hidden pb-8 pt-[5.25rem] md:pb-11 md:pt-28 lg:pt-[8.5rem]">
-      <div className="shell">
-        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-14">
-          <div>
-            <Eyebrow className="anim-fade-up text-amber">{eyebrow}</Eyebrow>
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#FFF3E6] via-[#FBF4EC] to-[#FDE6E2] pb-6 pt-[5.25rem] md:pb-10 md:pt-28 lg:pt-[8.5rem]">
+      {/* A soft crimson glow behind the photograph gives the white a place to sit. */}
+      <div aria-hidden="true" className="pointer-events-none absolute -right-24 top-10 size-[22rem] rounded-full bg-crimson/10 blur-3xl lg:size-[34rem]" />
+
+      <div className="shell relative">
+        {/* Phone: headline and button beside the photograph, then the facts in a
+            2×2 grid. Desktop: text and facts stacked on the left, photograph on
+            the right spanning both rows. */}
+        <div className="grid grid-cols-[minmax(0,1fr)_9.75rem] items-center gap-x-3 gap-y-4 sm:grid-cols-[minmax(0,1fr)_15rem] md:grid-cols-[minmax(0,1fr)_19rem] lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-x-10 lg:gap-y-5">
+          <div className="min-w-0 lg:col-start-1 lg:row-start-1 lg:self-end">
+            <Eyebrow className="anim-fade-up text-crimson!">{eyebrow}</Eyebrow>
 
             <h1
-              className="anim-fade-up mt-3 font-display text-[clamp(2.25rem,4.8vw,4rem)] font-semibold leading-[0.96] tracking-[-0.035em] text-on-ink"
+              className="anim-fade-up mt-2 font-display text-[1.875rem] font-semibold leading-[0.98] tracking-[-0.035em] text-content sm:text-[2.5rem] lg:mt-3 lg:text-[clamp(2.75rem,4.8vw,4rem)] lg:leading-[0.96]"
               style={delay(60)}
             >
-              Stop grooming on the <span className="text-amber">floor</span><span className="text-crimson">.</span>
+              Stop grooming on the <span className="text-crimson">floor</span>.
             </h1>
 
-            <p className="anim-fade-up lede mt-4 max-w-xl text-base md:text-lg" style={delay(120)}>{subtitle}</p>
+            <p className="anim-fade-up lede mt-4 hidden max-w-xl text-base sm:block md:text-lg" style={delay(120)}>{subtitle}</p>
 
-            <div className="anim-fade-up mt-6 flex items-center gap-2.5 sm:gap-3" style={delay(180)}>
-              <ButtonLink href={ctaHref} size="lg" className="h-12 flex-1 px-4 text-sm sm:h-12 sm:flex-none sm:px-7 sm:text-[0.9375rem]">
+            <div className="anim-fade-up mt-4 flex items-center gap-2.5 sm:mt-6 sm:gap-3" style={delay(180)}>
+              <ButtonLink href={ctaHref} size="lg" className="h-11 w-full px-3 text-[0.8125rem] sm:h-12 sm:w-auto sm:px-7 sm:text-[0.9375rem]">
                 {ctaLabel}
               </ButtonLink>
-              <ButtonLink href="/enquiry" variant="onink" size="lg" className="h-12 px-5 text-sm sm:h-12 sm:px-7 sm:text-[0.9375rem]">
+              <ButtonLink href="/enquiry" variant="secondary" size="lg" className="hidden h-12 px-7 text-[0.9375rem] sm:inline-flex">
                 Talk to us
               </ButtonLink>
             </div>
           </div>
 
-          {featured && (
-            <Link
-              href={`/products/${featured.slug}`}
-              className="anim-fade-up group relative hidden overflow-hidden rounded-3xl bg-ink-raised shadow-[0_30px_70px_-30px_rgba(0,0,0,0.8)] ring-1 ring-white/15 lg:block"
-              style={delay(140)}
+          <div className="anim-fade-up relative lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:pb-14" style={delay(140)}>
+            {/* A white glow under the photograph, so its white ground melts into
+                the warm gradient instead of reading as a pasted rectangle. */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-x-1 inset-y-0 rounded-[50%] bg-white/90 blur-xl lg:inset-x-2 lg:bottom-10 lg:blur-2xl"
+            />
+            {/* The mask feathers the photograph's edges into the gradient, so it
+                melts into the page even where blend modes are not composited. */}
+            <div
+              className="relative mx-auto aspect-[720/768] w-full lg:max-h-[25rem]"
+              style={{ WebkitMaskImage: FADE_X, maskImage: FADE_X }}
             >
-              <div className="relative aspect-[16/9]">
+              <div className="absolute inset-0" style={{ WebkitMaskImage: FADE_Y, maskImage: FADE_Y }}>
                 <Image
-                  src={cardImage}
-                  alt={featured.name}
+                  src="/banners/hero-round-table.jpg"
+                  alt="A groomer combing a small dog standing on a round grooming table"
                   fill
                   priority
-                  sizes="(min-width: 1024px) 42vw, 0px"
-                  className="object-cover object-center transition-transform duration-700 ease-out-expo group-hover:scale-[1.04]"
+                  sizes="(min-width: 1024px) 40vw, (min-width: 768px) 19rem, 160px"
+                  className="object-contain"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/15 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5">
-                  <div className="min-w-0">
-                    <p className="eyebrow text-amber">{featured.badges[0] ?? 'Featured'}</p>
-                    <p className="mt-1 line-clamp-2 font-display text-lg font-semibold leading-tight tracking-[-0.02em] text-on-ink xl:text-xl">{featured.name}</p>
-                    <p className="numeric mt-0.5 text-sm text-on-ink-muted">
-                      {formatINR(featured.price)}
-                      {featured.compareAtPrice && <span className="ml-2 line-through opacity-70">{formatINR(featured.compareAtPrice)}</span>}
-                    </p>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-crimson px-4 py-2 text-sm font-medium text-white transition-colors group-hover:bg-crimson-deep">
-                    View table →
-                  </span>
-                </div>
               </div>
-            </Link>
-          )}
+            </div>
+
+            {/* The hook on a phone, where there is no room for the price card. */}
+            <span className="numeric absolute bottom-0.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-crimson px-3 py-1 text-[0.6875rem] font-semibold text-white shadow-lift lg:hidden">
+              From ₹8,900
+            </span>
+
+            {spotlight && (
+              <Link
+                href={`/products/${spotlight.slug}`}
+                className="group absolute bottom-0 left-1/2 hidden w-max max-w-full -translate-x-1/2 items-center gap-4 rounded-2xl bg-white px-4 py-3 shadow-lift ring-1 ring-line transition-shadow hover:shadow-card lg:flex"
+              >
+                <div className="min-w-0">
+                  <p className="eyebrow text-crimson!">{spotlight.category.name}</p>
+                  <p className="mt-0.5 line-clamp-1 font-display text-sm font-semibold leading-tight tracking-[-0.01em] text-content">{spotlight.name}</p>
+                  <p className="numeric text-sm font-semibold text-crimson">
+                    {formatINR(spotlight.price)}
+                    {spotlight.compareAtPrice && <span className="ml-1.5 text-xs font-normal text-faint line-through">{formatINR(spotlight.compareAtPrice)}</span>}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-crimson px-3.5 py-1.5 text-xs font-medium text-white transition-colors group-hover:bg-crimson-deep">
+                  View →
+                </span>
+              </Link>
+            )}
+          </div>
+
+          {/* Reasons to buy today. */}
+          <ul
+            className="anim-fade-up col-span-2 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:col-span-1 lg:col-start-1 lg:row-start-2 lg:self-start"
+            style={delay(240)}
+          >
+            {chips.map((chip) => (
+              <li
+                key={chip.text}
+                className={`min-w-0 items-center gap-1.5 rounded-full border border-line bg-white/80 px-3 py-1.5 text-[0.6875rem] text-content shadow-sm sm:flex sm:text-xs ${
+                  chip.phone ? 'flex' : 'hidden'
+                } ${chip.full ? 'col-span-2' : ''}`}
+              >
+                <svg viewBox="0 0 16 16" className="size-3 shrink-0 text-success" aria-hidden="true">
+                  <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                <span className="truncate sm:overflow-visible sm:whitespace-normal">{chip.text}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

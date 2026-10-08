@@ -115,6 +115,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
             <button
               type="button"
               onClick={openCart}
+              data-cart-target
               className="group relative flex h-10 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border border-line px-4 text-[0.8125rem] text-content transition-colors hover:border-line-strong hover:bg-sand"
               aria-label={`Cart, ${itemCount} ${itemCount === 1 ? 'item' : 'items'}`}
             >

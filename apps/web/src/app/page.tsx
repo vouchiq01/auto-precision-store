@@ -1,17 +1,14 @@
 import type { Metadata } from 'next';
 import { STORE } from '@aps/shared';
-import { getBanners, getCategories, getProduct, getProducts } from '@/lib/queries';
+import { getBanners, getCategories, getProducts } from '@/lib/queries';
 import { Hero } from '@/components/home/hero';
 import { TrustCards } from '@/components/home/trust-cards';
-import { CategoryPills } from '@/components/home/category-pills';
 import { ProductRail } from '@/components/home/product-rail';
 import { CouponStrip } from '@/components/home/coupon-strip';
 import { CategoryRail } from '@/components/home/category-rail';
 import { WhatItDoes } from '@/components/home/what-it-does';
 import { TableDemo } from '@/components/home/table-demo';
-import { FeaturedStory } from '@/components/home/featured-story';
 import { Bestsellers } from '@/components/home/bestsellers';
-import { Proof } from '@/components/home/proof';
 import { EnquiryCta } from '@/components/home/enquiry-cta';
 
 export const metadata: Metadata = {
@@ -42,9 +39,6 @@ export default async function HomePage() {
      nineteenth product is added. */
   const totalProducts = categories.reduce((sum, category) => sum + (category.productCount ?? 0), 0);
 
-  const flagshipSlug = featured.items[0]?.slug;
-  const flagship = flagshipSlug ? await getProduct(flagshipSlug) : null;
-
   const railFor = (index: number) => {
     const slug = RAIL_SLUGS[index]!;
     const category = categories.find((c) => c.slug === slug);
@@ -58,11 +52,10 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* Shop first: a short hero, the collections as pills, and the products —
-          all inside the first screen. The story that explains the tables sits
-          below, for the people who want it. */}
+      {/* Shop first: a short hero, then the products. The story that explains the
+          tables sits below, for the people who want it. The collections are in
+          the header, and in the menu on a phone. */}
       <Hero banner={heroBanners[0] ?? null} totalProducts={totalProducts} spotlight={rails[1]?.items.find((p) => p.slug === 'orbit-r-round-rotating-table') ?? rails[1]?.items[0] ?? null} />
-      <CategoryPills categories={categories} />
       <Bestsellers products={featured.items} />
       <TrustCards />
 
@@ -81,8 +74,6 @@ export default async function HomePage() {
           hard?", WhatItDoes then backs it with the numbers. */}
       <TableDemo />
       <WhatItDoes />
-      {flagship && <FeaturedStory product={flagship} />}
-      <Proof />
       <EnquiryCta />
     </>
   );

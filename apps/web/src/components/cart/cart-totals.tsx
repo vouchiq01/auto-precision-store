@@ -20,7 +20,7 @@ export function CartTotals({ cart, compact = false }: { cart: CartSummary | null
         )}
         <div className="flex justify-between">
           <dt className="text-muted">Freight</dt>
-          <dd className="text-faint">Calculated at checkout</dd>
+          <dd className="text-faint">At checkout</dd>
         </div>
         <div className={cn('flex items-baseline justify-between border-t border-line pt-3', compact ? 'text-base' : 'text-lg')}>
           <dt className="font-medium text-content">Total</dt>

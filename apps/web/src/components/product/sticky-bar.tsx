@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { formatINR, type ProductDetail } from '@aps/shared';
 import { cn } from '@/lib/cn';
+import { addErrorMessage, flyToCart, showCartMessage } from '@/lib/fly-to-cart';
 import { useCart } from '@/providers/cart-provider';
 import { Button } from '@/components/ui/button';
 
@@ -50,7 +51,12 @@ export function StickyBar({ product }: { product: ProductDetail }) {
 
         <Button
           size="md"
-          onClick={() => void addItem(variant.id, 1)}
+          onClick={(event) => {
+            const button = event.currentTarget;
+            void addItem(variant.id, 1)
+              .then(() => flyToCart(document.querySelector('[data-fly-source]'), button))
+              .catch((error) => showCartMessage(addErrorMessage(error)));
+          }}
           loading={mutating}
           disabled={!variant.inStock}
           tabIndex={visible ? 0 : -1}

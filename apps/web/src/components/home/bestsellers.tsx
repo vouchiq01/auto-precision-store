@@ -14,10 +14,10 @@ export function Bestsellers({ products }: { products: ProductSummary[] }) {
   if (products.length === 0) return null;
 
   return (
-    <section className="shell pb-6 pt-6 md:pb-8 md:pt-8">
+    <section className="shell pb-6 pt-3 md:pb-8 md:pt-8">
       <SectionHead eyebrow="Most bought" title="What people actually buy." href="/shop" linkLabel="Shop all" />
 
-      <ul className="mt-5 grid grid-cols-2 gap-3 md:mt-6 md:gap-4 lg:grid-cols-4">
+      <ul className="mt-3 grid grid-cols-2 gap-3 md:mt-6 md:gap-4 lg:grid-cols-4">
         {products.slice(0, 4).map((product, i) => (
           <li key={product.id}>
             <ProductCard product={product} priority={i < 4} />

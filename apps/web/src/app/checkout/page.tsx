@@ -360,18 +360,18 @@ export default function CheckoutPage() {
         title="Checkout"
         description={
           <ol className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm" aria-label="Checkout progress">
-            <li className="flex items-center gap-2 text-on-ink-muted">
-              <span className="grid size-6 place-items-center rounded-full bg-success/25 text-xs text-success" aria-hidden="true">✓</span>
-              <Link href="/cart" className="underline-offset-4 hover:text-on-ink hover:underline">Cart</Link>
+            <li className="flex items-center gap-2 text-muted">
+              <span className="grid size-6 place-items-center rounded-full bg-success/15 text-xs text-success" aria-hidden="true">✓</span>
+              <Link href="/cart" className="underline-offset-4 hover:text-content hover:underline">Cart</Link>
             </li>
-            <span className="h-px w-5 bg-white/20" aria-hidden="true" />
-            <li className="flex items-center gap-2 text-on-ink" aria-current="step">
-              <span className="grid size-6 place-items-center rounded-full bg-amber text-xs font-semibold text-ink" aria-hidden="true">2</span>
+            <span className="h-px w-5 bg-line-strong" aria-hidden="true" />
+            <li className="flex items-center gap-2 font-medium text-content" aria-current="step">
+              <span className="grid size-6 place-items-center rounded-full bg-crimson text-xs font-semibold text-white" aria-hidden="true">2</span>
               Delivery details
             </li>
-            <span className="h-px w-5 bg-white/20" aria-hidden="true" />
-            <li className="flex items-center gap-2 text-on-ink-muted">
-              <span className="grid size-6 place-items-center rounded-full border border-white/30 text-xs" aria-hidden="true">3</span>
+            <span className="h-px w-5 bg-line-strong" aria-hidden="true" />
+            <li className="flex items-center gap-2 text-faint">
+              <span className="grid size-6 place-items-center rounded-full border border-line-strong text-xs" aria-hidden="true">3</span>
               Pay
             </li>
           </ol>

@@ -48,8 +48,8 @@ and easy for them, and show them properly.* The story sections still do that,
 but they now sit **below the shopping**, not above it. A client looked at the
 site and said it was not attractive, and that "to see products we still need to
 scroll" — and he wanted a full redesign, not a recolour. The homepage is now
-shop-first (see "Shop-first layout" below): a short hero, the collections as
-pills, and the bestsellers all inside the first screen; the lift / turn / hold
+shop-first (see "Shop-first layout" below): a short hero and the bestsellers
+all inside the first screen; the lift / turn / hold
 story, the demo and the flagship follow for people who want the reason.
 
 ---
@@ -181,8 +181,9 @@ his real logo — a red "ap" mark, "Auto" in red and "Precision" in black — an
 is designed for a light background: the black wordmark vanishes on navy. So the
 header (both rows, the search field, the mobile menu and the phone tab bar) is
 **white**, with crimson as the active/accent colour. Navy "ink" survives only in
-the footer (which uses the one-colour `logo-white.png`), the flagship story, the
-cart drawer's title bar, and the slim `ListingHero` on cart/checkout/account/order.
+the footer (which uses the one-colour `logo-white.png`) and the flagship story
+section of the page. The cart drawer and the cart/checkout/account/order title
+band (`ListingHero`) are white too.
 The first screen of the homepage is a warm cream-to-blush gradient. **Do not put
 the full-colour logo on a dark surface and do not redraw it in code** — use
 `public/brand/logo.png` / `logo-white.png` through the `Logo` component. The
@@ -495,16 +496,21 @@ back in the response for the UI to print ("min ₹25,000") rather than being use
 to decide whether the code appears at all.
 
 The storefront component (`components/cart/available-coupons.tsx`, used in
-both the cart page and the drawer) copies the code to the clipboard **and**
-drops it into the coupon input — it does not apply the coupon itself. Clicking
-a code must never change the cart total on its own; the shopper still presses
-Apply.
+both the cart page and the drawer) lists each published code as a small ticket
+("5% OFF · WELCOME5 · On orders above ₹10,000 · Use"), copies the code to the
+clipboard **and** drops it into the coupon field — it does not apply the coupon
+itself. Tapping a ticket must never change the cart total on its own; the
+shopper still presses Apply (the red button inside the field, disabled while the
+field is empty). The stub text and terms line come from `lib/coupon-display.ts`,
+shared with the homepage offers strip. In the cart page and the drawer the coupon
+is a collapsed "Add a coupon code" row that expands; once applied it shows
+"CODE applied / You save ₹X" with a Remove link.
 
 ## Shop-first layout, search and the phone tab bar
 
 Do not push the products back below the fold. The first screen of the homepage
-is: header (search + collections) → a hero about 300px tall → collection pills
-→ the four bestsellers. On a phone the hero drops its photo and the bestsellers
+is: header (search + collections) → a hero about 300px tall → the four
+bestsellers. On a phone the hero drops its photo and the bestsellers
 are a two-column grid. Everything that explains or reassures (trust bar, shelves
 per collection, the demo, the story) comes after.
 
@@ -519,11 +525,12 @@ per collection, the demo, the story) comes after.
   ("portable" finds the whole Portable collection). On a desktop it is the bar
   in the header; on a phone the header icon and the tab bar open a full-screen
   sheet (`providers/search-provider.tsx`). Enter goes to `/shop?search=`.
-- **One collection list per screen.** The desktop header's second row is the
-  navigation; the pill row under the hero (`category-pills.tsx`) is for phones and
-  tablets only (`lg:hidden`), where the header links hide behind the menu. Showing
-  both put the same list on screen twice, one above the other, and the client
-  noticed. If either changes, keep the other from reappearing beside it.
+- **One collection list per screen — and no pill row at all.** The desktop header's
+  second row is the navigation; on a phone or tablet the same list is in the
+  hamburger menu. A pill row under the header (`category-pills.tsx`) used to repeat
+  it, first on desktop (the client noticed the duplicate) and then on phones, where
+  it only added a row of clutter above the products; it was removed everywhere and
+  the component is now unused. Do not add a category list to a filter sidebar either.
 - **`/shop`** lists every product, with the same sticky search / sort / price
   toolbar as the collection pages (`filter-bar.tsx`). Filters live in the URL.
 - **Phone tab bar** (`mobile-tab-bar.tsx`): Home / Shop / Search / Cart /
@@ -549,6 +556,19 @@ per collection, the demo, the story) comes after.
   portable and foldable product page use `feature-1..4.jpg` in the product folder.
   These are 4:3 landscape crops of the client's portrait photos — crop to include
   the dog, the groomer and the table, not the centre of the frame.
+
+## Homepage sections that were removed
+
+The dark "The flagship — Apex E9" story and the "Nobody buys a ₹60,000 table on a
+whim" proof section were taken off the homepage at the client's request ("no
+need"). `featured-story.tsx`, `proof.tsx` and `category-pills.tsx` are still in
+`components/home/` but nothing renders them. Delete them if they are not coming
+back.
+
+**Phone product cards are deliberately short** (about 340px, down from ~440):
+5:4 photo area, no old price and no EMI line, swatches without the finish name,
+a 36px button — all restored from `sm` up. Do not give the phone card back its
+extra rows without a reason.
 
 ## Product images: white stage, whole product
 
@@ -577,10 +597,11 @@ cropped lifestyle photo back into those places.
   isolates its layer so the blend has nothing to blend with — and **do not
   combine two mask layers with `mask-composite`**; nest two single-gradient masks.
   **On a phone** the photo sits beside the headline (a two-column grid, with a
-  "From ₹8,900" tag in place of the price card) and the chips become a tidy
-  block: EMI and warranty on one row, the Karnataka freight chip on its own full
-  row so the qualifier is never cut off, and the GST chip dropped. Keep the hero
-  to about 400px there so the products stay on the first screen; an earlier
+  "From ₹8,900" tag in place of the price card) and the facts become **three small
+  two-line tiles in one row** — "Easy EMI / at checkout", "12–36 months / warranty",
+  "Free freight / ₹25,000+ · Karnataka" — with the GST chip dropped. The Karnataka
+  qualifier must stay on the freight tile (the claim is only true there). From `sm`
+  up they are the longer one-line chips. Keep the hero to about 400px there so the products stay on the first screen; an earlier
   stacked version (headline, subtitle, two buttons, a sideways-scrolling chip
   row, no photo) was called messy by the client.
 - Four chips of checkable facts sit under the buttons (EMI, 12–36 month
@@ -599,7 +620,8 @@ The shop and all nine collections open with `ListingHeader`
 the title, a quiet "26 products" count and one line of description — about 150px
 under the site header. A tall gradient "cover" with a best-seller tile and two
 chips was built first and the client rejected it twice ("so much space"); do not
-rebuild it. Cart, checkout, account and order keep the navy `ListingHero`.
+rebuild it. Cart, checkout, account and order use `ListingHero`, the same light
+strip with an optional action and a node for a description.
 
 Under it is **one toolbar** (`filter-bar.tsx`): a Price menu, an "In stock"
 toggle, and a Sort menu on the right; "Clear all" and a "N results" count appear
@@ -608,17 +630,43 @@ only while a filter is on.
 - **There is no search box on the page.** The site header already searches the
   whole catalogue; a second field did the same job and the client asked why there
   were two. A live search shows as a dismissable `“term” ✕` pill in the toolbar.
-- **One collection list per screen.** The desktop header's second row is the
-  navigation; the pill row under the header (`category-pills.tsx`) is for phones
-  and tablets only (`lg:hidden`). Do not add a category list to a filter sidebar —
-  it would be a third copy.
 - The Price and Sort controls are small menus (`Menu` / `MenuOption`), not
   native `<select>`s. Filters live in the URL, so a filtered view is shareable.
 
+### The cart drawer and cart page, redesigned
+
+The drawer (opened from the header Cart button; it no longer opens on add) has a
+white title bar with a count badge, the free-freight bar, each line as a white card
+on the warm canvas (photo, name, finish, a trash icon top-right, the quantity
+stepper and the line total side by side), and a footer with a one-row "Add a
+coupon code" that expands, the totals, a "Checkout · ₹X" button and "View full
+cart". The empty state is a soft circle, a short line, a Shop button and four
+collection links. The cart page shares every one of those pieces
+(`components/cart/*`, `compact` for the drawer), so change a line once.
+
+## Adding to the cart: the photo flies, the drawer stays shut
+
+Adding to the cart no longer slides the cart drawer open. The confirmation is
+`lib/fly-to-cart.ts`: a copy of the product photograph lifts off, curves to the
+header's Cart button (`data-cart-target`, visible at every screen size), shrinks
+into it and the button bounces; the card button reads "Added ✓" for a moment.
+The drawer opens only when Cart is tapped. `addItem` in `cart-provider.tsx`
+deliberately does not call `setIsOpen`.
+
+- Three places add: the product card, the product page's `buy-box.tsx`, and
+  `sticky-bar.tsx`. All fly **after** the add succeeds; a failure shows a short
+  message (`showCartMessage`) instead — success needs none.
+- The flight starts from the photo (`photoRef` on a card, `[data-fly-source]` on
+  the gallery). If that is scrolled off screen it starts from the pressed button.
+- Plain DOM and the Web Animations API on purpose: a one-shot effect that must not
+  re-render React. It does nothing under `prefers-reduced-motion`.
+- If a new place adds to the cart, give it the same two lines (fly on success,
+  message on failure) and do not reopen the drawer.
+
 ## Cart, checkout and account pages
 
-Rebuilt to match the shop-first look (navy `ListingHero` band, white cards,
-sticky summary). The logic did not change; only layout did. Things that are not
+Rebuilt to match the light shop-first look (white `ListingHero` band, white cards
+on a warm canvas, sticky summary). The logic did not change; only layout did. Things that are not
 obvious from the markup:
 
 - **One set of cart components serves both the page and the drawer** —

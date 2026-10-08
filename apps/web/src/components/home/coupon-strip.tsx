@@ -3,21 +3,7 @@
 import { useState } from 'react';
 import { formatINR } from '@aps/shared';
 import { usePublicCoupons, type PublicCouponRow } from '@/hooks/use-public-coupons';
-
-/** What goes on the red stub: the saving, big, with a small word under it. */
-function stub(coupon: PublicCouponRow): { big: string; small: string } {
-  if (coupon.type === 'percent') return { big: `${coupon.value / 100}%`, small: 'OFF' };
-  if (coupon.type === 'flat') return { big: formatINR(coupon.value), small: 'OFF' };
-  return { big: 'FREE', small: 'FREIGHT' };
-}
-
-/** One honest line of terms, built only from fields the coupon really has. */
-function terms(coupon: PublicCouponRow): string {
-  const parts: string[] = [];
-  parts.push(coupon.minOrderValue ? `On orders above ${formatINR(coupon.minOrderValue)}` : 'On any order');
-  if (coupon.type === 'percent' && coupon.maxDiscount) parts.push(`up to ${formatINR(coupon.maxDiscount)} off`);
-  return parts.join(' · ');
-}
+import { couponStub, couponTerms } from '@/lib/coupon-display';
 
 /**
  * Whatever codes the admin has opted to publish, drawn as tickets: a red stub
@@ -64,14 +50,14 @@ export function CouponStrip() {
 
       <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {coupons.map((coupon) => {
-          const { big, small } = stub(coupon);
+          const { big, small } = couponStub(coupon);
           const done = copied === coupon.code;
           return (
             <li key={coupon.code}>
               <button
                 type="button"
                 onClick={() => void copy(coupon)}
-                aria-label={`Copy code ${coupon.code}: ${big} ${small}. ${terms(coupon)}`}
+                aria-label={`Copy code ${coupon.code}: ${big} ${small}. ${couponTerms(coupon)}`}
                 className="group relative flex w-full cursor-pointer overflow-hidden rounded-2xl bg-surface text-left shadow-card ring-1 ring-line transition-[box-shadow,transform] duration-300 hover:-translate-y-0.5 hover:shadow-lift"
               >
                 {/* The saving — the first thing the eye lands on. */}
@@ -87,7 +73,7 @@ export function CouponStrip() {
                 </span>
 
                 <span className="flex min-w-0 flex-1 flex-col justify-center gap-2.5 px-4 py-4 sm:px-5">
-                  <span className="text-xs leading-snug text-muted">{terms(coupon)}</span>
+                  <span className="text-xs leading-snug text-muted">{couponTerms(coupon)}</span>
                   <span className="flex items-center justify-between gap-2">
                     <span className="numeric truncate rounded-lg bg-sand px-3 py-1.5 text-sm font-semibold tracking-[0.06em] text-content">
                       {coupon.code}

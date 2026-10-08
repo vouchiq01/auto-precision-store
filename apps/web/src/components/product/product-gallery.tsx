@@ -54,7 +54,7 @@ export function ProductGallery({
         <SpinViewer slug={spinSlug} frameFiles={spinFrames} alt={name} />
       ) : (
       <>
-      <div className="relative aspect-square overflow-hidden rounded-3xl border border-line bg-white">
+      <div data-fly-source className="relative aspect-square overflow-hidden rounded-3xl border border-line bg-white">
         {current ? (
           <Image
             key={current.id}

@@ -2,9 +2,10 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { formatINR, type ProductSummary } from '@aps/shared';
 import { cn } from '@/lib/cn';
+import { addErrorMessage, flyToCart, showCartMessage } from '@/lib/fly-to-cart';
 import { useCart } from '@/providers/cart-provider';
 import { Badge, Spinner } from '@/components/ui/primitives';
 import { PhotoPlaceholder } from './photo-placeholder';
@@ -27,6 +28,8 @@ export function ProductCard({
 }: { product: ProductSummary; priority?: boolean; className?: string }) {
   const { addItem } = useCart();
   const [adding, setAdding] = useState(false);
+  const [justAdded, setJustAdded] = useState(false);
+  const photoRef = useRef<HTMLDivElement>(null);
   const [chosenId, setChosenId] = useState<string | null>(null);
 
   const outOfStock = !product.inStock;
@@ -48,11 +51,13 @@ export function ProductCard({
     if (adding || !selected) return;
     setAdding(true);
     try {
-      /* The cart drawer opens itself on a successful add, which is the
-         confirmation — no toast needed, and it shows the running total. */
       await addItem(selected.id);
-    } catch {
-      /* The cart provider surfaces the reason in the drawer. */
+      /* The photograph flies to the Cart button and the cart panel stays shut. */
+      flyToCart(photoRef.current);
+      setJustAdded(true);
+      setTimeout(() => setJustAdded(false), 1800);
+    } catch (error) {
+      showCartMessage(addErrorMessage(error));
     } finally {
       setAdding(false);
     }
@@ -69,7 +74,7 @@ export function ProductCard({
       )}
     >
       {/* ---- Photo ---------------------------------------------------- */}
-      <div className="relative aspect-square overflow-hidden border-b border-line bg-white">
+      <div ref={photoRef} className="relative aspect-[5/4] overflow-hidden border-b border-line bg-white sm:aspect-square">
         {product.primaryImage ? (
           <Image
             src={product.primaryImage.url}
@@ -127,18 +132,18 @@ export function ProductCard({
             </span>
           )}
           {product.compareAtPrice && (
-            <span className="numeric order-3 text-xs text-faint line-through sm:order-2">{formatINR(product.compareAtPrice)}</span>
+            <span className="numeric order-3 hidden text-xs text-faint line-through sm:order-2 sm:inline">{formatINR(product.compareAtPrice)}</span>
           )}
         </div>
 
-        <p className="numeric mt-1 h-4 text-[0.6875rem] text-muted">
+        <p className="numeric mt-1 hidden h-4 text-[0.6875rem] text-muted sm:block">
           {product.emiTeaser ? `EMI from ${product.emiTeaser}` : ''}
         </p>
 
         {/* ---- Finish + add to cart ---------------------------------- */}
-        <div className="relative z-20 mt-auto pt-3">
+        <div className="relative z-20 mt-auto pt-2.5 sm:pt-3">
           {sellable.length > 1 && (
-            <div role="radiogroup" aria-label={`Finish for ${product.name}`} className="mb-2.5 flex items-center gap-2">
+            <div role="radiogroup" aria-label={`Finish for ${product.name}`} className="mb-2 flex items-center gap-1.5 sm:mb-2.5 sm:gap-2">
               {sellable.map((option) => {
                 const active = option.id === selected?.id;
                 return (
@@ -151,18 +156,18 @@ export function ProductCard({
                     title={option.label}
                     onClick={() => setChosenId(option.id)}
                     className={cn(
-                      'grid size-7 cursor-pointer place-items-center rounded-full border transition-shadow',
+                      'grid size-6 cursor-pointer place-items-center rounded-full border transition-shadow sm:size-7',
                       active ? 'border-content ring-2 ring-content/15' : 'border-line-strong hover:ring-2 hover:ring-content/10',
                     )}
                   >
                     <span
-                      className="size-4 rounded-full border border-black/10"
+                      className="size-3.5 rounded-full border border-black/10 sm:size-4"
                       style={option.hexColour ? { backgroundColor: option.hexColour } : undefined}
                     />
                   </button>
                 );
               })}
-              <span className="min-w-0 truncate text-xs text-muted">{selected?.label}</span>
+              <span className="hidden min-w-0 truncate text-xs text-muted sm:inline">{selected?.label}</span>
             </div>
           )}
 
@@ -172,7 +177,7 @@ export function ProductCard({
             disabled={!canAdd || adding}
             aria-label={canAdd ? `Add ${product.name}${sellable.length > 1 ? ` in ${selected?.label}` : ''} to cart` : `${product.name} is sold out`}
             className={cn(
-              'flex h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-xl text-[0.8125rem] font-medium',
+              'flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-xl text-[0.8125rem] font-medium sm:h-10',
               'transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2',
               canAdd
                 ? 'bg-crimson text-white hover:bg-crimson-deep active:scale-[0.98]'
@@ -180,7 +185,7 @@ export function ProductCard({
             )}
           >
             {adding ? <Spinner className="size-4" /> : canAdd ? <BagIcon /> : null}
-            {canAdd ? 'Add to cart' : 'Sold out'}
+            {!canAdd ? 'Sold out' : justAdded ? 'Added ✓' : 'Add to cart'}
           </button>
         </div>
       </div>

@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { emiOptions, formatINR, type ProductDetail, type ProductVariant } from '@aps/shared';
 import { cn } from '@/lib/cn';
+import { addErrorMessage, flyToCart, showCartMessage } from '@/lib/fly-to-cart';
 import { useCart } from '@/providers/cart-provider';
 import { Button } from '@/components/ui/button';
 import { Badge, Eyebrow } from '@/components/ui/primitives';
@@ -29,7 +30,14 @@ export function BuyBox({ product }: { product: ProductDetail }) {
 
   async function onAdd() {
     if (!variant) return;
-    await addItem(variant.id, 1);
+    try {
+      await addItem(variant.id, 1);
+    } catch (error) {
+      showCartMessage(addErrorMessage(error));
+      return;
+    }
+    /* From the product photograph if it is on screen, else from the button. */
+    flyToCart(document.querySelector('[data-fly-source]'), document.querySelector('[data-add-to-cart]'));
     setAdded(true);
     setTimeout(() => setAdded(false), 2200);
   }

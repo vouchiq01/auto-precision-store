@@ -3,7 +3,6 @@ import { Suspense } from 'react';
 import { getCategories, getProducts } from '@/lib/queries';
 import { FilterBar } from '@/components/collection/filter-bar';
 import { ListingHeader } from '@/components/collection/listing-header';
-import { CategoryPills } from '@/components/home/category-pills';
 import { ProductCard } from '@/components/product/product-card';
 import { EmptyState } from '@/components/ui/primitives';
 import { ButtonLink } from '@/components/ui/button';
@@ -59,7 +58,6 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
         description={search ? null : 'Every table, tub and bundle in the range, from a folding table for home to a flagship electric lift.'}
         count={search ? result.total : total}
       />
-      <CategoryPills categories={categories} />
 
       <div className="shell pb-10 md:pb-16">
         <Suspense fallback={<div className="mt-5 h-[5.5rem]" />}>

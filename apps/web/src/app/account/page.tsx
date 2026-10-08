@@ -132,7 +132,7 @@ export default function AccountPage() {
         title={firstName ? `Hello, ${firstName}` : 'Your account'}
         description={<span className="numeric">{user.phone}</span>}
         action={
-          <Button variant="onink" size="sm" onClick={() => void logout()}>Sign out</Button>
+          <Button variant="secondary" size="sm" onClick={() => void logout()}>Sign out</Button>
         }
       />
 

@@ -102,7 +102,7 @@ export default function CartPage() {
             <div className="rounded-2xl border border-line bg-surface p-5 shadow-card md:p-6">
               <h2 className="font-display text-lg font-semibold tracking-[-0.015em] text-content">Order summary</h2>
 
-              <div className="mt-4"><CouponBox /></div>
+              <div className="mt-4"><CouponBox collapsible /></div>
               <div className="my-5 border-t border-line" />
 
               <CartTotals cart={cart} />

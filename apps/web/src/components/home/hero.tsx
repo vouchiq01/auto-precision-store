@@ -42,17 +42,19 @@ export function Hero({
 
   const delay = (ms: number) => ({ '--delay': `${ms}ms` }) as CSSProperties;
 
-  /* The freight chip takes a full row on a phone so the Karnataka qualifier is
-     never cut off; the GST chip is dropped there to keep the block to two rows. */
+  /* On a phone the facts are three small two-line tiles in ONE row (head + sub);
+     from `sm` up they are the longer one-line chips. The GST chip is dropped on a
+     phone to keep the row to three, and the Karnataka qualifier stays on the
+     freight tile — the claim is only true there. */
   const chips = [
-    { text: 'Easy EMI at checkout', full: false, phone: true },
-    { text: '12 to 36 month warranty', full: false, phone: true },
-    { text: `Free freight over ${formatINR(KARNATAKA_FREE_FREIGHT)} in Karnataka`, full: true, phone: true },
-    { text: 'GST invoice on every order', full: false, phone: false },
+    { head: 'Easy EMI', sub: 'at checkout', text: 'Easy EMI at checkout', phone: true },
+    { head: '12–36 months', sub: 'warranty', text: '12 to 36 month warranty', phone: true },
+    { head: 'Free freight', sub: `${formatINR(KARNATAKA_FREE_FREIGHT)}+ · Karnataka`, text: `Free freight over ${formatINR(KARNATAKA_FREE_FREIGHT)} in Karnataka`, phone: true },
+    { head: 'GST invoice', sub: 'every order', text: 'GST invoice on every order', phone: false },
   ];
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#FFF3E6] via-[#FBF4EC] to-[#FDE6E2] pb-6 pt-[5.25rem] md:pb-10 md:pt-28 lg:pt-[8.5rem]">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#FFF3E6] via-[#FBF4EC] to-[#FDE6E2] pb-3 pt-[5.25rem] md:pb-10 md:pt-28 lg:pt-[8.5rem]">
       {/* A soft crimson glow behind the photograph gives the white a place to sit. */}
       <div aria-hidden="true" className="pointer-events-none absolute -right-24 top-10 size-[22rem] rounded-full bg-crimson/10 blur-3xl lg:size-[34rem]" />
 
@@ -135,20 +137,26 @@ export function Hero({
 
           {/* Reasons to buy today. */}
           <ul
-            className="anim-fade-up col-span-2 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap lg:col-span-1 lg:col-start-1 lg:row-start-2 lg:self-start"
+            className="anim-fade-up col-span-2 grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-2 lg:col-span-1 lg:col-start-1 lg:row-start-2 lg:self-start"
             style={delay(240)}
           >
             {chips.map((chip) => (
               <li
                 key={chip.text}
-                className={`min-w-0 items-center gap-1.5 rounded-full border border-line bg-white/80 px-3 py-1.5 text-[0.6875rem] text-content shadow-sm sm:flex sm:text-xs ${
+                className={`min-w-0 items-center justify-center rounded-xl border border-line bg-white/80 px-1.5 py-1.5 text-center text-content shadow-sm sm:flex sm:justify-start sm:gap-1.5 sm:rounded-full sm:px-3 sm:text-left sm:text-xs ${
                   chip.phone ? 'flex' : 'hidden'
-                } ${chip.full ? 'col-span-2' : ''}`}
+                }`}
               >
-                <svg viewBox="0 0 16 16" className="size-3 shrink-0 text-success" aria-hidden="true">
+                <svg viewBox="0 0 16 16" className="hidden size-3 shrink-0 text-success sm:block" aria-hidden="true">
                   <path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                <span className="truncate sm:overflow-visible sm:whitespace-normal">{chip.text}</span>
+                {/* Phone: two short lines. */}
+                <span className="flex min-w-0 flex-col leading-tight sm:hidden">
+                  <span className="truncate text-[0.6875rem] font-semibold">{chip.head}</span>
+                  <span className="truncate text-[0.625rem] text-muted">{chip.sub}</span>
+                </span>
+                {/* sm and up: one line. */}
+                <span className="hidden sm:inline">{chip.text}</span>
               </li>
             ))}
           </ul>

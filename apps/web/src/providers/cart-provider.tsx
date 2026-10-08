@@ -69,10 +69,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addItem = useCallback(async (variantId: string, quantity = 1) => {
+    /* No setIsOpen here any more: the confirmation is the photograph flying to the
+       Cart button (lib/fly-to-cart.ts). The drawer opens when Cart is tapped. */
     await mutate(() => apiFetch<CartSummary>('/api/cart/items', {
       method: 'POST', token, body: { variantId, quantity },
     }));
-    setIsOpen(true);
   }, [mutate, token]);
 
   const updateItem = useCallback(async (itemId: string, quantity: number) => {

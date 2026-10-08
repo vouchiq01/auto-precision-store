@@ -4,7 +4,6 @@ import { Suspense } from 'react';
 import { getCategories, getProducts } from '@/lib/queries';
 import { FilterBar } from '@/components/collection/filter-bar';
 import { ListingHeader } from '@/components/collection/listing-header';
-import { CategoryPills } from '@/components/home/category-pills';
 import { ProductCard } from '@/components/product/product-card';
 import { EmptyState } from '@/components/ui/primitives';
 import { ButtonLink } from '@/components/ui/button';
@@ -58,7 +57,6 @@ export default async function CollectionPage({ params, searchParams }: PageProps
   return (
     <>
       <ListingHeader crumb={category.name} title={category.name} description={category.description} count={category.productCount ?? result.total} />
-      <CategoryPills categories={categories} activeSlug={slug} />
 
       <div className="shell pb-10 md:pb-16">
         <Suspense fallback={<div className="mt-5 h-[5.5rem]" />}>

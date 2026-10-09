@@ -7,6 +7,7 @@ import { useAuth } from '@/providers/auth-provider';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/primitives';
 import { Card, Field, PageHeading, inputClass, selectClass } from './ui';
+import { PhotoUploader, UploadButton } from './photo-uploader';
 
 /* The form works in RUPEES and converts to paise at the boundary. Asking an
    admin to type 11240000 to mean ₹1,12,400 is a data-entry bug waiting to
@@ -54,7 +55,7 @@ export function ProductForm({ productId }: { productId?: string }) {
   const [specs, setSpecs] = useState<SpecDraft[]>([{ group: 'General', label: '', value: '' }]);
   const [faqs, setFaqs] = useState<FaqDraft[]>([]);
   const [features, setFeatures] = useState<FeatureDraft[]>([]);
-  const [images, setImages] = useState<ImageDraft[]>([{ url: '', alt: '' }]);
+  const [images, setImages] = useState<ImageDraft[]>([]);
 
   useEffect(() => {
     if (!token) return;
@@ -288,23 +289,17 @@ export function ProductForm({ productId }: { productId?: string }) {
         </Card>
 
         <Card>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="eyebrow">Images</h2>
-            <Button type="button" size="sm" variant="secondary" onClick={() => setImages([...images, { url: '', alt: '' }])}>Add image</Button>
-          </div>
-          <p className="mb-3 text-xs text-faint">The first image is the one used on cards and in search results.</p>
-          <div className="space-y-2">
-            {images.map((image, i) => (
-              <div key={i} className="flex gap-2">
-                <input placeholder="/products/slug/01.jpg or a full URL" value={image.url}
-                  onChange={(e) => setImages(images.map((img, j) => j === i ? { ...img, url: e.target.value } : img))} className={inputClass} />
-                <input placeholder="Alt text" value={image.alt}
-                  onChange={(e) => setImages(images.map((img, j) => j === i ? { ...img, alt: e.target.value } : img))} className={inputClass} />
-                <button type="button" onClick={() => setImages(images.filter((_, j) => j !== i))}
-                  aria-label="Remove image" className="shrink-0 px-2 text-muted hover:text-crimson">✕</button>
-              </div>
-            ))}
-          </div>
+          <h2 className="eyebrow">Photos</h2>
+          <p className="mb-4 mt-2 text-xs text-faint">
+            The first photo is the main one, used on cards and in search. Photographs of the table on a plain white background look best.
+            Photos go live when you press Save at the bottom.
+          </p>
+          <PhotoUploader
+            photos={images}
+            onChange={setImages}
+            token={token}
+            folder={`products/${form.slug || 'new'}`}
+          />
         </Card>
 
         <Card>
@@ -364,9 +359,17 @@ export function ProductForm({ productId }: { productId?: string }) {
                   onChange={(e) => setFeatures(features.map((f, j) => j === i ? { ...f, body: e.target.value } : f))}
                   className="mt-2 w-full rounded-xl border border-line bg-canvas px-4 py-3 text-sm text-content outline-none focus:border-line-strong" />
 
-                <input placeholder="Image URL" value={feature.mediaUrl}
-                  onChange={(e) => setFeatures(features.map((f, j) => j === i ? { ...f, mediaUrl: e.target.value } : f))}
-                  className={`${inputClass} mt-2`} />
+                <div className="mt-2 flex items-start gap-2">
+                  <input placeholder="Image URL, or upload one" value={feature.mediaUrl}
+                    onChange={(e) => setFeatures(features.map((f, j) => j === i ? { ...f, mediaUrl: e.target.value } : f))}
+                    className={inputClass} />
+                  <UploadButton token={token} folder={`products/${form.slug || 'new'}/story`}
+                    onUploaded={(url) => setFeatures(features.map((f, j) => j === i ? { ...f, mediaUrl: url } : f))} />
+                </div>
+                {feature.mediaUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={feature.mediaUrl} alt="" className="mt-2 h-20 rounded-lg border border-line object-cover" />
+                )}
 
                 <div className="mt-3 rounded-lg border border-line p-2.5">
                   <div className="mb-2 flex items-center justify-between">

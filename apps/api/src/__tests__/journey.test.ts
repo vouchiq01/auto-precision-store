@@ -17,6 +17,7 @@ const { createTestDatabase } = await import('@aps/db/testing');
 const { createApp } = await import('../app.ts');
 const { startTestServer, BENGALURU_ADDRESS, MUMBAI_ADDRESS } = await import('./helpers.ts');
 const seed = await import('./seed-fixture.ts');
+const storage = await import('../services/storage.service.ts');
 
 let testDb: Awaited<ReturnType<typeof createTestDatabase>>;
 let client: Awaited<ReturnType<typeof startTestServer>>;
@@ -481,6 +482,60 @@ describe('placing an order', () => {
 
 describe('admin', () => {
   let adminToken = '';
+
+  describe('photo upload', () => {
+    /* Swap the real storage for a recording fake: no network, no disk. */
+    const stored: { path: string; type: string; bytes: number }[] = [];
+    let uploaderToken = '';
+    before(async () => {
+      /* Its own sign-in: nested suites run in definition order, so the outer
+         `adminToken` may not be set yet. */
+      const login = await client.request('POST', '/api/auth/admin/login', {
+        body: { email: fixture.adminEmail, password: fixture.adminPassword },
+      });
+      uploaderToken = login.body.accessToken;
+      storage.setStorageDriver({
+        async put(path, buffer, contentType) { stored.push({ path, type: contentType, bytes: buffer.byteLength }); return `https://cdn.test/${path}`; },
+        async remove() { /* nothing to clean up */ },
+      });
+    });
+    after(() => storage.setStorageDriver(null));
+
+    const PNG = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(64)]);
+    const post = (token: string | null, body: Buffer, headers: Record<string, string> = {}) =>
+      fetch(`${client.baseUrl}/api/admin/uploads`, {
+        method: 'POST',
+        headers: { 'content-type': 'image/png', ...(token ? { authorization: `Bearer ${token}` } : {}), ...headers },
+        body: new Uint8Array(body),
+      });
+
+    test('stores a real photograph under a UUID name and returns its URL', async () => {
+      const res = await post(uploaderToken, PNG, { 'x-folder': 'products/vertex-x' });
+      assert.equal(res.status, 201);
+      const body = await res.json() as { url: string; path: string; contentType: string };
+      assert.match(body.path, /^products\/vertex-x\/[0-9a-f-]{36}\.png$/);
+      assert.equal(body.url, `https://cdn.test/${body.path}`);
+      assert.equal(body.contentType, 'image/png');
+    });
+
+    test('judges the file by its bytes, not by the type the client claims', async () => {
+      const notAnImage = Buffer.from('<script>alert(1)</script>'.padEnd(64, ' '));
+      const res = await post(uploaderToken, notAnImage, { 'content-type': 'image/png' });
+      assert.equal(res.status, 422);
+      assert.equal(stored.length, 1, 'nothing was stored for the disguised file');
+    });
+
+    test('cannot be steered out of its folder by a crafted x-folder header', async () => {
+      const res = await post(uploaderToken, PNG, { 'x-folder': '../../etc/Evil Folder' });
+      assert.equal(res.status, 201);
+      const { path } = await res.json() as { path: string };
+      assert.ok(!path.includes('..') && !path.includes(' '), `unsafe path: ${path}`);
+    });
+
+    test('is for admins only', async () => {
+      assert.equal((await post(null, PNG)).status, 401);
+    });
+  });
 
   test('rejects a bad password', async () => {
     const res = await client.request('POST', '/api/auth/admin/login', {

@@ -41,7 +41,7 @@ export function createApp(): Express {
     credentials: true,
     maxAge: 7200,   // browsers reuse the pre-flight answer instead of asking before every cart call
     exposedHeaders: ['x-request-id', 'x-cart-token'],
-    allowedHeaders: ['content-type', 'authorization', 'x-cart-token', 'x-request-id'],
+    allowedHeaders: ['content-type', 'authorization', 'x-cart-token', 'x-request-id', 'x-folder', 'x-filename'],
   }));
 
   app.use(pinoHttp({

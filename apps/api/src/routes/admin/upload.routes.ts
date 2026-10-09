@@ -6,20 +6,22 @@ import { storageAvailable, uploadMedia } from '../../services/storage.service.ts
 export const adminUploadRouter: Router = Router();
 
 /**
- * Binary upload.
+ * Photograph upload.
  *
  * Takes the raw body rather than multipart, which keeps the server free of a
- * multipart parser: the admin UI sends the file bytes with the filename and
- * type in headers. Fewer dependencies, and one less place for a path-traversal
- * bug to hide.
+ * multipart parser: the admin UI sends the file's bytes and names the folder in
+ * `x-folder`. Fewer dependencies, and one less place for a path-traversal bug to
+ * hide. The file's type comes from its bytes, not from the Content-Type header —
+ * see `sniffImageType` — so `application/octet-stream` is accepted here and judged
+ * by what the file actually is.
  */
 adminUploadRouter.post('/',
-  raw({ type: ['image/*', 'video/mp4'], limit: '12mb' }),
+  raw({ type: ['image/*', 'application/octet-stream'], limit: '12mb' }),
   asyncHandler(async (req, res) => {
     if (!storageAvailable()) {
       res.status(503).json({
         type: 'storage_unavailable', title: 'Uploads unavailable', status: 503,
-        detail: 'Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to enable uploads.',
+        detail: 'Photo storage is not set up on this server yet. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.',
       });
       return;
     }
@@ -29,11 +31,7 @@ adminUploadRouter.post('/',
       throw new ValidationError({ file: ['No file was received.'] });
     }
 
-    const contentType = req.get('content-type') ?? 'application/octet-stream';
-    const filename = req.get('x-filename') ?? 'upload';
-    const folder = (req.get('x-folder') ?? 'products').replace(/[^a-z0-9/-]/gi, '');
-
-    const result = await uploadMedia({ buffer: body, filename, contentType, folder });
+    const result = await uploadMedia({ buffer: body, folder: req.get('x-folder') ?? 'products' });
     res.status(201).json(result);
   }),
 );

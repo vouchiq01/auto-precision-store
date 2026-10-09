@@ -24,7 +24,20 @@ async function main(): Promise<void> {
   const products = await db.select({ id: s.products.id, slug: s.products.slug, name: s.products.name }).from(s.products);
   let galleries = 0;
 
+  /* A product whose photographs have been uploaded in the admin (they live in
+     Supabase Storage, not under /products/) is managed there from then on. Re-
+     syncing it from the repository's folders would delete the client's uploads and
+     bring back the stand-in photos he replaced. */
+  const existing = await db.select({ productId: s.productImages.productId, url: s.productImages.url }).from(s.productImages);
+  const adminManaged = new Set(existing.filter((row) => !row.url.startsWith('/products/')).map((row) => row.productId));
+  let skipped = 0;
+
   for (const product of products) {
+    if (adminManaged.has(product.id)) {
+      skipped += 1;
+      console.log(`  ${product.slug}: left alone (photos managed in the admin)`);
+      continue;
+    }
     const images = imageUrls(product.slug);
 
     await db.transaction(async (tx) => {
@@ -52,7 +65,7 @@ async function main(): Promise<void> {
     console.log(`  ${product.slug}: ${images.length} image${images.length === 1 ? '' : 's'}`);
   }
 
-  console.log(`\nSynced ${products.length} products (${galleries} gallery images). Nothing else was changed.`);
+  console.log(`\nSynced ${products.length - skipped} products (${galleries} gallery images)${skipped ? `, left ${skipped} admin-managed product${skipped === 1 ? '' : 's'} alone` : ''}. Nothing else was changed.`);
   process.exit(0);
 }
 

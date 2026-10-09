@@ -14,9 +14,14 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@aps/shared'],
 
   images: {
-    remotePatterns: supabaseHost
-      ? [{ protocol: 'https', hostname: supabaseHost, pathname: '/storage/v1/object/public/**' }]
-      : [],
+    /* Uploaded photographs live in Supabase Storage. The configured project's host
+       is allowed explicitly; `*.supabase.co` is the safety net for when
+       NEXT_PUBLIC_SUPABASE_URL was not set at build time — without it a product
+       with an uploaded photo would throw instead of rendering. */
+    remotePatterns: [
+      ...(supabaseHost ? [{ protocol: 'https' as const, hostname: supabaseHost, pathname: '/storage/v1/object/public/**' }] : []),
+      { protocol: 'https', hostname: '*.supabase.co', pathname: '/storage/v1/object/public/**' },
+    ],
     formats: ['image/avif', 'image/webp'],
   },
 

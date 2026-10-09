@@ -140,6 +140,42 @@ Two further showcase images the client sent (a table branded "ProGroom", with
 "28–100 cm" and "60–110 cm" printed in them) were deliberately NOT used: the
 printed figures and brand contradict our product data.
 
+### Photos uploaded in the admin (the normal way from now on)
+
+`/admin/products/<id>` has a **Photos** card: drop or choose files, they upload to
+**Supabase Storage** and appear as tiles; the first tile is the main photo, tiles
+can be moved, made main, given alt text and removed; press **Save** to publish. Each
+story block on the same form has its own **Upload** button. Code: `PhotoUploader` /
+`UploadButton` (`components/admin/photo-uploader.tsx`), `lib/upload.ts` (shrinks
+anything over ~2.5 MB or 2400 px before sending), `POST /api/admin/uploads`
+(`routes/admin/upload.routes.ts`) and `services/storage.service.ts`.
+
+- **Needs two Render environment variables**, or uploads answer "not set up":
+  `SUPABASE_URL` (`https://<project-ref>.supabase.co`) and `SUPABASE_SERVICE_ROLE_KEY`
+  (Supabase → Project Settings → API Keys → the **secret / service_role** key).
+  **That key is a secret: Render only, never `NEXT_PUBLIC_*`, never in git or chat.**
+  The bucket (`media` by default, `SUPABASE_STORAGE_BUCKET`) is created public-read on
+  first use; nothing to do in the dashboard.
+- The file's type is read from its **bytes**, not the Content-Type header; only JPEG,
+  PNG, WebP and AVIF are accepted (no SVG, no video); filenames never become paths;
+  12 MB cap. Tests: `journey.test.ts` → "photo upload".
+- **Locally with no Supabase variables** (and outside production) uploads fall back to
+  `apps/web/public/uploads/` (git-ignored). Keep `SUPABASE_*` commented in `.env`
+  unless you mean to write to the live bucket.
+- CORS must allow `x-folder` and `x-filename` (it does, in `app.ts`) or the browser's
+  pre-flight blocks the upload in production only.
+- `next.config.ts` allows `*.supabase.co` public-bucket images as well as the
+  configured host, because a product with an uploaded photo would otherwise **throw**
+  when `NEXT_PUBLIC_SUPABASE_URL` is missing at build time.
+- **`seed:images` leaves any product that has an uploaded photo alone** (it has a
+  non-`/products/` URL), so a re-sync can never delete the client's uploads or bring
+  back the stand-in photos he replaced. The full seed still wipes everything.
+- The storefront caches catalogue pages for **5 minutes** (`CATALOGUE_REVALIDATE`), so a
+  saved photo can take up to five minutes to appear. There is no on-demand revalidation
+  yet; add a revalidate hook if the delay matters.
+- Removing a photo in the admin detaches it from the product but leaves the file in
+  the bucket (it is small and harmless); there is no clean-up job.
+
 ### Adding photos: `images.json` and `seed:images`
 
 Drop files in `apps/web/public/products/<slug>/` (`01.jpg`…, `feature-1.jpg`…).
@@ -810,7 +846,7 @@ release it after 45 minutes.
 
 ## Verifying
 
-`npm test` — 130 tests: 74 unit over pricing and tax, 56 integration running the
+`npm test` — 134 tests: 74 unit over pricing and tax, 60 integration running the
 real Express app against a real database over real HTTP. No mocks; they have
 caught several genuine bugs.
 

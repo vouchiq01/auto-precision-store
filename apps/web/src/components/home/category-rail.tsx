@@ -3,7 +3,7 @@ import Link from 'next/link';
 import type { Category } from '@aps/shared';
 import { cn } from '@/lib/cn';
 import { Reveal } from '@/components/motion/reveal';
-import { Eyebrow, SectionNumber } from '@/components/ui/primitives';
+import { Eyebrow } from '@/components/ui/primitives';
 
 /**
  * Five categories as tall editorial panels.
@@ -24,7 +24,6 @@ export function CategoryRail({ categories }: { categories: Category[] }) {
           </h2>
           <span className="accent-bar mt-5" aria-hidden="true" />
         </div>
-        <SectionNumber value="02" className="hidden md:block" />
       </div>
 
       {/* A grid, not a single flex row: with ten collections a one-row strip

@@ -546,8 +546,7 @@ is a collapsed "Add a coupon code" row that expands; once applied it shows
 
 Do not push the products back below the fold. The first screen of the homepage
 is: header (search + collections) → a hero about 300px tall → the four
-bestsellers. On a phone the hero drops its photo and the bestsellers
-are a two-column grid. Everything that explains or reassures (trust bar, shelves
+bestsellers. On a phone the bestsellers are ONE swipeable row (cards ~58vw, the next one peeking in); from `md` the four-across grid. Everything that explains or reassures (trust bar, shelves
 per collection, the demo, the story) comes after.
 
 - **Product cards** (`product-card.tsx`) are built to be compared: category,
@@ -947,6 +946,12 @@ bag icon with the count as a corner badge (hidden at 0); from `sm` the word "Car
   an in-flight request that never resolves): that image's `<img>` shows blank forever while every other loads and
   `curl` with an AVIF `Accept` header hangs. Not a code bug — restart `next dev` (and `rm -rf .next/cache/images`).
   Don't restart the dev server while pages are still loading.
+
+### Promise tiles, enquiry card, footer gap
+
+- `trust-cards.tsx`: four **separate colour-tinted tiles** (orange freight, green GST invoice, violet warranty, red EMI), each with a solid icon badge. Phone = one row of four with a short head + one-word qualifier ("Free freight / Karnataka" — the qualifier must stay: the claim is Karnataka-only); `md`+ = four across with the full sentences. Do not go back to one plain white strip with dark icons.
+- `enquiry-cta.tsx`: a compact tinted card (advice left, two buttons right, stacked on a phone). The giant ghost "05" numeral is gone, and so are "02"/"03" on the homepage (`SectionNumber` now survives only in the unused `proof.tsx`).
+- **Footer gap:** the phone tab bar's 64px of room used to sit on `<main>` (a big empty band above the footer). It now sits under the footer, in a navy wrapper in `site-chrome.tsx`; `<main>` has no bottom padding and the footer is `mt-6 md:mt-10`.
 
 ## Claims must match the data
 

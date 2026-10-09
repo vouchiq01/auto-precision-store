@@ -61,8 +61,12 @@ function ChromeInner({ children }: { children: ReactNode }) {
       <Header onSignIn={openSignIn} />
       {/* Room at the foot of the page for the phone tab bar, so it never sits
           on top of the footer's last line. */}
-      <main id="main" className={tabBarVisible ? 'pb-16 lg:pb-0' : undefined}>{children}</main>
-      <Footer />
+      <main id="main">{children}</main>
+      {/* The phone tab bar covers the bottom 64px, so the room for it is under the footer (navy, so it
+          reads as part of it), not between the last section and the footer. */}
+      <div className={tabBarVisible ? 'bg-ink pb-16 lg:pb-0' : undefined}>
+        <Footer />
+      </div>
       <MobileTabBar />
       <CartDrawer />
     </>

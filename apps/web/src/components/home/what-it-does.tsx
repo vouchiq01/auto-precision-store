@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { Reveal } from '@/components/motion/reveal';
 import { ButtonLink } from '@/components/ui/button';
-import { Eyebrow, SectionNumber } from '@/components/ui/primitives';
+import { Eyebrow } from '@/components/ui/primitives';
 
 /**
  * What the product actually does.
@@ -84,7 +84,6 @@ export function WhatItDoes() {
               dog&rsquo;s patience rather than the table itself.
             </p>
           </div>
-          <SectionNumber value="03" className="hidden md:block" />
         </div>
 
         <div className="mt-16 space-y-20 md:space-y-28">

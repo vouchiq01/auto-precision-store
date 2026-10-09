@@ -204,6 +204,78 @@ describe('cart', () => {
     assert.equal(res.status, 200);
     assert.equal(res.body.discountTotal, 0);
   });
+
+  /* Phones block the cart cookie (the API is a different site from the shop), so
+     every request used to start a fresh empty cart: add a second table and the
+     first vanished; apply a coupon and the cart emptied. This is a phone: no
+     cookie jar, only the token the server hands back. */
+  describe('a guest whose browser blocks cookies', () => {
+    async function phone(method: string, path: string, token: string | null, body?: unknown) {
+      const res = await fetch(`${client.baseUrl}${path}`, {
+        method,
+        headers: {
+          ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
+          ...(token ? { 'x-cart-token': token } : {}),
+        },
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      });
+      return { status: res.status, token: res.headers.get('x-cart-token'), body: await res.json() as Record<string, any> };
+    }
+
+    test('keeps the first product when a second is added, and survives a coupon', async () => {
+      const first = await phone('POST', '/api/cart/items', null, { variantId: fixture.variantId, quantity: 1 });
+      assert.equal(first.status, 201);
+      assert.ok(first.token && first.token !== 'none', 'the server hands back a cart token');
+      assert.equal(first.body.itemCount, 1);
+
+      const second = await phone('POST', '/api/cart/items', first.token, { variantId: fixture.lastOneVariantId, quantity: 1 });
+      assert.equal(second.body.itemCount, 2, 'the first product is still there');
+      assert.equal(second.token, first.token, 'the same cart, not a new one');
+
+      const coupon = await phone('POST', '/api/cart/coupon', first.token, { code: 'SAVE10' });
+      assert.equal(coupon.body.itemCount, 2, 'applying a coupon does not empty the cart');
+      assert.equal(coupon.body.couponCode, 'SAVE10');
+
+      const reload = await phone('GET', '/api/cart', first.token);
+      assert.equal(reload.body.itemCount, 2, 'and it is still there on the next page load');
+    });
+
+    test('without the token every request is a new cart — which is why the client must send it', async () => {
+      const a = await phone('POST', '/api/cart/items', null, { variantId: fixture.variantId, quantity: 1 });
+      const b = await phone('POST', '/api/cart/items', null, { variantId: fixture.variantId, quantity: 1 });
+      assert.notEqual(a.token, b.token);
+      assert.equal(b.body.itemCount, 1);
+    });
+
+    test('signing in at the pay step hands the cart to the account, and the client is told to forget the token', async () => {
+      const added = await phone('POST', '/api/cart/items', null, { variantId: fixture.variantId, quantity: 1 });
+      assert.ok(added.token);
+
+      const otp = await fetch(`${client.baseUrl}/api/auth/otp/request`, {
+        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ phone: '9123456780' }),
+      });
+      const devCode = ((await otp.json()) as { devCode: string }).devCode;
+
+      const verify = await fetch(`${client.baseUrl}/api/auth/otp/verify`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-cart-token': added.token! },
+        body: JSON.stringify({ phone: '9123456780', code: devCode, fullName: 'Cookieless Customer' }),
+      });
+      assert.equal(verify.status, 200);
+      assert.equal(verify.headers.get('x-cart-token'), 'none', 'the client forgets its guest token');
+      const { accessToken } = (await verify.json()) as { accessToken: string };
+
+      const mine = await fetch(`${client.baseUrl}/api/cart`, { headers: { authorization: `Bearer ${accessToken}` } });
+      const cart = await mine.json() as Record<string, any>;
+      assert.equal(cart.itemCount, 1, 'the basket survived signing in');
+    });
+
+    test('ignores the "forget" marker as a token instead of failing', async () => {
+      const res = await phone('GET', '/api/cart', 'none');
+      assert.equal(res.status, 200);
+      assert.equal(res.body.itemCount, 0);
+    });
+  });
 });
 
 describe('public coupon listing', () => {

@@ -11,13 +11,14 @@ import { PincodeCheck } from './pincode-check';
 import { StockNotify } from './stock-notify';
 
 export function BuyBox({ product }: { product: ProductDetail }) {
-  const { addItem, mutating } = useCart();
+  const { addItem } = useCart();
   const [variantId, setVariantId] = useState(
     // Default to the first variant that is actually buyable, not simply the first.
     () => product.variants.find((v) => v.inStock)?.id ?? product.variants[0]?.id ?? '',
   );
   const [showEmi, setShowEmi] = useState(false);
   const [added, setAdded] = useState(false);
+  const [adding, setAdding] = useState(false);
 
   const variant = useMemo<ProductVariant | undefined>(
     () => product.variants.find((v) => v.id === variantId),
@@ -29,17 +30,20 @@ export function BuyBox({ product }: { product: ProductDetail }) {
   const plans = useMemo(() => emiOptions(price), [price]);
 
   async function onAdd() {
-    if (!variant) return;
-    try {
-      await addItem(variant.id, 1);
-    } catch (error) {
-      showCartMessage(addErrorMessage(error));
-      return;
-    }
-    /* From the product photograph if it is on screen, else from the button. */
+    if (!variant || adding) return;
+    setAdding(true);
+    /* Optimistic: fly and confirm at once; undo and explain if the server refuses. */
     flyToCart(document.querySelector('[data-fly-source]'), document.querySelector('[data-add-to-cart]'));
     setAdded(true);
-    setTimeout(() => setAdded(false), 2200);
+    try {
+      await addItem(variant.id, 1);
+      setTimeout(() => setAdded(false), 2200);
+    } catch (error) {
+      setAdded(false);
+      showCartMessage(addErrorMessage(error));
+    } finally {
+      setAdding(false);
+    }
   }
 
   return (
@@ -176,7 +180,6 @@ export function BuyBox({ product }: { product: ProductDetail }) {
               size="lg"
               magnetic
               onClick={() => void onAdd()}
-              loading={mutating}
               className="w-full"
               data-add-to-cart
             >

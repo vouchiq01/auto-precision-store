@@ -10,6 +10,30 @@ import {
 
 export const CART_COOKIE = 'aps_cart';
 
+/**
+ * The same opaque guest-cart token, carried as a request/response HEADER.
+ *
+ * The cookie alone does not work on phones. The storefront (Vercel) and this API
+ * (Render) are different sites, so `aps_cart` is a third-party cookie, and
+ * Safari/iOS and several Android browsers block those. The result was a fresh,
+ * empty guest cart on every request: add a second table and the first was gone,
+ * apply a coupon and the cart emptied. Laptops that allow third-party cookies
+ * never showed it.
+ *
+ * So the server returns the token in `x-cart-token` on every guest-cart response,
+ * the browser keeps it in localStorage and sends it back, and the header wins over
+ * the cookie when both are present. The cookie is still set for browsers that
+ * accept it. The value `none` tells the client to forget its token (the cart was
+ * handed to an account at sign-in).
+ */
+export const CART_HEADER = 'x-cart-token';
+
+export function guestCartToken(req: Request): string | undefined {
+  const header = req.get(CART_HEADER);
+  if (header && header !== 'none' && header.length <= 128) return header;
+  return ((req.cookies ?? {}) as Record<string, string>)[CART_COOKIE];
+}
+
 export const cartRouter: Router = Router();
 cartRouter.use(optionalAuth);
 
@@ -20,8 +44,7 @@ cartRouter.use(optionalAuth);
  * their id, and their cookie is ignored — the merge already happened at login.
  */
 async function resolveCart(req: Request, res: Response) {
-  const cookies = (req.cookies ?? {}) as Record<string, string>;
-  const sessionToken = cookies[CART_COOKIE];
+  const sessionToken = guestCartToken(req);
 
   /* Signing in must never cost someone their basket. getOrCreateCart keys on
      the user as soon as there is one and stops looking at the cookie, so the
@@ -30,12 +53,15 @@ async function resolveCart(req: Request, res: Response) {
   if (req.user && sessionToken) {
     await claimGuestCart(req.user.id, sessionToken);
     res.clearCookie(CART_COOKIE, { path: '/' });
+    res.setHeader(CART_HEADER, 'none');
   }
 
   const cart = await getOrCreateCart({
     userId: req.user?.id,
     sessionToken: req.user ? undefined : sessionToken,
   });
+
+  if (!req.user && cart.sessionToken) res.setHeader(CART_HEADER, cart.sessionToken);
 
   if (!req.user && cart.sessionToken && cart.sessionToken !== sessionToken) {
     res.cookie(CART_COOKIE, cart.sessionToken, {

@@ -39,7 +39,9 @@ export function createApp(): Express {
       callback(new ForbiddenError(`Origin ${origin} is not allowed.`));
     },
     credentials: true,
-    exposedHeaders: ['x-request-id'],
+    maxAge: 7200,   // browsers reuse the pre-flight answer instead of asking before every cart call
+    exposedHeaders: ['x-request-id', 'x-cart-token'],
+    allowedHeaders: ['content-type', 'authorization', 'x-cart-token', 'x-request-id'],
   }));
 
   app.use(pinoHttp({

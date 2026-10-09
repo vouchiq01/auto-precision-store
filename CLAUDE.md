@@ -644,6 +644,37 @@ cart". The empty state is a soft circle, a short line, a Shop button and four
 collection links. The cart page shares every one of those pieces
 (`components/cart/*`, `compact` for the drawer), so change a line once.
 
+## The guest cart token: phones block the cart cookie
+
+**Symptom on a phone, fine on a laptop:** add one table, add another, and the first
+is gone; apply a coupon and the cart empties. **Cause:** the shop (Vercel) and the
+API (Render) are different sites, so the `aps_cart` cookie the API set was a
+*third-party* cookie, which Safari/iOS and several Android browsers block — every
+request arrived with no cookie and the server made a fresh empty cart. Laptops that
+allow third-party cookies never showed it, so it shipped.
+
+**Fix:** the guest-cart token also travels as a header. The server returns
+`x-cart-token` on every guest-cart response (`CART_HEADER` / `guestCartToken` in
+`cart.routes.ts`; it wins over the cookie), `lib/api.ts` keeps it in localStorage
+and sends it on `/api/cart`, `/api/checkout` and `/api/auth` calls, and sign-in
+answers `x-cart-token: none` once the cart is handed to the account so the client
+forgets it. CORS exposes and allows the header and caches the pre-flight (`maxAge`).
+The cookie is still set for browsers that accept it. Do not "simplify" this back to
+cookie-only; `journey.test.ts` has a cookie-less phone suite that fails if you do.
+
+**Still cookie-only:** the sign-in *refresh* cookie (`aps_rt`) has the same
+third-party problem, so on a phone a signed-in customer may look signed out after a
+reload. Not fixed — it is an auth change and deserves its own care (a same-site
+proxy or a first-party API domain such as `api.<store domain>` is the proper cure,
+and the same-site API domain would also remove the need for the header).
+
+**Adding feels slow on a phone** because the API is a second or more per add (about
+ten sequential database round trips from Render to Supabase). So the add is
+**optimistic**: the photo flies, the card says "Added ✓" and the header count rises
+at once (`pendingAdds` in `cart-provider.tsx`); on failure the count drops back and
+`showCartMessage` says why. The real cure is a faster API: put Render and Supabase
+in the same region and cut the sequential queries in `addItem`/`getCartSummary`.
+
 ## Adding to the cart: the photo flies, the drawer stays shut
 
 Adding to the cart no longer slides the cart drawer open. The confirmation is
@@ -779,7 +810,7 @@ release it after 45 minutes.
 
 ## Verifying
 
-`npm test` — 126 tests: 74 unit over pricing and tax, 52 integration running the
+`npm test` — 130 tests: 74 unit over pricing and tax, 56 integration running the
 real Express app against a real database over real HTTP. No mocks; they have
 caught several genuine bugs.
 

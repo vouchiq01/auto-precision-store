@@ -37,7 +37,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
-  const { cart, open: openCart } = useCart();
+  const { cart, pendingAdds, open: openCart } = useCart();
   const { openSearch } = useSearch();
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
     return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
 
-  const itemCount = cart?.itemCount ?? 0;
+  const itemCount = (cart?.itemCount ?? 0) + pendingAdds;
 
   return (
     <>

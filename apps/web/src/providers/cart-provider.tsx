@@ -15,6 +15,8 @@ interface CartContextValue {
   open: () => void;
   close: () => void;
   addItem: (variantId: string, quantity?: number) => Promise<void>;
+  /** Units added optimistically that the server has not confirmed yet. */
+  pendingAdds: number;
   updateItem: (itemId: string, quantity: number) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   applyCoupon: (code: string) => Promise<void>;
@@ -30,6 +32,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [mutating, setMutating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [pendingAdds, setPendingAdds] = useState(0);
   const { user, token, loading: authLoading } = useAuth();
 
   /* The token has to go on every cart call. apiFetch only sends an
@@ -70,10 +73,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = useCallback(async (variantId: string, quantity = 1) => {
     /* No setIsOpen here any more: the confirmation is the photograph flying to the
-       Cart button (lib/fly-to-cart.ts). The drawer opens when Cart is tapped. */
-    await mutate(() => apiFetch<CartSummary>('/api/cart/items', {
-      method: 'POST', token, body: { variantId, quantity },
-    }));
+       Cart button (lib/fly-to-cart.ts). The drawer opens when Cart is tapped.
+
+       The add takes a second or more on a phone connection, so the count goes up
+       straight away (`pendingAdds`) and the server catches up; if it fails the
+       count drops back and the caller shows why. */
+    setPendingAdds((n) => n + quantity);
+    try {
+      await mutate(() => apiFetch<CartSummary>('/api/cart/items', {
+        method: 'POST', token, body: { variantId, quantity },
+      }));
+    } finally {
+      setPendingAdds((n) => Math.max(0, n - quantity));
+    }
   }, [mutate, token]);
 
   const updateItem = useCallback(async (itemId: string, quantity: number) => {
@@ -95,11 +107,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [mutate, token]);
 
   const value = useMemo<CartContextValue>(() => ({
-    cart, loading, mutating, error, isOpen,
+    cart, loading, mutating, error, isOpen, pendingAdds,
     open: () => setIsOpen(true),
     close: () => setIsOpen(false),
     addItem, updateItem, removeItem, applyCoupon, removeCoupon, reload,
-  }), [cart, loading, mutating, error, isOpen, addItem, updateItem, removeItem, applyCoupon, removeCoupon, reload]);
+  }), [cart, loading, mutating, error, isOpen, pendingAdds, addItem, updateItem, removeItem, applyCoupon, removeCoupon, reload]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

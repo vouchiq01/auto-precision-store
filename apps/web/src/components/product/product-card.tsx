@@ -50,13 +50,15 @@ export function ProductCard({
   async function add() {
     if (adding || !selected) return;
     setAdding(true);
+    /* Optimistic: the photograph flies and the button confirms at once, while the
+       server (a second or more on a phone) catches up. A failure undoes it. */
+    flyToCart(photoRef.current);
+    setJustAdded(true);
     try {
       await addItem(selected.id);
-      /* The photograph flies to the Cart button and the cart panel stays shut. */
-      flyToCart(photoRef.current);
-      setJustAdded(true);
-      setTimeout(() => setJustAdded(false), 1800);
+      setTimeout(() => setJustAdded(false), 1400);
     } catch (error) {
+      setJustAdded(false);
       showCartMessage(addErrorMessage(error));
     } finally {
       setAdding(false);
@@ -184,7 +186,7 @@ export function ProductCard({
                 : 'cursor-not-allowed bg-sand text-faint',
             )}
           >
-            {adding ? <Spinner className="size-4" /> : canAdd ? <BagIcon /> : null}
+            {adding && !justAdded ? <Spinner className="size-4" /> : canAdd ? <BagIcon /> : null}
             {!canAdd ? 'Sold out' : justAdded ? 'Added ✓' : 'Add to cart'}
           </button>
         </div>

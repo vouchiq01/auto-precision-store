@@ -7,7 +7,7 @@ import { optionalAuth, requireAuth } from '../middleware/auth.ts';
 import { loginLimiter, otpLimiter } from '../middleware/rate-limit.ts';
 import { validateBody } from '../middleware/validate.ts';
 import { adminLogin, attachGuestCart, refreshSession, requestOtp, revokeRefreshToken, verifyOtp } from '../services/auth.service.ts';
-import { CART_COOKIE } from './cart.routes.ts';
+import { CART_HEADER, guestCartToken } from './cart.routes.ts';
 
 export const authRouter: Router = Router();
 
@@ -22,7 +22,8 @@ authRouter.post('/otp/verify', otpLimiter, validateBody(verifyOtpSchema), asyncH
   const session = await verifyOtp({ ...body, userAgent: req.get('user-agent') ?? undefined });
 
   // Adopt whatever the visitor had in their guest cart before signing in.
-  await attachGuestCart(session.user.id, (req.cookies as Record<string, string>)?.[CART_COOKIE]);
+  await attachGuestCart(session.user.id, guestCartToken(req));
+  res.setHeader(CART_HEADER, 'none');   // the cart now belongs to the account: client forgets its token
 
   setRefreshCookie(res, session.refreshToken);
   res.json({ user: session.user, accessToken: session.accessToken, expiresIn: session.expiresIn });

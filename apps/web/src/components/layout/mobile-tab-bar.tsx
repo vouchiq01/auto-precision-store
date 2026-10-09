@@ -28,13 +28,13 @@ export function MobileTabBar() {
   const pathname = usePathname();
   const visible = useTabBarVisible();
   const { user } = useAuth();
-  const { cart, open: openCart } = useCart();
+  const { cart, pendingAdds, open: openCart } = useCart();
   const { openSearch } = useSearch();
   const { openSignIn } = useSignIn();
 
   if (!visible) return null;
 
-  const count = cart?.itemCount ?? 0;
+  const count = (cart?.itemCount ?? 0) + pendingAdds;
   const isShop = pathname.startsWith('/shop') || pathname.startsWith('/collections');
 
   const item = 'relative flex flex-1 cursor-pointer flex-col items-center gap-1 py-2 text-[0.6875rem] font-medium transition-colors';

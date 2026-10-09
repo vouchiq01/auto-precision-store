@@ -12,6 +12,32 @@ import type { ApiProblem } from '@aps/shared';
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
+/**
+ * The guest-cart token, kept in the browser and sent as `x-cart-token`.
+ *
+ * The cart used to be tracked by a cookie set by the API's own domain. That is a
+ * third-party cookie from the storefront's point of view, and phone browsers
+ * block them — every request started a new empty cart. Carrying the token
+ * ourselves works everywhere. The server returns it on every guest-cart response
+ * and answers `none` once the cart has been handed to an account at sign-in.
+ *
+ * Only sent to the paths that need it: an extra header makes a cross-origin
+ * request pre-flighted, and the catalogue calls should stay simple GETs.
+ */
+const CART_TOKEN_KEY = 'aps_cart_token';
+const CART_TOKEN_PATHS = ['/api/cart', '/api/checkout', '/api/auth'];
+
+function readCartToken(): string | null {
+  try { return window.localStorage.getItem(CART_TOKEN_KEY); } catch { return null; }
+}
+
+function storeCartToken(value: string): void {
+  try {
+    if (value === 'none') window.localStorage.removeItem(CART_TOKEN_KEY);
+    else if (value) window.localStorage.setItem(CART_TOKEN_KEY, value);
+  } catch { /* private mode / storage blocked: the cookie path still applies where it works */ }
+}
+
 export class ApiError extends Error {
   readonly status: number;
   readonly type: string;
@@ -50,12 +76,16 @@ export interface RequestOptions {
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, token, revalidate, tags, signal, headers = {} } = options;
 
+  const inBrowser = typeof window !== 'undefined';
+  const cartToken = inBrowser && CART_TOKEN_PATHS.some((prefix) => path.startsWith(prefix)) ? readCartToken() : null;
+
   const init: RequestInit & { next?: { revalidate?: number | false; tags?: string[] } } = {
     method,
     credentials: 'include',
     headers: {
       ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
       ...(token ? { authorization: `Bearer ${token}` } : {}),
+      ...(cartToken ? { 'x-cart-token': cartToken } : {}),
       ...headers,
     },
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
@@ -79,6 +109,11 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
       status: 503,
       detail: 'We could not reach the store. Check your connection and try again.',
     });
+  }
+
+  if (inBrowser) {
+    const issued = response.headers.get('x-cart-token');
+    if (issued !== null) storeCartToken(issued);
   }
 
   if (response.status === 204) return undefined as T;

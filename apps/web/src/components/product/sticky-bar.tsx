@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
  */
 export function StickyBar({ product }: { product: ProductDetail }) {
   const [visible, setVisible] = useState(false);
-  const { addItem, mutating } = useCart();
+  const { addItem } = useCart();
 
   useEffect(() => {
     const target = document.querySelector('[data-add-to-cart]');
@@ -52,12 +52,10 @@ export function StickyBar({ product }: { product: ProductDetail }) {
         <Button
           size="md"
           onClick={(event) => {
-            const button = event.currentTarget;
-            void addItem(variant.id, 1)
-              .then(() => flyToCart(document.querySelector('[data-fly-source]'), button))
-              .catch((error) => showCartMessage(addErrorMessage(error)));
+            /* Optimistic: fly now, explain if the server refuses. */
+            flyToCart(document.querySelector('[data-fly-source]'), event.currentTarget);
+            void addItem(variant.id, 1).catch((error) => showCartMessage(addErrorMessage(error)));
           }}
-          loading={mutating}
           disabled={!variant.inStock}
           tabIndex={visible ? 0 : -1}
           className="shrink-0"

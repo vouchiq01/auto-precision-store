@@ -40,6 +40,10 @@ export function Hero({
   const ctaHref = banner?.ctaUrl ?? '/shop';
   const ctaLabel = banner?.ctaLabel ?? `Shop all ${totalProducts} products`;
 
+  /* The headline is the banner's title, so the owner can change it in Admin →
+     Banners. Its last word is the crimson one ("…on the floor."). */
+  const headline = splitHeadline(banner?.title ?? 'Stop grooming on the floor.');
+
   const delay = (ms: number) => ({ '--delay': `${ms}ms` }) as CSSProperties;
 
   /* On a phone the facts are three small two-line tiles in ONE row (head + sub);
@@ -54,7 +58,7 @@ export function Hero({
   ];
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#FFF3E6] via-[#FBF4EC] to-[#FDE6E2] pb-3 pt-[5.25rem] md:pb-10 md:pt-28 lg:pt-[8.5rem]">
+    <section className="relative h-full overflow-hidden bg-gradient-to-br from-[#FFF3E6] via-[#FBF4EC] to-[#FDE6E2] pb-3 pt-[5.25rem] md:pb-10 md:pt-28 lg:pt-[8.5rem]">
       {/* A soft crimson glow behind the photograph gives the white a place to sit. */}
       <div aria-hidden="true" className="pointer-events-none absolute -right-24 top-10 size-[22rem] rounded-full bg-crimson/10 blur-3xl lg:size-[34rem]" />
 
@@ -70,7 +74,7 @@ export function Hero({
               className="anim-fade-up mt-2 font-display text-[1.875rem] font-semibold leading-[0.98] tracking-[-0.035em] text-content sm:text-[2.5rem] lg:mt-3 lg:text-[clamp(2.75rem,4.8vw,4rem)] lg:leading-[0.96]"
               style={delay(60)}
             >
-              Stop grooming on the <span className="text-crimson">floor</span>.
+              {headline.before}<span className="text-crimson">{headline.accent}</span>{headline.after}
             </h1>
 
             <p className="anim-fade-up lede mt-4 hidden max-w-xl text-base sm:block md:text-lg" style={delay(120)}>{subtitle}</p>
@@ -164,4 +168,11 @@ export function Hero({
       </div>
     </section>
   );
+}
+
+/** "Stop grooming on the floor." -> ["Stop grooming on the ", "floor", "."] */
+function splitHeadline(title: string): { before: string; accent: string; after: string } {
+  const match = /^(.*?)([\p{L}\p{N}’'-]+)([^\p{L}\p{N}]*)$/u.exec(title.trim());
+  if (!match) return { before: title, accent: '', after: '' };
+  return { before: match[1] ?? '', accent: match[2] ?? '', after: match[3] ?? '' };
 }

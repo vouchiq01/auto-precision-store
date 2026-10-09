@@ -91,6 +91,16 @@ export const moderateReviewSchema = z.object({
   moderationNote: z.string().trim().max(300).optional().nullable(),
 });
 
+/** A review the owner enters himself — real feedback he received by WhatsApp, phone or
+    a marketplace. Goes live at once; never marked "verified purchase". */
+export const adminReviewInputSchema = z.object({
+  productId: uuidSchema,
+  authorName: z.string().trim().min(2).max(60),
+  rating: z.number().int().min(1).max(5),
+  title: z.string().trim().min(3).max(120),
+  body: z.string().trim().min(10, 'Add the customer’s own words').max(2000),
+});
+
 export const updateEnquirySchema = z.object({
   status: z.enum(ENQUIRY_STATUSES),
   internalNote: z.string().trim().max(1000).optional().nullable(),

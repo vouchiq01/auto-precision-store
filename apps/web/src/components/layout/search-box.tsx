@@ -7,6 +7,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { formatINR, type Paginated, type ProductSummary } from '@aps/shared';
 import { apiFetch } from '@/lib/api';
 import { cn } from '@/lib/cn';
+import { rememberSearch } from '@/lib/recent';
 
 /**
  * Product search with live suggestions.
@@ -22,12 +23,22 @@ import { cn } from '@/lib/cn';
  * inline underneath).
  */
 export function SearchBox({
-  variant, autoFocus = false, onDone,
-}: { variant: 'bar' | 'overlay'; autoFocus?: boolean; onDone?: () => void }) {
+  variant, autoFocus = false, onDone, value, onValueChange,
+}: {
+  variant: 'bar' | 'overlay';
+  autoFocus?: boolean;
+  onDone?: () => void;
+  /** Pass both to control the text from outside (the phone sheet does, so a tapped
+      "recent search" can fill the field). */
+  value?: string;
+  onValueChange?: (value: string) => void;
+}) {
   const router = useRouter();
   const listId = useId();
   const wrapRef = useRef<HTMLDivElement>(null);
-  const [query, setQuery] = useState('');
+  const [innerQuery, setInnerQuery] = useState('');
+  const query = value ?? innerQuery;
+  const setQuery = (next: string) => { setInnerQuery(next); onValueChange?.(next); };
   const [results, setResults] = useState<ProductSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -72,7 +83,7 @@ export function SearchBox({
     event.preventDefault();
     const picked = active >= 0 ? results[active] : undefined;
     if (picked) go(`/products/${picked.slug}`);
-    else if (trimmed) go(`/shop?search=${encodeURIComponent(trimmed)}`);
+    else if (trimmed) { rememberSearch(trimmed); go(`/shop?search=${encodeURIComponent(trimmed)}`); }
   }
 
   function onKeyDown(event: React.KeyboardEvent) {
@@ -170,7 +181,7 @@ export function SearchBox({
           {results.length > 0 && (
             <Link
               href={`/shop?search=${encodeURIComponent(trimmed)}`}
-              onClick={() => { setOpen(false); onDone?.(); }}
+              onClick={() => { rememberSearch(trimmed); setOpen(false); onDone?.(); }}
               className="block border-t border-line px-4 py-3 text-sm font-medium text-crimson transition-colors hover:bg-sand"
             >
               See all results for “{trimmed}” →

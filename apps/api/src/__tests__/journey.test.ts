@@ -47,6 +47,25 @@ describe('catalogue', () => {
     assert.ok('emiTeaser' in product);
   });
 
+  test('says how many are left only when stock is genuinely low', async () => {
+    const res = await client.request('GET', '/api/catalog/products');
+    const options = res.body.items.flatMap((p: { options: { stockLeft: number | null; inStock: boolean }[] }) => p.options);
+    assert.ok(options.every((o: { stockLeft: unknown }) => o.stockLeft === null || Number.isInteger(o.stockLeft)));
+    assert.ok(options.some((o: { stockLeft: number | null }) => o.stockLeft !== null), 'the fixture has a last-one variant');
+    assert.ok(options.filter((o: { stockLeft: number | null }) => o.stockLeft !== null).every((o: { inStock: boolean }) => o.inStock),
+      'a sold-out option never claims "N left"');
+  });
+
+  test('returns just the products asked for by id, and refuses a malformed id', async () => {
+    const all = await client.request('GET', '/api/catalog/products');
+    const wanted = all.body.items.slice(0, 2).map((p: { id: string }) => p.id);
+    const some = await client.request('GET', `/api/catalog/products?ids=${wanted.join(',')}`);
+    assert.equal(some.status, 200);
+    assert.deepEqual(some.body.items.map((p: { id: string }) => p.id).sort(), [...wanted].sort());
+    const bad = await client.request('GET', '/api/catalog/products?ids=not-a-uuid');
+    assert.equal(bad.status, 422);
+  });
+
   test('gives listing cards the options they need to add without guessing', async () => {
     /* A card offers add-to-cart, so it needs the choices: eight of the
        eighteen tables come in two finishes, and adding whichever sorts first
@@ -276,6 +295,34 @@ describe('cart', () => {
       assert.equal(res.status, 200);
       assert.equal(res.body.itemCount, 0);
     });
+  });
+});
+
+describe('wishlist', () => {
+  test('is private to a signed-in customer and round-trips', async () => {
+    const guest = await client.request('GET', '/api/account/wishlist/ids');
+    assert.equal(guest.status, 401, 'a guest is told to sign in');
+
+    /* Plain fetch, not `client`: the shared client carries the guest cart's cookie,
+       and signing in with it would hand that cart to this customer and empty the
+       cart the checkout tests below rely on. */
+    const json = (path: string, body: unknown) => fetch(`${client.baseUrl}${path}`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body),
+    }).then((r) => r.json() as Promise<Record<string, any>>);
+    const otp = await json('/api/auth/otp/request', { phone: '9123456781' });
+    const session = await json('/api/auth/otp/verify', { phone: '9123456781', code: otp.devCode, fullName: 'Wishlist Customer' });
+    const token = session.accessToken as string;
+
+    const list = await client.request('GET', '/api/catalog/products');
+    const productId = list.body.items[0].id as string;
+
+    assert.equal((await client.request('POST', `/api/account/wishlist/${productId}`, { token })).status, 201);
+    assert.equal((await client.request('POST', `/api/account/wishlist/${productId}`, { token })).status, 201, 'adding twice is harmless');
+    const mine = await client.request('GET', '/api/account/wishlist/ids', { token });
+    assert.deepEqual(mine.body.ids, [productId]);
+
+    assert.equal((await client.request('DELETE', `/api/account/wishlist/${productId}`, { token })).status, 200);
+    assert.deepEqual((await client.request('GET', '/api/account/wishlist/ids', { token })).body.ids, []);
   });
 });
 
@@ -645,6 +692,54 @@ describe('admin', () => {
 
     const duplicate = await client.request('POST', '/api/admin/coupons', { token: adminToken, body });
     assert.equal(duplicate.status, 409);
+  });
+
+  test('lets the owner add, hide and delete a review, and the stars follow what is published', async () => {
+    const list = await client.request('GET', '/api/catalog/products?perPage=1');
+    const product = list.body.items[0];
+    const before = product.rating?.count ?? 0;
+
+    const refused = await client.request('POST', '/api/admin/reviews', {
+      token: adminToken, body: { productId: product.id, authorName: 'A', rating: 6, title: 'x', body: 'short' },
+    });
+    assert.equal(refused.status, 422);
+
+    const created = await client.request('POST', '/api/admin/reviews', {
+      token: adminToken,
+      body: { productId: product.id, authorName: 'Priya S., Mysuru', rating: 4, title: 'Steady and quiet', body: 'Raises smoothly and stays put while the dog is turned.' },
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.body.status, 'approved');
+    assert.equal(created.body.isVerifiedPurchase, false, 'an owner-entered review is never a verified purchase');
+
+    const counted = async () => (await client.request('GET', `/api/catalog/products?ids=${product.id}`)).body.items[0].rating?.count ?? 0;
+    assert.equal(await counted(), before + 1);
+
+    await client.request('PATCH', `/api/admin/reviews/${created.body.id}`, { token: adminToken, body: { status: 'rejected' } });
+    assert.equal(await counted(), before, 'a hidden review stops counting');
+
+    const gone = await client.request('DELETE', `/api/admin/reviews/${created.body.id}`, { token: adminToken });
+    assert.equal(gone.status, 200);
+  });
+
+  test('edits, hides and reorders a banner without losing its fields', async () => {
+    const made = await client.request('POST', '/api/admin/banners', {
+      token: adminToken,
+      body: { title: 'Test slide', eyebrow: 'Tests', imageDesktop: '/banners/slide-electric.jpg', ctaLabel: 'Go', ctaUrl: '/shop', placement: 'hero', sortOrder: 9, isActive: true },
+    });
+    assert.equal(made.status, 201);
+    const id = made.body.id;
+
+    const hidden = await client.request('PUT', `/api/admin/banners/${id}`, {
+      token: adminToken,
+      body: { title: 'Test slide', subtitle: null, eyebrow: 'Tests', imageDesktop: '/banners/slide-electric.jpg', imageMobile: null, videoUrl: null, ctaLabel: 'Go', ctaUrl: '/shop', placement: 'hero', sortOrder: 0, startsAt: null, endsAt: null, isActive: false },
+    });
+    assert.equal(hidden.status, 200);
+
+    const publicHero = await client.request('GET', '/api/catalog/banners?placement=hero');
+    assert.ok(!publicHero.body.items.some((b: any) => b.id === id), 'a hidden banner is not served to the storefront');
+
+    await client.request('DELETE', `/api/admin/banners/${id}`, { token: adminToken });
   });
 
   test('enforces legal order status transitions and restocks on cancel', async () => {

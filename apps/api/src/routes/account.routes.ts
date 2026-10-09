@@ -113,6 +113,14 @@ accountRouter.get('/wishlist', asyncHandler(async (req, res) => {
   res.json({ items: rows });
 }));
 
+/** Just the ids, for the hearts on every card — the full list is a heavy payload. */
+accountRouter.get('/wishlist/ids', asyncHandler(async (req, res) => {
+  const db = getDb();
+  const rows = await db.select({ productId: wishlists.productId }).from(wishlists)
+    .where(eq(wishlists.userId, req.user!.id)).orderBy(desc(wishlists.createdAt));
+  res.json({ ids: rows.map((r) => r.productId) });
+}));
+
 accountRouter.post('/wishlist/:productId',
   validateParams(z.object({ productId: uuidSchema })),
   asyncHandler(async (req, res) => {

@@ -601,9 +601,11 @@ need"). `featured-story.tsx`, `proof.tsx` and `category-pills.tsx` are still in
 `components/home/` but nothing renders them. Delete them if they are not coming
 back.
 
-**Phone product cards are deliberately short** (about 340px, down from ~440):
-5:4 photo area, no old price and no EMI line, swatches without the finish name,
-a 36px button — all restored from `sm` up. Do not give the phone card back its
+**Phone product cards are deliberately short** (about 350px, down from ~440):
+4:3 photo area, a one-line rating (empty stars only — the "No reviews yet" words and the
+"You save" line show from `sm` up), price + % off with the struck M.R.P. under it, no EMI
+line, swatches without the finish name, a 36px button. "Only N left" stays on a phone: it is
+rare and it matters. Do not give the phone card back its
 extra rows without a reason.
 
 ## Product images: white stage, whole product
@@ -730,6 +732,25 @@ deliberately does not call `setIsOpen`.
 - If a new place adds to the cart, give it the same two lines (fly on success,
   message on failure) and do not reopen the drawer.
 
+## Database security: row-level security must be ON
+
+Supabase exposes the `public` schema through its **Data API**, callable by anyone
+who has the project's public (anon / publishable) key — which sits in
+`NEXT_PUBLIC_SUPABASE_*` and was pasted in chat. With RLS off that key could read
+(and change) every user, address, order, payment, sign-in code and session; this was
+found on 2026-10-09 (all 30 tables "UNRESTRICTED") and fixed the same day by enabling
+RLS on every table with **no policies**. The public roles now see nothing; the store
+is unaffected because the API connects as `postgres`, which bypasses RLS.
+
+- **A table added by a later migration is NOT protected** until you run
+  `DATABASE_URL=<direct url> npm run db:secure -w @aps/db` (idempotent) — do it after
+  every migration that creates a table, and check the Supabase Table Editor shows no
+  "UNRESTRICTED" badge. A new product-style table with no policy is the safe default.
+- Do not add policies to let the browser read tables directly; the API is the only door.
+- Do not give the public key to anything that does not need it, and never put the
+  **service-role / secret key** (or the database password) in a `NEXT_PUBLIC_*`
+  variable, the repo, or chat.
+
 ## Cart, checkout and account pages
 
 Rebuilt to match the light shop-first look (white `ListingHero` band, white cards
@@ -760,6 +781,100 @@ obvious from the markup:
 - **Signed-out `/account` has a real Sign in button** (`useSignIn().openSignIn`).
   It used to link to `/`, which left someone on the homepage with no hint of
   what to do next.
+
+## Wishlist, card details, banner carousel and the phone search screen
+
+- **Wishlist.** A heart on every card and on the product photo (`wishlist-button.tsx`),
+  state in `providers/wishlist-provider.tsx`, page at `/wishlist`, count on the
+  header heart. A **guest who taps it gets the sign-in dialog**, and the product
+  is saved the moment they finish signing in (`pending` ref in the provider) — they
+  do not have to tap again. API: `GET /api/account/wishlist/ids` (cheap, for the
+  hearts) next to the existing list/add/remove. `/api/catalog/products?ids=a,b`
+  (max 48 uuids) returns just those products, for the wishlist page.
+- **Card details.** Five-star row (only when real approved reviews exist), price,
+  green "N% off", struck-through M.R.P., then ONE line: "Only N left" if the
+  selected finish is genuinely at or under its low-stock threshold
+  (`ProductOption.stockLeft`, null otherwise), else "You save ₹X". **Never add
+  invented ratings, "limited offer" timers or fake scarcity** — the compare-at
+  price is real catalogue data and low stock is real stock.
+- **(Superseded — see "The homepage top is a carousel")** Banner carousel, under the
+  bestsellers so products stay on the first screen. Native scroll-snap; autoplay
+  only while visible, paused on hover/focus, stopped for good by any arrow, dot or
+  swipe, off under reduced motion. Slides are 4:3 crops in `public/banners/slide-*.jpg`
+  (AI placeholders for the real range). Desktop puts the words on navy beside the
+  photo so the subject is never under text.
+- **Phone search screen** (`layout/search-home.tsx`, shown by `search-provider.tsx`
+  until two characters are typed): recent searches, collection photo tiles, "Popular
+  picks" (the featured list) and recently viewed. Recent searches and recently
+  viewed live in this browser's localStorage only (`lib/recent.ts`; viewed items
+  are recorded by `RecentlyViewedTracker` on product pages). "Trending" is not
+  claimed — there is no analytics behind it, so it is called Popular picks.
+
+### The homepage top is a carousel of finished banner artwork, run from Admin → Banners
+
+**Supersedes** the earlier "Banner carousel" bullet (it sat under the bestsellers) and the
+version where the coded hero was slide 1 with photo slides after it.
+
+- The client supplied eight finished banner designs (headline, button, feature tiles and
+  all — "Stop grooming on the floor" first). They are `public/banners/banner-1…8-*.jpg`
+  and are ordinary `hero` banners (`/api/catalog/banners?placement=hero`), so Admin →
+  Banners edits, hides/shows, reorders (↑↓ rewrites `sortOrder`), schedules, uploads
+  and adds slides. Nothing is overlaid on the artwork: the picture is the slide, the whole
+  picture links to `ctaUrl`, and `title` is its alt text.
+- `components/home/banner-carousel.tsx`. **Every slide is the same size (1.9:1,
+  `BANNER_ASPECT` in `lib/banner-art.ts`), cropped.** History, so it is not repeated: the client
+  rejected `object-contain` over a blurred copy, and pre-padding to one shape ("not fitting",
+  blurry bands), then rejected a frame that changed shape per picture ("the carousel will change
+  shape — crop it and make it the same size"). The supplied artwork is three shapes (2.19, 2.74,
+  1.79), so the eight files in `public/banners/banner-N-*.jpg` were **cropped by hand to 1.9:1**:
+  the 16:9 ones lose a few px top and bottom (starting 26px down so the small eyebrow line and
+  the bottom captions both survive), banner 1 loses its right-hand tile captions, banner 2
+  loses its right tiles and half its "100 KG" badge (both anchored left, where the headline and
+  button are). An uploaded picture of another shape is cropped by `object-cover`.
+- **The "Shop now" button drawn in each picture is covered by a real link**
+  (`BANNER_BUTTONS`: its box as % of the CROPPED picture, found by colour-detecting the button and
+  checked by eye). It is focusable, lifts and glows on hover, and has a thumb-sized hit area; the
+  rest of the picture is also a link (`ctaUrl`). Uploaded banners have no entry, so the whole
+  picture is the link. **Re-measure an entry whenever its image is re-exported or re-cropped.**
+- Layout: full width on a phone (so its small print is small — upload a phone version per banner
+  if that matters); from `sm` up it sits in the page content width with rounded corners (about
+  650px tall at 1360px wide). Arrows sit in the page gutter beside it and the dots under it, so
+  nothing is drawn over the artwork.
+- The carousel starts below the fixed header (`pt-16 lg:pt-[6.75rem]`). If it has no
+  slides the built-in `Hero` renders instead (its text is the old coded fallback), so the
+  top of the page is never empty. `hero.tsx` is therefore still used, only as that fallback.
+- Autoplay: only while on screen, paused on hover/focus, stopped for good by any arrow,
+  dot or swipe, off under reduced motion. `priority` and `loading` cannot be mixed on a
+  Next `Image`: only slide 0 is priority; its neighbours load eagerly, the rest lazily.
+- Seeding: `packages/db/src/seed/slides.data.ts`. The full seed inserts them; `seed:extra`
+  installs them **once** (marker: a hero banner whose image starts `/banners/banner-`) and
+  switches any older hero banner OFF (not deleted). Run `seed:extra` once on production to
+  get them. Deleting a slide in admin never brings it back.
+- `getBanners` caches for 60s, and the dev server also caches that fetch in memory — restart
+  `next dev` after changing banners directly in the database.
+- **The artwork prints claims** ("100 KG load capacity", "304 stainless steel", "rust proof",
+  "sound-dampening", "luxury & safety") that nobody has checked against the products. They
+  are AI-generated marketing creative; confirm them before launch.
+
+### Reviews and ratings: the owner can add, hide and delete them
+
+Admin → Reviews has Waiting / Published / Hidden / All tabs, **Add a review** (enter feedback
+a real customer gave by WhatsApp, phone or a marketplace; goes live at once and is never
+marked "verified purchase"), Hide, Publish and Delete. Customer-written reviews still wait
+for approval. Card and product-page stars are the average of **published** reviews only
+(`catalog.service.ts`), so hiding a review changes the average. The admin page says plainly
+that reviews must be real; do not add a way to generate or bulk-import ratings.
+
+### Product page: stars line and the "why buy" grid
+
+`stars.tsx` is the one star row (cards and product page). With no published reviews it shows
+five **empty** stars and "No reviews yet" — it never shows a made-up rating. The product page
+puts stars, average, "(N reviews)" (links to `#reviews`) and the In stock dot under the title,
+and a 3×2 grid under the pincode check: Direct from manufacturer, Easy returns policy
+(`/pages/returns`), Secure payment, Pan India shipping (`/pages/shipping`), the product's own
+warranty months, Expert support (`/enquiry`). "Direct from manufacturer" is the owner's own
+statement about his business. A competitor's "Limited time offer — expires soon" line was
+shown to us as a reference and deliberately NOT copied: there is no real deadline behind it.
 
 ## Claims must match the data
 
@@ -846,7 +961,7 @@ release it after 45 minutes.
 
 ## Verifying
 
-`npm test` — 134 tests: 74 unit over pricing and tax, 60 integration running the
+`npm test` — 139 tests: 74 unit over pricing and tax, 65 integration running the
 real Express app against a real database over real HTTP. No mocks; they have
 caught several genuine bugs.
 

@@ -5,6 +5,7 @@ import * as s from '../schema/index.ts';
 import { categoryImage, insertProduct } from './insert-product.ts';
 import { CATEGORIES, PRODUCTS } from './products.data.ts';
 import { EXTRA_CATEGORIES, EXTRA_PRODUCTS } from './products.extra.ts';
+import { HERO_SLIDES } from './slides.data.ts';
 
 /**
  * Add the second-wave catalogue (fixed tables, tubs, combos) to a database that
@@ -63,7 +64,26 @@ async function main(): Promise<void> {
     console.log(`  + ${p.name}`);
   }
 
-  console.log(`\nAdded ${addedCategories} categories and ${addedProducts} products (${EXTRA_PRODUCTS.length - addedProducts} already present). Nothing was deleted.`);
+  /* The homepage carousel's banner artwork: installed once. After that the slides
+     belong to the admin — deleting one there must not bring it back on the next run.
+     The marker is the artwork's filename, so a database that already has them is left
+     alone. Any older hero banner (the original coded-hero text banner) is switched
+     OFF, not deleted, so it stops showing as a stray first slide. */
+  const heroBanners = await db.select({ id: s.banners.id, image: s.banners.imageDesktop })
+    .from(s.banners).where(eq(s.banners.placement, 'hero'));
+  let addedSlides = 0;
+  if (!heroBanners.some((b) => b.image.startsWith('/banners/banner-'))) {
+    for (const old of heroBanners) {
+      await db.update(s.banners).set({ isActive: false }).where(eq(s.banners.id, old.id));
+    }
+    await db.insert(s.banners).values(
+      HERO_SLIDES.map((slide, i) => ({ ...slide, placement: 'hero' as const, sortOrder: i, isActive: true })),
+    );
+    addedSlides = HERO_SLIDES.length;
+  }
+
+  console.log(`\nAdded ${addedSlides} carousel slides.`);
+  console.log(`Added ${addedCategories} categories and ${addedProducts} products (${EXTRA_PRODUCTS.length - addedProducts} already present). Nothing was deleted.`);
   process.exit(0);
 }
 

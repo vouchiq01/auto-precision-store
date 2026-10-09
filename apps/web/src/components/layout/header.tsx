@@ -7,6 +7,7 @@ import { cn } from '@/lib/cn';
 import { useAuth } from '@/providers/auth-provider';
 import { useCart } from '@/providers/cart-provider';
 import { useSearch } from '@/providers/search-provider';
+import { useWishlist } from '@/providers/wishlist-provider';
 import { Logo } from './logo';
 import { SearchBox } from './search-box';
 
@@ -39,6 +40,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
   const { user } = useAuth();
   const { cart, pendingAdds, open: openCart } = useCart();
   const { openSearch } = useSearch();
+  const { count: wishlistCount } = useWishlist();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -94,6 +96,21 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
                 <path d="M13.5 13.5L17 17" strokeLinecap="round" />
               </svg>
             </button>
+
+            <Link
+              href="/wishlist"
+              aria-label={`Wishlist${wishlistCount ? `, ${wishlistCount} saved` : ''}`}
+              className="relative hidden size-10 shrink-0 place-items-center rounded-full border border-line text-content transition-colors hover:border-line-strong hover:bg-sand lg:grid"
+            >
+              <svg viewBox="0 0 24 24" className="size-[1.125rem]" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 20.5s-7.5-4.6-7.5-10.1A4.4 4.4 0 0 1 12 7.9a4.4 4.4 0 0 1 7.5 2.5c0 5.5-7.5 10.1-7.5 10.1z" />
+              </svg>
+              {wishlistCount > 0 && (
+                <span className="numeric absolute -right-1 -top-1 grid min-w-4 place-items-center rounded-full bg-crimson px-1 text-[0.625rem] font-semibold leading-4 text-white">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
 
             {user ? (
               <Link
@@ -196,7 +213,7 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
         aria-hidden={!mobileOpen}
       >
         <nav className="shell flex h-full flex-col justify-center gap-1 pt-16" aria-label="Mobile navigation">
-          {[{ href: '/shop', label: 'All products' }, ...NAV].map((item, i) => (
+          {[{ href: '/shop', label: 'All products' }, ...NAV, { href: '/wishlist', label: 'Wishlist' }].map((item, i) => (
             <Link
               key={item.href}
               href={item.href}

@@ -103,6 +103,12 @@ export interface ProductOption {
   label: string;
   hexColour: string | null;
   inStock: boolean;
+  /**
+   * How many are left — set ONLY when the stock is genuinely low (at or under the
+   * variant's own low-stock threshold), otherwise null. It powers an honest "Only 2
+   * left" on a card; the shop never invents urgency it cannot back up.
+   */
+  stockLeft: number | null;
 }
 
 export interface ProductDetail extends ProductSummary {

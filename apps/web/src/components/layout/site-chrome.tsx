@@ -10,6 +10,7 @@ import { Footer } from './footer';
 import { CartDrawer } from './cart-drawer';
 import { SignInProvider, useSignIn } from '@/providers/sign-in-provider';
 import { SearchProvider } from '@/providers/search-provider';
+import { WishlistProvider } from '@/providers/wishlist-provider';
 import { MobileTabBar, useTabBarVisible } from './mobile-tab-bar';
 
 /**
@@ -38,11 +39,13 @@ export function SiteChrome({ children }: { children: ReactNode }) {
     <AuthProvider>
       <CartProvider>
         <SignInProvider>
-          <SearchProvider>
-            <SmoothScroll>
-              <ChromeInner>{children}</ChromeInner>
-            </SmoothScroll>
-          </SearchProvider>
+          <WishlistProvider>
+            <SearchProvider>
+              <SmoothScroll>
+                <ChromeInner>{children}</ChromeInner>
+              </SmoothScroll>
+            </SearchProvider>
+          </WishlistProvider>
         </SignInProvider>
       </CartProvider>
     </AuthProvider>

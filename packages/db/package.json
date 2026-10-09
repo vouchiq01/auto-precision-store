@@ -32,7 +32,8 @@
     "studio": "drizzle-kit studio",
     "seed": "node --experimental-strip-types src/seed/index.ts",
     "seed:extra": "node --experimental-strip-types src/seed/add-extra.ts",
-    "seed:images": "node --experimental-strip-types src/seed/sync-images.ts"
+    "seed:images": "node --experimental-strip-types src/seed/sync-images.ts",
+    "db:secure": "node --experimental-strip-types src/secure.ts"
   },
   "dependencies": {
     "@aps/shared": "*",

@@ -1,3 +1,4 @@
+import { HERO_SLIDES } from './slides.data.ts';
 import { sql } from 'drizzle-orm';
 import { createDb, isPgliteUrl } from '../client.ts';
 import { bootstrapLocalDatabase } from '../bootstrap.ts';
@@ -143,21 +144,15 @@ async function main(): Promise<void> {
   // ---- Banners -------------------------------------------------------------
   await db.insert(s.banners).values([
     {
-      eyebrow: 'Grooming tables', title: 'Stop grooming on the floor.',
-      subtitle: 'A table that rises to your height, turns the dog to your hand, and holds it still. From ₹8,900.',
-      imageDesktop: '/banners/hero-apex.jpg', imageMobile: '/banners/hero-apex-mobile.jpg',
-      ctaLabel: 'See the round tables', ctaUrl: '/collections/round-rotating',
-      placement: 'hero', sortOrder: 0, isActive: true,
-    },
-    {
       eyebrow: 'Free freight', title: 'Free delivery across Karnataka over ₹25,000.',
       subtitle: 'Crated, tracked and kerbside-delivered from our Bengaluru warehouse.',
       imageDesktop: '/banners/strip-freight.jpg',
       ctaLabel: 'Check your pincode', ctaUrl: '/collections/electric-lifting',
       placement: 'strip', sortOrder: 0, isActive: true,
     },
+    ...HERO_SLIDES.map((slide, i) => ({ ...slide, placement: 'hero' as const, sortOrder: i, isActive: true })),
   ]);
-  console.log('  2 banners');
+  console.log(`  ${1 + HERO_SLIDES.length} banners`);
 
   // ---- Coupons -------------------------------------------------------------
   const now = new Date();

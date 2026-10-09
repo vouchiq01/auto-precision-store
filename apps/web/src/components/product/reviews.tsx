@@ -13,7 +13,7 @@ function Stars({ rating }: { rating: number }) {
 export function Reviews({ reviews }: { reviews: ReviewPage | null }) {
   if (!reviews || reviews.total === 0) {
     return (
-      <section className="shell py-20 md:py-28">
+      <section id="reviews" className="shell scroll-mt-36 py-20 md:py-28">
         <Eyebrow>Reviews</Eyebrow>
         <h2 className="display-md mt-4 text-content">No reviews yet.</h2>
         <p className="lede mt-5">
@@ -31,7 +31,7 @@ export function Reviews({ reviews }: { reviews: ReviewPage | null }) {
   ] as const;
 
   return (
-    <section className="shell py-20 md:py-28">
+    <section id="reviews" className="shell scroll-mt-36 py-20 md:py-28">
       <div className="flex items-end justify-between gap-8">
         <div>
           <Eyebrow>Reviews</Eyebrow>

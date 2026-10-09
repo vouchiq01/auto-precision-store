@@ -6,6 +6,7 @@ import type { ProductImage } from '@aps/shared';
 import { cn } from '@/lib/cn';
 import { PhotoPlaceholder } from './photo-placeholder';
 import { SpinViewer } from './spin-viewer';
+import { WishlistButton } from './wishlist-button';
 
 /**
  * Product media.
@@ -15,10 +16,12 @@ import { SpinViewer } from './spin-viewer';
  * can do when the copy is this dense.
  */
 export function ProductGallery({
-  images, name, spinSlug, spinFrames,
+  images, name, productId, spinSlug, spinFrames,
 }: {
   images: ProductImage[];
   name: string;
+  /** Enables the save-to-wishlist heart on the photo. */
+  productId?: string;
   /** When set, a 360° tab is offered alongside the stills. */
   spinSlug?: string | null;
   /** Frame filenames from the product's spin/frames.json, in viewing order. */
@@ -68,6 +71,7 @@ export function ProductGallery({
         ) : (
           <PhotoPlaceholder />
         )}
+        {productId && <WishlistButton productId={productId} name={name} className="absolute right-3 top-3 z-10 sm:right-4 sm:top-4" />}
       </div>
 
       {images.length > 1 && (

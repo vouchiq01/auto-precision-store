@@ -6,7 +6,7 @@ import {
   reviews, stockNotifications, users,
 } from '@aps/db';
 import {
-  bannerInputSchema, cmsPageInputSchema, couponInputSchema, moderateReviewSchema, ORDER_STATUSES,
+  adminReviewInputSchema, bannerInputSchema, cmsPageInputSchema, couponInputSchema, moderateReviewSchema, ORDER_STATUSES,
   paginationSchema, updateEnquirySchema, updateOrderStatusSchema, uuidSchema,
 } from '@aps/shared';
 import { asyncHandler } from '../../lib/async-handler.ts';
@@ -319,6 +319,28 @@ adminCommerceRouter.patch('/reviews/:id',
     res.json(updated);
   }),
 );
+
+adminCommerceRouter.post('/reviews', validateBody(adminReviewInputSchema), asyncHandler(async (req, res) => {
+  const db = getDb();
+  const body = req.body as z.infer<typeof adminReviewInputSchema>;
+  const [product] = await db.select({ id: products.id }).from(products).where(eq(products.id, body.productId)).limit(1);
+  if (!product) throw new NotFoundError('Product');
+  const [created] = await db.insert(reviews).values({
+    productId: body.productId, rating: body.rating, title: body.title, body: body.body,
+    authorName: body.authorName, status: 'approved', isVerifiedPurchase: false,
+    moderatedBy: req.user!.id, moderatedAt: new Date(), moderationNote: 'Entered by the store owner',
+  }).returning();
+  await audit({ actorId: req.user?.id, action: 'review.create', entity: 'review', entityId: created?.id, ip: req.ip });
+  res.status(201).json(created);
+}));
+
+adminCommerceRouter.delete('/reviews/:id', validateParams(z.object({ id: uuidSchema })), asyncHandler(async (req, res) => {
+  const db = getDb();
+  const { id } = params<{ id: string }>(req);
+  await db.delete(reviews).where(eq(reviews.id, id));
+  await audit({ actorId: req.user?.id, action: 'review.delete', entity: 'review', entityId: id, ip: req.ip });
+  res.json({ ok: true });
+}));
 
 // ---- Enquiries ------------------------------------------------------------
 

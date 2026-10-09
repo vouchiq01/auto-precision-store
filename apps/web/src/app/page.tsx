@@ -9,6 +9,7 @@ import { CategoryRail } from '@/components/home/category-rail';
 import { WhatItDoes } from '@/components/home/what-it-does';
 import { TableDemo } from '@/components/home/table-demo';
 import { Bestsellers } from '@/components/home/bestsellers';
+import { BannerCarousel } from '@/components/home/banner-carousel';
 import { EnquiryCta } from '@/components/home/enquiry-cta';
 
 export const metadata: Metadata = {
@@ -52,10 +53,14 @@ export default async function HomePage() {
 
   return (
     <>
-      {/* Shop first: a short hero, then the products. The story that explains the
+      {/* Shop first: the banner carousel, then the products. The story that explains the
           tables sits below, for the people who want it. The collections are in
           the header, and in the menu on a phone. */}
-      <Hero banner={heroBanners[0] ?? null} totalProducts={totalProducts} spotlight={rails[1]?.items.find((p) => p.slug === 'orbit-r-round-rotating-table') ?? rails[1]?.items[0] ?? null} />
+      {/* The admin's banner artwork when there is any; the built-in hero is the fallback
+          so the page is never empty at the top. */}
+      {heroBanners.length > 0
+        ? <BannerCarousel slides={heroBanners} />
+        : <Hero banner={null} totalProducts={totalProducts} spotlight={rails[1]?.items.find((p) => p.slug === 'orbit-r-round-rotating-table') ?? rails[1]?.items[0] ?? null} />}
       <Bestsellers products={featured.items} />
       <TrustCards />
 

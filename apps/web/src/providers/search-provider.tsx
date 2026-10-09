@@ -1,9 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { SearchBox } from '@/components/layout/search-box';
-import { COLLECTION_LINKS } from '@/lib/collections';
+import { SearchHome } from '@/components/layout/search-home';
 
 /**
  * One search sheet for the whole storefront, opened from the header icon or the
@@ -21,8 +20,9 @@ const SearchContext = createContext<SearchContextValue | null>(null);
 
 export function SearchProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const openSearch = useCallback(() => setOpen(true), []);
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => { setOpen(false); setQuery(''); }, []);
   const value = useMemo(() => ({ openSearch, searchOpen: open }), [openSearch, open]);
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
         >
           <div className="flex items-center gap-3 border-b border-line px-4 py-3">
             <div className="min-w-0 flex-1">
-              <SearchBox variant="overlay" autoFocus onDone={close} />
+              <SearchBox variant="overlay" autoFocus onDone={close} value={query} onValueChange={setQuery} />
             </div>
             <button
               type="button"
@@ -62,27 +62,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
           {/* data-lenis-prevent: the smooth-scroll library otherwise swallows
               wheel and touch scrolling inside a fixed overlay. */}
           <div data-lenis-prevent className="flex-1 overflow-y-auto px-4 py-5">
-            <p className="eyebrow">Browse</p>
-            <ul className="mt-3 flex flex-wrap gap-2">
-              {COLLECTION_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    onClick={close}
-                    className="inline-flex rounded-full border border-line bg-surface px-4 py-2 text-sm font-medium text-content transition-colors hover:border-crimson hover:text-crimson"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <Link
-              href="/shop"
-              onClick={close}
-              className="mt-5 inline-flex text-sm font-medium text-crimson hover:text-crimson-deep"
-            >
-              Shop all tables →
-            </Link>
+            {query.trim().length < 2 && <SearchHome onPick={setQuery} onNavigate={close} />}
           </div>
         </div>
       )}

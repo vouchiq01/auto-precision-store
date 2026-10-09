@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { formatINR, paiseToRupees, STORE } from '@aps/shared';
 import { getProduct, getProductSlugs, getReviews } from '@/lib/queries';
 import { ProductGallery } from '@/components/product/product-gallery';
+import { RecentlyViewedTracker } from '@/components/product/recently-viewed-tracker';
 import { BuyBox } from '@/components/product/buy-box';
 import { ProductSpecs } from '@/components/product/product-specs';
 import { ProductStory } from '@/components/product/product-story';
@@ -137,10 +138,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <ProductGallery
             images={product.images}
             name={product.name}
+            productId={product.id}
             spinSlug={spinFrames ? product.slug : null}
             spinFrames={spinFrames ?? undefined}
           />
           <BuyBox product={product} />
+          <RecentlyViewedTracker slug={product.slug} name={product.name} price={product.price} image={product.images[0]?.url ?? null} />
         </div>
 
         {product.description && (

@@ -101,6 +101,9 @@ export const productFilterSchema = z.object({
   inStock: z.coerce.boolean().optional(),
   featured: z.coerce.boolean().optional(),
   search: z.string().trim().max(120).optional(),
+  /** Specific products, comma-separated — the wishlist page and the recently-viewed row. */
+  ids: z.string().optional().transform((value) => (value ? value.split(',').filter(Boolean).slice(0, 48) : undefined))
+    .pipe(z.array(z.string().uuid()).max(48).optional()),
   sort: z.enum(['featured', 'price_asc', 'price_desc', 'newest', 'name']).default('featured'),
 });
 export type ProductFilter = z.infer<typeof productFilterSchema>;

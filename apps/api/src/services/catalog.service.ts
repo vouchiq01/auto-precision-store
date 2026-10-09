@@ -74,6 +74,7 @@ export async function listProducts(filter: ProductFilter, page = 1, perPage = 24
   }
   if (filter.brand) conditions.push(eq(products.brand, filter.brand));
   if (filter.featured) conditions.push(eq(products.isFeatured, true));
+  if (filter.ids && filter.ids.length > 0) conditions.push(inArray(products.id, filter.ids));
   if (typeof filter.minPrice === 'number') conditions.push(gte(products.basePrice, filter.minPrice));
   if (typeof filter.maxPrice === 'number') conditions.push(lte(products.basePrice, filter.maxPrice));
   if (filter.search) {
@@ -196,6 +197,7 @@ async function hydrateSummaries(
         label: v.optionValue,
         hexColour: v.hexColour,
         inStock: v.stockQty > 0,
+        stockLeft: v.stockQty > 0 && v.stockQty <= v.lowStockThreshold ? v.stockQty : null,
       })),
       isFeatured: product.isFeatured,
       rating: rating ? { average: rating.average, count: rating.count } : null,
@@ -266,6 +268,7 @@ export async function getProductBySlug(slug: string): Promise<ProductDetail> {
     inStock: mappedVariants.some((v) => v.inStock),
     options: mappedVariants.map((v) => ({
       id: v.id, label: v.optionValue, hexColour: v.hexColour, inStock: v.inStock,
+      stockLeft: v.isLowStock ? v.stockQty : null,
     })),
     isFeatured: product.isFeatured,
     rating: rating && rating.count > 0 ? { average: rating.average, count: rating.count } : null,

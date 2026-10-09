@@ -9,6 +9,8 @@ import { addErrorMessage, flyToCart, showCartMessage } from '@/lib/fly-to-cart';
 import { useCart } from '@/providers/cart-provider';
 import { Badge, Spinner } from '@/components/ui/primitives';
 import { PhotoPlaceholder } from './photo-placeholder';
+import { Stars } from './stars';
+import { WishlistButton } from './wishlist-button';
 
 /**
  * A product card built to be compared, not admired.
@@ -76,7 +78,7 @@ export function ProductCard({
       )}
     >
       {/* ---- Photo ---------------------------------------------------- */}
-      <div ref={photoRef} className="relative aspect-[5/4] overflow-hidden border-b border-line bg-white sm:aspect-square">
+      <div ref={photoRef} className="relative aspect-[4/3] overflow-hidden border-b border-line bg-white sm:aspect-square">
         {product.primaryImage ? (
           <Image
             src={product.primaryImage.url}
@@ -95,7 +97,7 @@ export function ProductCard({
 
         {/* One badge, solid backing: it sits over an arbitrary photograph, and
             an outlined pill vanishes the moment the image behind it is mid-tone. */}
-        <div className="absolute left-2.5 top-2.5 flex max-w-[calc(100%-1.25rem)] sm:left-3 sm:top-3">
+        <div className="absolute left-2.5 top-2.5 flex max-w-[calc(100%-3.75rem)] sm:left-3 sm:top-3">
           {outOfStock ? (
             <Badge tone="warning" className="border-transparent bg-surface/95 text-warning backdrop-blur-sm">Sold out</Badge>
           ) : product.badges[0] ? (
@@ -104,6 +106,10 @@ export function ProductCard({
             </Badge>
           ) : null}
         </div>
+
+        {/* Above the stretched link (z-20), so a tap on the heart saves — it
+            never opens the product. */}
+        <WishlistButton productId={product.id} name={product.name} className="absolute right-2 top-2 z-20 sm:right-3 sm:top-3" />
       </div>
 
       {/* ---- Details -------------------------------------------------- */}
@@ -116,34 +122,52 @@ export function ProductCard({
           </Link>
         </h3>
 
+        {/* The average and count come from published reviews only. With none yet the
+            stars stay empty and say so — the shop never invents a rating. */}
         {product.rating ? (
-          <p className="numeric mt-1.5 flex items-center gap-1 text-xs text-muted">
-            <StarIcon />
-            <span className="font-medium text-content">{product.rating.average.toFixed(1)}</span>
+          <p className="numeric mt-1 flex items-center gap-1.5 whitespace-nowrap text-xs text-muted sm:mt-1.5" aria-label={`Rated ${product.rating.average.toFixed(1)} out of 5 from ${product.rating.count} ${product.rating.count === 1 ? 'review' : 'reviews'}`}>
+            <Stars value={product.rating.average} />
+            <span className="font-semibold text-content">{product.rating.average.toFixed(1)}</span>
             <span className="text-faint">({product.rating.count})</span>
           </p>
-        ) : null}
+        ) : (
+          <p className="mt-1 flex items-center gap-1.5 whitespace-nowrap text-xs text-faint sm:mt-1.5">
+            <Stars value={0} />
+            <span className="hidden sm:inline">No reviews yet</span>
+          </p>
+        )}
 
-        {/* Price and what you save first; the old price drops to its own line on
-            a narrow card rather than pushing the saving off the edge. */}
-        <div className="mt-2.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        {/* Price first, then the saving in green and the old price struck through.
+            On a narrow card the old price takes its own line; from `sm` all three
+            sit on one. */}
+        <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0 sm:mt-2">
           <span className="numeric text-[1.0625rem] font-semibold tracking-tight text-content sm:text-lg">{formatINR(product.price)}</span>
           {product.discountPercent !== null && !outOfStock && (
-            <span className="numeric order-2 rounded-md bg-success/10 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-success sm:order-3">
-              {product.discountPercent}% off
-            </span>
+            <span className="numeric text-xs font-semibold text-success">{product.discountPercent}% off</span>
           )}
           {product.compareAtPrice && (
-            <span className="numeric order-3 hidden text-xs text-faint line-through sm:order-2 sm:inline">{formatINR(product.compareAtPrice)}</span>
+            <span className="numeric basis-full text-[0.6875rem] text-faint sm:order-2 sm:basis-auto sm:text-xs">
+              <span className="sm:hidden">M.R.P. </span><span className="line-through">{formatINR(product.compareAtPrice)}</span>
+            </span>
           )}
         </div>
 
-        <p className="numeric mt-1 hidden h-4 text-[0.6875rem] text-muted sm:block">
-          {product.emiTeaser ? `EMI from ${product.emiTeaser}` : ''}
-        </p>
+        {/* One honest line: "Only N left" when the chosen finish really is nearly
+            gone; otherwise what you save, and on larger cards the EMI. */}
+        {(() => {
+          const left = selected?.stockLeft ?? null;
+          const save = product.compareAtPrice && product.compareAtPrice > product.price ? product.compareAtPrice - product.price : 0;
+          if (left !== null && !outOfStock) {
+            return <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-crimson"><span className="size-1.5 rounded-full bg-crimson" aria-hidden="true" />Only {left} left</p>;
+          }
+          if (save > 0 && !outOfStock) {
+            return <p className="numeric mt-1 hidden text-xs font-medium text-success sm:block">You save {formatINR(save)}</p>;
+          }
+          return product.emiTeaser ? <p className="numeric mt-1 hidden text-[0.6875rem] text-muted sm:block">EMI from {product.emiTeaser}</p> : null;
+        })()}
 
         {/* ---- Finish + add to cart ---------------------------------- */}
-        <div className="relative z-20 mt-auto pt-2.5 sm:pt-3">
+        <div className="relative z-20 mt-auto pt-2 sm:pt-3">
           {sellable.length > 1 && (
             <div role="radiogroup" aria-label={`Finish for ${product.name}`} className="mb-2 flex items-center gap-1.5 sm:mb-2.5 sm:gap-2">
               {sellable.map((option) => {
@@ -200,14 +224,6 @@ function BagIcon() {
     <svg viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true">
       <path d="M4 6.5h12l-1 9.5H5l-1-9.5z" strokeLinejoin="round" />
       <path d="M7.25 6.5V5a2.75 2.75 0 0 1 5.5 0v1.5" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function StarIcon() {
-  return (
-    <svg viewBox="0 0 20 20" className="size-3.5 text-amber-deep" fill="currentColor" aria-hidden="true">
-      <path d="M10 1.8l2.4 5 5.4.7-4 3.8 1 5.4L10 14l-4.8 2.7 1-5.4-4-3.8 5.4-.7z" />
     </svg>
   );
 }

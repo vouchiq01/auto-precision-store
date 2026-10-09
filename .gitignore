@@ -27,3 +27,4 @@ sample-invoice.pdf
 
 # Local-only admin uploads (dev fallback when Supabase Storage is not configured)
 apps/web/public/uploads/
+.playwright-mcp/

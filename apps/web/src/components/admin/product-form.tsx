@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/primitives';
 import { Card, Field, PageHeading, inputClass, selectClass } from './ui';
 import { PhotoUploader, UploadButton } from './photo-uploader';
+import { pickCardTag, tagFor, TAG_OPTIONS } from '@/components/product/product-tag';
 
 /* The form works in RUPEES and converts to paise at the boundary. Asking an
    admin to type 11240000 to mean ₹1,12,400 is a data-entry bug waiting to
@@ -47,7 +48,7 @@ export function ProductForm({ productId }: { productId?: string }) {
     status: 'draft', hsnCode: '9403', taxRateBps: '1800',
     weightG: '', lengthMm: '', widthMm: '', heightMinMm: '', heightMaxMm: '',
     loadCapacityKg: '', warrantyMonths: '12',
-    badges: '', isFeatured: false,
+    badges: '', cardTag: '', isFeatured: false,
   });
   const [variants, setVariants] = useState<VariantDraft[]>([
     { sku: '', optionName: 'Finish', optionValue: '', priceDeltaRupees: '0', stockQty: '0', weightG: '', hexColour: '', isActive: true },
@@ -78,7 +79,7 @@ export function ProductForm({ productId }: { productId?: string }) {
           weightG: String(product.weightG ?? ''), lengthMm: String(product.lengthMm ?? ''),
           widthMm: String(product.widthMm ?? ''), heightMinMm: String(product.heightMinMm ?? ''),
           heightMaxMm: String(product.heightMaxMm ?? ''), loadCapacityKg: String(product.loadCapacityKg ?? ''),
-          warrantyMonths: String(product.warrantyMonths), badges: (product.badges ?? []).join(', '),
+          warrantyMonths: String(product.warrantyMonths), badges: (product.badges ?? []).filter((b: string) => !tagFor(b)).join(', '), cardTag: pickCardTag(product.badges) ?? '',
           isFeatured: product.isFeatured,
         });
         setVariants((product.variants ?? []).map((v: any) => ({
@@ -116,7 +117,11 @@ export function ProductForm({ productId }: { productId?: string }) {
       heightMaxMm: form.heightMaxMm ? Number(form.heightMaxMm) : null,
       loadCapacityKg: form.loadCapacityKg ? Number(form.loadCapacityKg) : null,
       warrantyMonths: Number(form.warrantyMonths || 12),
-      badges: form.badges.split(',').map((b) => b.trim()).filter(Boolean),
+      /* The card tag goes first, so it is the badge the listing card shows. */
+      badges: [
+        ...(form.cardTag ? [TAG_OPTIONS.find((t) => t.key === form.cardTag)!.label] : []),
+        ...form.badges.split(',').map((b) => b.trim()).filter((b) => b && !tagFor(b)),
+      ].slice(0, 3),
       isFeatured: form.isFeatured,
       sortOrder: 0, metaTitle: null, metaDescription: form.summary?.slice(0, 165) || null,
       variants: variants.filter((v) => v.sku && v.optionValue).map((v) => ({
@@ -251,7 +256,13 @@ export function ProductForm({ productId }: { productId?: string }) {
           </div>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             {text('warrantyMonths', 'Warranty (months)', { type: 'number', min: 0 })}
-            {text('badges', 'Badges', { placeholder: 'Flagship, 3-year frame' })}
+            <Field label="Card tag" hint="The coloured tag on the product card. Only use one that is true — Best Seller from real sales, New for a recent addition.">
+              <select value={form.cardTag} onChange={(e) => setForm({ ...form, cardTag: e.target.value })} className={selectClass}>
+                <option value="">No tag</option>
+                {TAG_OPTIONS.map((t) => <option key={t.key} value={t.key}>{t.label}</option>)}
+              </select>
+            </Field>
+            {text('badges', 'Other badges', { placeholder: 'Flagship, 3-year frame' })}
           </div>
           <p className="mt-2 text-xs text-faint">Weight drives the freight slab, so keep it accurate.</p>
         </Card>

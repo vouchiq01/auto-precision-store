@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -133,14 +134,20 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
               type="button"
               onClick={openCart}
               data-cart-target
-              className="group relative flex h-10 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border border-line px-4 text-[0.8125rem] text-content transition-colors hover:border-line-strong hover:bg-sand"
+              className="group relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-full border border-line text-[0.8125rem] text-content transition-colors hover:border-line-strong hover:bg-sand sm:w-auto sm:px-4"
               aria-label={`Cart, ${itemCount} ${itemCount === 1 ? 'item' : 'items'}`}
             >
-              <span>Cart</span>
+              {/* A phone has no room for the word: a bag icon, with the count as a badge on its corner. */}
+              <svg viewBox="0 0 24 24" className="size-5 sm:hidden" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5.5 8.5h13l-1 11h-11z" /><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5" />
+              </svg>
+              <span className="hidden sm:inline">Cart</span>
               <span
                 className={cn(
-                  'numeric grid size-5 place-items-center rounded-full text-[0.6875rem] font-medium transition-colors',
-                  itemCount > 0 ? 'bg-crimson text-white' : 'bg-sand text-muted',
+                  'numeric grid place-items-center rounded-full font-medium transition-colors',
+                  'absolute -right-1 -top-1 h-[1.125rem] min-w-[1.125rem] px-1 text-[0.625rem] ring-2 ring-white',
+                  'sm:static sm:size-5 sm:min-w-0 sm:px-0 sm:text-[0.6875rem] sm:ring-0',
+                  itemCount > 0 ? 'bg-crimson text-white' : 'bg-sand text-muted max-sm:hidden',
                 )}
               >
                 {itemCount}
@@ -154,11 +161,13 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
               aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
               aria-expanded={mobileOpen}
             >
-              <span className="relative block h-2.5 w-4">
-                <span className={cn('absolute left-0 h-px w-full bg-current transition-all duration-300',
-                  mobileOpen ? 'top-1/2 rotate-45' : 'top-0')} />
-                <span className={cn('absolute left-0 h-px w-full bg-current transition-all duration-300',
-                  mobileOpen ? 'top-1/2 -rotate-45' : 'bottom-0')} />
+              <span className="relative block h-3 w-[1.125rem]" aria-hidden="true">
+                <span className={cn('absolute left-0 h-[1.5px] w-full rounded-full bg-current transition-all duration-300',
+                  mobileOpen ? 'top-1/2 -translate-y-1/2 rotate-45' : 'top-0')} />
+                <span className={cn('absolute left-0 top-1/2 h-[1.5px] w-full -translate-y-1/2 rounded-full bg-current transition-all duration-300',
+                  mobileOpen && 'scale-x-0 opacity-0')} />
+                <span className={cn('absolute left-0 h-[1.5px] w-full rounded-full bg-current transition-all duration-300',
+                  mobileOpen ? 'top-1/2 -translate-y-1/2 -rotate-45' : 'bottom-0')} />
               </span>
             </button>
           </div>
@@ -204,44 +213,134 @@ export function Header({ onSignIn }: { onSignIn: () => void }) {
         </nav>
       </header>
 
-      {/* Mobile navigation */}
+      {/* Mobile navigation: a full sheet under the header. Sign-in card, the collections as photo
+          tiles, quick links, and the dealer enquiry. It scrolls inside itself (data-lenis-prevent). */}
       <div
         className={cn(
-          'fixed inset-0 z-40 bg-surface text-content transition-[opacity,visibility] duration-500 lg:hidden',
+          'fixed inset-0 z-40 bg-canvas text-content transition-[opacity,visibility] duration-300 lg:hidden',
           mobileOpen ? 'visible opacity-100' : 'invisible opacity-0',
         )}
         aria-hidden={!mobileOpen}
       >
-        <nav className="shell flex h-full flex-col justify-center gap-1 pt-16" aria-label="Mobile navigation">
-          {[{ href: '/shop', label: 'All products' }, ...NAV, { href: '/wishlist', label: 'Wishlist' }].map((item, i) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              tabIndex={mobileOpen ? 0 : -1}
-              className="display-sm border-b border-line py-4 text-content transition-[transform,opacity] duration-500"
-              style={{
-                transitionDelay: mobileOpen ? `${i * 50 + 80}ms` : '0ms',
-                transform: mobileOpen ? 'translateY(0)' : 'translateY(18px)',
-                opacity: mobileOpen ? 1 : 0,
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
-          <div className="mt-8 flex items-center gap-5">
-            {user ? (
-              <Link href="/account" tabIndex={mobileOpen ? 0 : -1} className="text-sm text-muted">
-                Your account
-              </Link>
-            ) : (
-              <button type="button" onClick={onSignIn} tabIndex={mobileOpen ? 0 : -1} className="cursor-pointer rounded-full bg-crimson px-6 py-2.5 text-sm font-medium text-white">
-                Sign in
-              </button>
-            )}
-            <Link href="/enquiry" tabIndex={mobileOpen ? 0 : -1} className="text-sm font-medium text-crimson">
-              Bulk &amp; dealer enquiry
-            </Link>
-          </div>
+        <nav
+          data-lenis-prevent
+          aria-label="Mobile navigation"
+          className="h-full overflow-y-auto overscroll-contain px-4 pb-10 pt-[4.75rem]"
+        >
+          {(() => {
+            const rise = (i: number) => ({
+              transitionDelay: mobileOpen ? `${60 + i * 45}ms` : '0ms',
+              transform: mobileOpen ? 'translateY(0)' : 'translateY(14px)',
+              opacity: mobileOpen ? 1 : 0,
+            });
+            const tab = mobileOpen ? 0 : -1;
+            const motion = 'transition-[transform,opacity] duration-500';
+            return (
+              <>
+                {/* Who you are / sign in */}
+                <div style={rise(0)} className={cn(motion, 'flex items-center gap-3 rounded-2xl bg-surface p-3.5 shadow-card ring-1 ring-line')}>
+                  <span className="grid size-11 shrink-0 place-items-center rounded-full bg-crimson-tint text-crimson">
+                    <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <circle cx="12" cy="8.5" r="3.5" /><path d="M5 20c.8-3.600 3.700-5.500 7-5.500s6.200 1.900 7 5.500" />
+                    </svg>
+                  </span>
+                  {user ? (
+                    <>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold">Hi, {user.fullName?.split(' ')[0] ?? 'there'}</p>
+                        <p className="text-xs text-muted">Orders, addresses and warranty</p>
+                      </div>
+                      <Link href="/account" tabIndex={tab} className="shrink-0 rounded-full border border-line px-4 py-2 text-[0.8125rem] font-medium">
+                        Account
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold">Welcome</p>
+                        <p className="text-xs leading-snug text-muted">Sign in to track orders and save favourites</p>
+                      </div>
+                      <button
+                        type="button"
+                        tabIndex={tab}
+                        onClick={() => { setMobileOpen(false); onSignIn(); }}
+                        className="shrink-0 cursor-pointer rounded-full bg-crimson px-5 py-2.5 text-[0.8125rem] font-semibold text-white shadow-card transition-colors hover:bg-crimson-deep"
+                      >
+                        Sign in
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                {/* Collections as photo tiles */}
+                <div style={rise(1)} className={cn(motion, 'mt-6 flex items-end justify-between')}>
+                  <h2 className="font-display text-lg font-semibold tracking-[-0.02em]">Shop by collection</h2>
+                  <Link href="/shop" tabIndex={tab} className="text-[0.8125rem] font-medium text-crimson">All products →</Link>
+                </div>
+                <ul className="mt-3 grid grid-cols-2 gap-2.5">
+                  {NAV.map((item, i) => {
+                    const slug = item.href.split('/').pop();
+                    return (
+                      <li key={item.href} style={rise(i / 2 + 2)} className={motion}>
+                        <Link
+                          href={item.href}
+                          tabIndex={tab}
+                          className="group relative block aspect-[16/10] overflow-hidden rounded-2xl bg-sand ring-1 ring-line"
+                        >
+                          <Image
+                            src={`/categories/${slug}.jpg`} alt="" fill sizes="50vw"
+                            className="object-cover transition-transform duration-500 group-active:scale-105"
+                          />
+                          <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/20 to-transparent" />
+                          <span className="absolute inset-x-2.5 bottom-2 flex items-center justify-between text-[0.875rem] font-semibold text-white">
+                            {item.label}
+                            <span aria-hidden="true" className="grid size-5 place-items-center rounded-full bg-white/20 text-[0.6875rem] backdrop-blur-sm">→</span>
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                {/* Quick links */}
+                <ul style={rise(7)} className={cn(motion, 'mt-6 divide-y divide-line overflow-hidden rounded-2xl bg-surface ring-1 ring-line')}>
+                  {[
+                    { href: '/wishlist', label: 'Wishlist', note: wishlistCount > 0 ? `${wishlistCount} saved` : null, icon: <path d="M12 20s-7-4.300-7-9.500A4.100 4.100 0 0 1 12 8a4.100 4.100 0 0 1 7 2.500C19 15.700 12 20 12 20z" /> },
+                    { href: '/account', label: 'My orders', note: null, icon: <><path d="M4 7.500 12 4l8 3.500v9L12 20l-8-3.500z" /><path d="M4 7.500 12 11l8-3.500M12 11v9" /></> },
+                    { href: '/pages/shipping', label: 'Shipping & delivery', note: null, icon: <><path d="M3 6.500h10v8H3zM13 9.500h4l3 3v2h-7z" /><circle cx="7" cy="16" r="1.500" /><circle cx="16.500" cy="16" r="1.500" /></> },
+                  ].map((row) => (
+                    <li key={row.href}>
+                      <Link href={row.href} tabIndex={tab} className="flex items-center gap-3 px-4 py-3.5 text-[0.9375rem] font-medium transition-colors active:bg-sand">
+                        <svg viewBox="0 0 24 24" className="size-5 text-muted" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{row.icon}</svg>
+                        <span className="flex-1">{row.label}</span>
+                        {row.note && <span className="numeric text-xs text-muted">{row.note}</span>}
+                        <span aria-hidden="true" className="text-faint">›</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+
+                {/* Dealers */}
+                <Link
+                  href="/enquiry"
+                  tabIndex={tab}
+                  style={rise(8)}
+                  className={cn(motion, 'mt-3 flex items-center gap-3 rounded-2xl bg-ink px-4 py-4 text-on-ink')}
+                >
+                  <span className="grid size-10 shrink-0 place-items-center rounded-full bg-white/10 text-amber">
+                    <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M4 6.500h16v10H9.500L6 19.500v-3H4z" /><path d="M8 10.500h8" />
+                    </svg>
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[0.9375rem] font-semibold">Bulk &amp; dealer enquiry</span>
+                    <span className="block text-xs text-on-ink-muted">Ordering several? Talk to us for a quote.</span>
+                  </span>
+                  <span aria-hidden="true" className="text-lg">→</span>
+                </Link>
+              </>
+            );
+          })()}
         </nav>
       </div>
     </>

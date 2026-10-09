@@ -1,6 +1,6 @@
 import type { ReviewPage } from '@/lib/queries';
 import { formatDate } from '@/lib/format';
-import { Badge, Eyebrow, SectionNumber } from '@/components/ui/primitives';
+import { Badge, Eyebrow } from '@/components/ui/primitives';
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -13,13 +13,12 @@ function Stars({ rating }: { rating: number }) {
 export function Reviews({ reviews }: { reviews: ReviewPage | null }) {
   if (!reviews || reviews.total === 0) {
     return (
-      <section id="reviews" className="shell scroll-mt-36 py-20 md:py-28">
+      <section id="reviews" className="shell scroll-mt-32 py-10 md:py-14">
         <Eyebrow>Reviews</Eyebrow>
-        <h2 className="display-md mt-4 text-content">No reviews yet.</h2>
-        <p className="lede mt-5">
-          This table has not been reviewed on the site yet. If you own one, we would genuinely
-          like to hear what it is like after six months of real use.
-        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl bg-surface px-5 py-4 ring-1 ring-line">
+          <span className="text-lg tracking-widest text-line-strong" aria-hidden="true">★★★★★</span>
+          <p className="text-sm text-muted">No reviews yet — owners’ reviews appear here once they are published.</p>
+        </div>
       </section>
     );
   }
@@ -31,18 +30,15 @@ export function Reviews({ reviews }: { reviews: ReviewPage | null }) {
   ] as const;
 
   return (
-    <section id="reviews" className="shell scroll-mt-36 py-20 md:py-28">
-      <div className="flex items-end justify-between gap-8">
-        <div>
-          <Eyebrow>Reviews</Eyebrow>
-          <h2 className="display-md mt-4 text-content">From people who own one.</h2>
-        </div>
-        <SectionNumber value="05" className="hidden md:block" />
+    <section id="reviews" className="shell scroll-mt-32 py-10 md:py-14">
+      <div>
+        <Eyebrow>Reviews</Eyebrow>
+        <h2 className="mt-2 font-display text-2xl font-semibold leading-tight tracking-[-0.025em] text-content md:text-[1.875rem]">From people who own one.</h2>
       </div>
 
-      <div className="mt-12 grid gap-12 lg:grid-cols-[18rem_1fr]">
+      <div className="mt-6 grid gap-8 lg:grid-cols-[16rem_1fr]">
         <div>
-          <p className="numeric font-display text-6xl font-semibold text-content">
+          <p className="numeric font-display text-5xl font-semibold text-content">
             {distribution.average.toFixed(1)}
           </p>
           <p className="numeric mt-1 text-sm text-muted">{total} reviews</p>
@@ -67,7 +63,7 @@ export function Reviews({ reviews }: { reviews: ReviewPage | null }) {
 
         <ul className="divide-y divide-line border-t border-line">
           {items.map((review) => (
-            <li key={review.id} className="py-6">
+            <li key={review.id} className="py-5">
               <div className="flex flex-wrap items-center gap-3">
                 <Stars rating={review.rating} />
                 {review.isVerifiedPurchase && <Badge tone="success">Verified purchase</Badge>}

@@ -54,7 +54,8 @@ export function flyToCart(preferred: Element | null | undefined, fallback?: Elem
   const from = source ? source.getBoundingClientRect() : null;
   if (!source || !from) { bounce(target); return; }
 
-  const photo = source.querySelector('img');
+  /* The gallery marks the picture currently showing; otherwise the first image in the source. */
+  const photo = (source.querySelector('img[data-fly-active]') ?? source.querySelector('img')) as HTMLImageElement | null;
   const ghost = document.createElement('div');
   Object.assign(ghost.style, {
     position: 'fixed', left: `${from.left}px`, top: `${from.top}px`,

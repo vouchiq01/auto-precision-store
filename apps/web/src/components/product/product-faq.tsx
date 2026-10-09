@@ -3,42 +3,39 @@
 import { useState } from 'react';
 import type { ProductFaq as Faq } from '@aps/shared';
 import { cn } from '@/lib/cn';
-import { Eyebrow, SectionNumber } from '@/components/ui/primitives';
+import { Eyebrow } from '@/components/ui/primitives';
 
 export function ProductFaq({ faqs }: { faqs: Faq[] }) {
   const [open, setOpen] = useState<string | null>(faqs[0]?.id ?? null);
   if (faqs.length === 0) return null;
 
   return (
-    <section className="shell py-20 md:py-28">
-      <div className="flex items-end justify-between gap-8">
-        <div>
-          <Eyebrow>Questions</Eyebrow>
-          <h2 className="display-md mt-4 text-content">The things people ask.</h2>
-        </div>
-        <SectionNumber value="04" className="hidden md:block" />
+    <section className="shell py-10 md:py-14">
+      <div>
+        <Eyebrow>Questions</Eyebrow>
+        <h2 className="mt-2 font-display text-2xl font-semibold leading-tight tracking-[-0.025em] text-content md:text-[1.875rem]">The things people ask.</h2>
       </div>
 
-      <dl className="mt-12 border-t border-line">
+      <dl className="mt-5 overflow-hidden rounded-2xl bg-surface ring-1 ring-line">
         {faqs.map((faq) => {
           const expanded = open === faq.id;
           return (
-            <div key={faq.id} className="border-b border-line">
+            <div key={faq.id} className="border-b border-line last:border-b-0">
               <dt>
                 <button
                   type="button"
                   onClick={() => setOpen(expanded ? null : faq.id)}
                   aria-expanded={expanded}
                   aria-controls={`faq-${faq.id}`}
-                  className="flex w-full items-start justify-between gap-6 py-6 text-left"
+                  className="flex w-full cursor-pointer items-center justify-between gap-4 px-5 py-4 text-left"
                 >
-                  <span className="font-display text-lg font-medium tracking-[-0.015em] text-content">
+                  <span className="font-display text-base font-medium tracking-[-0.015em] text-content md:text-[1.0625rem]">
                     {faq.question}
                   </span>
                   <span
                     aria-hidden="true"
                     className={cn(
-                      'mt-1 grid size-7 shrink-0 place-items-center rounded-full border border-line text-muted',
+                      'grid size-7 shrink-0 place-items-center rounded-full border border-line text-muted',
                       'transition-transform duration-500 ease-out-expo',
                       expanded && 'rotate-45 border-crimson text-crimson',
                     )}
@@ -57,7 +54,7 @@ export function ProductFaq({ faqs }: { faqs: Faq[] }) {
                 )}
               >
                 <div className="overflow-hidden">
-                  <p className="max-w-3xl pb-6 leading-relaxed text-muted">{faq.answer}</p>
+                  <p className="max-w-3xl px-5 pb-5 text-[0.9375rem] leading-relaxed text-muted">{faq.answer}</p>
                 </div>
               </dd>
             </div>

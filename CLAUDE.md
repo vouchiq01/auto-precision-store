@@ -876,6 +876,78 @@ warranty months, Expert support (`/enquiry`). "Direct from manufacturer" is the 
 statement about his business. A competitor's "Limited time offer — expires soon" line was
 shown to us as a reference and deliberately NOT copied: there is no real deadline behind it.
 
+### Offers strip: slim, directly under the carousel
+
+`coupon-strip.tsx` is one row of small tickets (red stub with the saving, the code, one
+truncated line of terms, Copy) under the banner carousel and above the bestsellers, so offers are
+seen without scrolling. It replaced a large two-column ticket block that sat below the first
+product shelf (the client: "not that big, it should be small and people should be able to come
+to it"). Phone: **two equal tickets fill the row with no scrolling** (one ticket fills it alone; the "Offers" label and the Copy label are dropped, the code line turns into "Copied ✓", terms shortened to "Min ₹10,000" via `couponShortTerms`); with three or more the row scrolls (`scroll-px-4` keeps the first item's gutter). Do not
+make the tickets taller or move it back down the page. Still copies only — it never applies a code.
+
+### The scrolling offers line (above the carousel)
+
+`components/home/offer-ticker.tsx`: a slim crimson line directly under the fixed header and above the
+carousel (`page.tsx` owns the header offset: the ticker carries `pt-16 lg:pt-[6.75rem]` and then
+`BannerCarousel` gets `offsetForHeader={false}`; with no ticker the carousel carries it). It scrolls,
+in this order: the owner's messages (**`strip` banners** — `title` is the sentence, `ctaUrl` an
+optional link, the required picture is the `strip-freight.jpg` placeholder and is never shown;
+edited in Admin → Banners → "Scrolling offer line"), then **"Up to N% off on our best sellers"**
+(N = the largest `discountPercent` among the products on the page, computed on the server from real
+compare-at prices; omitted below 5%), then every **published coupon** (`couponLine`, fetched in the
+browser, so they join the end). Tapping a coupon copies its code.
+
+- It is moving content, so: pauses on hover and while anything in it has focus; a small pause/play
+  (no pause button — the client asked why it was there): it pauses on hover, on focus, and while a finger
+  or the mouse is held down on it (`.aps-marquee-wrap:active`), which is how a phone stops it; under
+  `prefers-reduced-motion` it does not move and becomes a row scrolled by hand. Two identical groups, each
+  `min-w-[100vw]`, translated by -50% (`.aps-marquee` / `@keyframes apsMarquee`, top level in
+  `globals.css`); the second group is `aria-hidden`.
+- **Only true statements.** Seeded: "Pan India delivery — we ship to every pincode", "Free freight on
+  orders over ₹25,000 in Karnataka" (Karnataka only — never "free delivery across India"), "GST invoice
+  on every order". No countdowns or "ends soon" without a real end date (use the banner's end date).
+- Seeding: `TICKER_MESSAGES` in `slides.data.ts`; `seed:extra` installs them once (marker: a strip
+  banner starting "Pan India") and switches the old strip banner OFF. Run it on production.
+- It only appears on the carousel layout; the plain `Hero` fallback has its own offset.
+
+### Card tags (Hot / Best Seller / New / Trending) and the phone header
+
+`product-tag.tsx`: four tags, each its own colour AND icon (Hot = orange-red flame, Best Seller =
+gold star, New = green sparkle, Trending = violet arrow). A product's tag is the first of its `badges`
+that matches one of the four (`pickCardTag`); the card shows only that one, the product page shows all
+badges (tags styled, others plain). Admin → Products has a **Card tag** dropdown (saved first in
+`badges`) plus "Other badges" free text. `npm run seed:tags -w @aps/db` (idempotent, touches only
+`badges`) puts **placeholder** tags on 20 products — only "New" (the 12 second-wave products) has a
+factual basis; Hot / Best Seller / Trending are guesses for the owner to correct, there is no sales data.
+Do not make tags automatic from invented numbers.
+
+Phone menu (the hamburger sheet in `header.tsx`): a sign-in / "Hi, name" card, the ten collections as a 2-column grid of **photo tiles** (`/categories/<slug>.jpg`, label bottom-left over a navy fade), then Wishlist / My orders / Shipping rows and a navy "Bulk & dealer enquiry" card. It scrolls inside itself (`data-lenis-prevent`) and rises in with a stagger. The old version was ten large text links. Do not turn it back into a text list.
+
+Phone header: the menu button is three lines (middle fades on open, outer two cross), the cart is a
+bag icon with the count as a corner badge (hidden at 0); from `sm` the word "Cart" returns.
+
+### Product page (gallery, buy box, section tabs)
+
+- **Gallery** (`product-gallery.tsx`): the big picture is a swipeable strip (native scroll-snap — a phone swipes,
+  a trackpad scrolls, arrows and the arrow keys move it), "2 / 5" counter, dots on a phone, thumbnails from `sm`
+  that follow along. Tapping the picture opens a full-screen viewer (`Lightbox`) — **rendered through a portal
+  into `<body>`**, because the gallery is `lg:sticky`, which makes its own stacking context, and inside it no
+  z-index can lift the viewer over the fixed header. Full-bleed on a phone (4:3 there, square from `sm`) so **the price lands on the first phone screen** (checked at 393×852 and 360×740 — keep it that way: the one-paragraph summary under the title is `hidden sm:block` for the same reason); rounded card from `sm`. The active
+  picture carries `data-fly-active` so the fly-to-cart ghost copies the picture actually showing.
+- **Buy box** (`buy-box.tsx`): tag(s) and category, title, stars + In stock, price card (price, green % off, M.R.P.,
+  "You save", GST, collapsible EMI), an "at a glance" strip of figures the product really has (load, working
+  height, deck size, warranty — a tile is omitted when the data is missing), finish swatch **cards**, **Add to cart
+  + Buy now** (Buy now = add this finish, then `/checkout`), a Delivery card (pincode check), an "Available offers"
+  card (published coupons only), then the six-tile trust grid. `data-add-to-cart` stays on the Add button — the
+  sticky bar's IntersectionObserver watches it.
+- **Section tabs** (`section-tabs.tsx`): Details · Specifications · FAQs · Reviews, sticky under the header
+  (`top-16 lg:top-[6.75rem]`), highlights the section being read. Anchors: `#details`, `#specification`, `#faq`, `#reviews`.
+- **Lower sections are compact on purpose** (`py-10 md:py-14`; the client asked "why this much gap"): Details → story → Specifications (white cards, a Dimensions card first) → FAQs (one white accordion card) → Reviews (a one-line "No reviews yet" strip until there are real ones). The giant 02/04/05 section numerals and the "01/02" feature numerals are gone from the product page (they remain on the homepage). Spec rows that only restate the dimension columns (Load capacity, Height range, Dimensions, Weight) are filtered out so no figure appears twice. Do not bring back `py-20 md:py-28` or the huge numerals here.
+- **Dev-only trap:** the local `next dev` image optimiser can wedge on one image/size (an interrupted encode leaves
+  an in-flight request that never resolves): that image's `<img>` shows blank forever while every other loads and
+  `curl` with an AVIF `Accept` header hangs. Not a code bug — restart `next dev` (and `rm -rf .next/cache/images`).
+  Don't restart the dev server while pages are still loading.
+
 ## Claims must match the data
 
 The old marquee (now the cards in `trust-cards.tsx`) said "36-month frame warranty". Two of the eighteen products have

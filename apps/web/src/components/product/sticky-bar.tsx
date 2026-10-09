@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { formatINR, type ProductDetail } from '@aps/shared';
 import { cn } from '@/lib/cn';
@@ -40,13 +41,22 @@ export function StickyBar({ product }: { product: ProductDetail }) {
       )}
       aria-hidden={!visible}
     >
-      <div className="shell flex items-center justify-between gap-4 py-3">
-        <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-content">{product.name}</p>
-          <p className="numeric text-xs text-muted">
-            {formatINR(variant.price)}
-            {product.emiTeaser && <span className="hidden sm:inline"> · from {product.emiTeaser}</span>}
-          </p>
+      <div className="shell flex items-center justify-between gap-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="flex min-w-0 items-center gap-3">
+          {product.images[0] && (
+            <span className="relative hidden size-11 shrink-0 overflow-hidden rounded-lg border border-line bg-white sm:block">
+              <Image src={product.images[0].url} alt="" fill sizes="44px" className="object-contain p-1" />
+            </span>
+          )}
+          <div className="min-w-0">
+            <p className="truncate text-sm font-medium text-content">{product.name}</p>
+            <p className="numeric text-sm font-semibold text-content">
+              {formatINR(variant.price)}
+              {variant.compareAtPrice && variant.compareAtPrice > variant.price && (
+                <span className="ml-1.5 text-xs font-normal text-faint line-through">{formatINR(variant.compareAtPrice)}</span>
+              )}
+            </p>
+          </div>
         </div>
 
         <Button

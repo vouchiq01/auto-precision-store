@@ -9,6 +9,7 @@ import { addErrorMessage, flyToCart, showCartMessage } from '@/lib/fly-to-cart';
 import { useCart } from '@/providers/cart-provider';
 import { Badge, Spinner } from '@/components/ui/primitives';
 import { PhotoPlaceholder } from './photo-placeholder';
+import { ProductTag, pickCardTag } from './product-tag';
 import { Stars } from './stars';
 import { WishlistButton } from './wishlist-button';
 
@@ -95,15 +96,13 @@ export function ProductCard({
           <PhotoPlaceholder />
         )}
 
-        {/* One badge, solid backing: it sits over an arbitrary photograph, and
-            an outlined pill vanishes the moment the image behind it is mid-tone. */}
+        {/* One tag (Hot / Best Seller / New / Trending), each its own colour and icon, solid so it
+            reads over any photograph. Sold out takes its place when there is no stock. */}
         <div className="absolute left-2.5 top-2.5 flex max-w-[calc(100%-3.75rem)] sm:left-3 sm:top-3">
           {outOfStock ? (
             <Badge tone="warning" className="border-transparent bg-surface/95 text-warning backdrop-blur-sm">Sold out</Badge>
-          ) : product.badges[0] ? (
-            <Badge tone="accent" className="border-transparent bg-amber text-ink backdrop-blur-sm">
-              {product.badges[0]}
-            </Badge>
+          ) : pickCardTag(product.badges) ? (
+            <ProductTag tag={pickCardTag(product.badges)!} />
           ) : null}
         </div>
 

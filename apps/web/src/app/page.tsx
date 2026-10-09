@@ -10,6 +10,7 @@ import { WhatItDoes } from '@/components/home/what-it-does';
 import { TableDemo } from '@/components/home/table-demo';
 import { Bestsellers } from '@/components/home/bestsellers';
 import { BannerCarousel } from '@/components/home/banner-carousel';
+import { OfferTicker, type TickerMessage } from '@/components/home/offer-ticker';
 import { EnquiryCta } from '@/components/home/enquiry-cta';
 
 export const metadata: Metadata = {
@@ -29,8 +30,9 @@ const RAIL_SLUGS = ['electric-lifting', 'round-rotating', 'portable'] as const;
 export default async function HomePage() {
   /* Fetched in parallel: sequential awaits would stack cold-start round-trips
      on the very first render after a deploy. */
-  const [heroBanners, categories, featured, rails] = await Promise.all([
+  const [heroBanners, stripBanners, categories, featured, rails] = await Promise.all([
     getBanners('hero'),
+    getBanners('strip'),
     getCategories(),
     getProducts({ featured: 'true', perPage: 4 }),
     Promise.all(RAIL_SLUGS.map((slug) => getProducts({ category: slug, perPage: 8 }))),
@@ -39,6 +41,18 @@ export default async function HomePage() {
   /* Counted from the live catalogue so the copy cannot go stale the moment a
      nineteenth product is added. */
   const totalProducts = categories.reduce((sum, category) => sum + (category.productCount ?? 0), 0);
+
+  /* The scrolling offers line: what the owner wrote in Admin → Banners, plus the best real saving
+     in the catalogue — the largest percent-off among products we are showing, from their own
+     compare-at prices, so it can never claim more than a product actually carries. Coupons join
+     it in the browser. */
+  const shown = [...featured.items, ...rails.flatMap((r) => r.items)];
+  const bestSaving = shown.reduce((max, p) => Math.max(max, p.discountPercent ?? 0), 0);
+  const tickerMessages: TickerMessage[] = [
+    ...stripBanners.map((b) => ({ id: b.id, text: b.title, href: b.ctaUrl })),
+    ...(bestSaving >= 5 ? [{ id: 'best-saving', text: `Up to ${bestSaving}% off on our best sellers`, href: '/shop' }] : []),
+  ];
+  const showTicker = heroBanners.length > 0 && tickerMessages.length > 0;
 
   const railFor = (index: number) => {
     const slug = RAIL_SLUGS[index]!;
@@ -59,8 +73,13 @@ export default async function HomePage() {
       {/* The admin's banner artwork when there is any; the built-in hero is the fallback
           so the page is never empty at the top. */}
       {heroBanners.length > 0
-        ? <BannerCarousel slides={heroBanners} />
+        ? <>
+            {showTicker && <OfferTicker messages={tickerMessages} />}
+            <BannerCarousel slides={heroBanners} offsetForHeader={!showTicker} />
+          </>
         : <Hero banner={null} totalProducts={totalProducts} spotlight={rails[1]?.items.find((p) => p.slug === 'orbit-r-round-rotating-table') ?? rails[1]?.items[0] ?? null} />}
+      {/* Live offers, right under the carousel where they are seen. */}
+      <CouponStrip />
       <Bestsellers products={featured.items} />
       <TrustCards />
 
@@ -69,7 +88,6 @@ export default async function HomePage() {
         return (
           <div key={rail.slug}>
             <ProductRail eyebrow={rail.eyebrow} title={rail.title} href={`/collections/${rail.slug}`} products={rail.products} />
-            {index === 0 && <CouponStrip />}
           </div>
         );
       })}

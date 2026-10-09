@@ -17,3 +17,15 @@ export const HERO_SLIDES = [
   { title: 'The ultimate spa experience for your pet — stainless steel bath tub', imageDesktop: '/banners/banner-7-spa.jpg', ctaUrl: '/collections/bath-tubs' },
   { title: 'Luxury and safety for every pet — modular stainless cage', imageDesktop: '/banners/banner-8-cage.jpg', ctaUrl: '/collections/cages' },
 ] as const;
+
+/**
+ * The scrolling offers line above the carousel: ordinary `strip` banners whose `title` is the
+ * sentence (the picture is a placeholder the storefront never shows). Owner-editable in
+ * Admin → Banners. Only claims that are true of every order: we deliver to every Indian
+ * pincode; free freight is a Karnataka-only threshold; every order gets a GST invoice.
+ */
+export const TICKER_MESSAGES = [
+  { title: 'Pan India delivery — we ship to every pincode', ctaUrl: '/pages/shipping' },
+  { title: 'Free freight on orders over ₹25,000 in Karnataka', ctaUrl: '/pages/shipping' },
+  { title: 'GST invoice on every order', ctaUrl: null },
+] as const;

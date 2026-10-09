@@ -1,7 +1,7 @@
 import type { ProductDetail, ProductSpec } from '@aps/shared';
 import { formatKg, formatMm } from '@/lib/format';
 import { Reveal } from '@/components/motion/reveal';
-import { Eyebrow, SectionNumber } from '@/components/ui/primitives';
+import { Eyebrow } from '@/components/ui/primitives';
 
 /** Groups specs by their `group` column, preserving the order they arrive in. */
 function groupSpecs(specs: ProductSpec[]): [string, ProductSpec[]][] {
@@ -15,7 +15,17 @@ function groupSpecs(specs: ProductSpec[]): [string, ProductSpec[]][] {
 }
 
 export function ProductSpecs({ product }: { product: ProductDetail }) {
-  const groups = groupSpecs(product.specs);
+  /* The Dimensions card is built from the product's own columns (length, width, heights, load,
+     weight). Spec rows that only restate those figures are dropped so the same number never
+     appears twice on the page. */
+  const RESTATED = new Set(['load capacity', 'height range', 'dimensions', 'weight', 'table weight']);
+  const hasDimensionColumns = Boolean(
+    product.dimensions.lengthMm || product.dimensions.widthMm || product.dimensions.heightMinMm
+    || product.dimensions.loadCapacityKg || product.weightG,
+  );
+  const groups = groupSpecs(
+    hasDimensionColumns ? product.specs.filter((spec) => !RESTATED.has(spec.label.trim().toLowerCase())) : product.specs,
+  );
 
   // Dimensions come from dedicated columns rather than spec rows, because they
   // also drive freight banding — so they are rendered as their own block.
@@ -31,22 +41,19 @@ export function ProductSpecs({ product }: { product: ProductDetail }) {
   if (groups.length === 0 && dimensions.length === 0) return null;
 
   return (
-    <section id="specification" className="shell scroll-mt-24 py-20 md:py-28">
-      <div className="flex items-end justify-between gap-8">
-        <div>
-          <Eyebrow>Specification</Eyebrow>
-          <h2 className="display-md mt-4 text-content">Every number we have.</h2>
-        </div>
-        <SectionNumber value="02" className="hidden md:block" />
+    <section id="specification" className="shell scroll-mt-32 py-10 md:py-14">
+      <div>
+        <Eyebrow>Specification</Eyebrow>
+        <h2 className="mt-2 font-display text-2xl font-semibold leading-tight tracking-[-0.025em] text-content md:text-[1.875rem]">Every number we have.</h2>
       </div>
 
-      <div className="mt-12 grid gap-x-12 gap-y-10 md:grid-cols-2">
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
         {dimensions.length > 0 && (
-          <Reveal>
-            <h3 className="eyebrow mb-4 text-crimson!">Dimensions</h3>
+          <Reveal className="rounded-2xl bg-surface p-5 ring-1 ring-line">
+            <h3 className="eyebrow mb-3 text-crimson!">Dimensions</h3>
             <dl className="divide-y divide-line border-t border-line">
               {dimensions.map(([label, value]) => (
-                <div key={label} className="flex items-baseline justify-between gap-6 py-3">
+                <div key={label} className="flex items-baseline justify-between gap-6 py-2.5">
                   <dt className="text-sm text-muted">{label}</dt>
                   <dd className="numeric text-sm text-content">{value}</dd>
                 </div>
@@ -56,11 +63,11 @@ export function ProductSpecs({ product }: { product: ProductDetail }) {
         )}
 
         {groups.map(([group, specs]) => (
-          <Reveal key={group}>
-            <h3 className="eyebrow mb-4 text-crimson!">{group}</h3>
+          <Reveal key={group} className="rounded-2xl bg-surface p-5 ring-1 ring-line">
+            <h3 className="eyebrow mb-3 text-crimson!">{group}</h3>
             <dl className="divide-y divide-line border-t border-line">
               {specs.map((spec) => (
-                <div key={spec.id} className="flex items-baseline justify-between gap-6 py-3">
+                <div key={spec.id} className="flex items-baseline justify-between gap-6 py-2.5">
                   <dt className="text-sm text-muted">{spec.label}</dt>
                   <dd className="numeric text-right text-sm text-content">{spec.value}</dd>
                 </div>

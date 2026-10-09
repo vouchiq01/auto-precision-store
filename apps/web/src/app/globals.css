@@ -112,6 +112,18 @@
 /* Keyframes live at the top level. Inside @layer Tailwind v4 drops them and
    the animation silently resolves to nothing — no build error, no console
    warning, just an element that never moves. */
+/* The offers line: two identical groups side by side, slid left by exactly one group, so it loops
+   with no jump. Top level on purpose — Tailwind v4 drops @keyframes inside @layer. */
+@keyframes apsMarquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.aps-marquee { animation: apsMarquee var(--aps-marquee-duration, 40s) linear infinite; }
+.aps-marquee-wrap:hover .aps-marquee,
+.aps-marquee-wrap:focus-within .aps-marquee,
+.aps-marquee-wrap:active .aps-marquee { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .aps-marquee { animation: none; }
+  .aps-marquee-wrap { overflow-x: auto; }
+}
+
 @keyframes slideProgress {
   from { width: 0%; }
   to   { width: 100%; }

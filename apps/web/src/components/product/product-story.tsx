@@ -13,15 +13,15 @@ export function ProductStory({ features }: { features: ProductFeature[] }) {
   if (features.length === 0) return null;
 
   return (
-    <section className="rule bg-surface py-20 md:py-28">
-      <div className="shell space-y-24 md:space-y-32">
+    <section className="rule bg-surface py-10 md:py-14">
+      <div className="shell space-y-12 md:space-y-16">
         {features.map((feature, index) => {
           if (feature.layout === 'stat_row') {
             return (
               <Reveal key={feature.id} className="text-center">
                 <Eyebrow>{feature.eyebrow ?? 'By the numbers'}</Eyebrow>
                 <h3 className="display-sm mt-3 text-content">{feature.title}</h3>
-                <dl className="mt-10 grid grid-cols-2 gap-8 md:grid-cols-4">
+                <dl className="mt-6 grid grid-cols-2 gap-6 md:grid-cols-4">
                   {feature.stats.map((stat) => (
                     <div key={stat.label}>
                       <dt className="sr-only">{stat.label}</dt>
@@ -70,7 +70,7 @@ export function ProductStory({ features }: { features: ProductFeature[] }) {
           const hasMedia = Boolean(feature.mediaUrl);
 
           return (
-            <Reveal key={feature.id} className={cn('grid items-center gap-10 lg:gap-16', hasMedia && 'lg:grid-cols-2')}>
+            <Reveal key={feature.id} className={cn('grid items-center gap-6 lg:gap-14', hasMedia && 'lg:grid-cols-2')}>
               {hasMedia && (
                 <div className={cn('relative aspect-[4/3] overflow-hidden rounded-3xl border border-line',
                   mediaLeft ? 'lg:order-1' : 'lg:order-2')}
@@ -86,15 +86,12 @@ export function ProductStory({ features }: { features: ProductFeature[] }) {
               )}
 
               <div className={cn(hasMedia && (mediaLeft ? 'lg:order-2' : 'lg:order-1'))}>
-                <span aria-hidden="true" className="numeric font-display text-sm text-crimson">
-                  {String(index + 1).padStart(2, '0')}
-                </span>
-                {feature.eyebrow && <Eyebrow className="mt-3">{feature.eyebrow}</Eyebrow>}
-                <h3 className="display-sm mt-3 text-content">{feature.title}</h3>
-                {feature.body && <p className="mt-5 max-w-md leading-relaxed text-muted">{feature.body}</p>}
+                {feature.eyebrow && <Eyebrow>{feature.eyebrow}</Eyebrow>}
+                <h3 className="display-sm mt-2 text-content">{feature.title}</h3>
+                {feature.body && <p className="mt-3 max-w-md leading-relaxed text-muted">{feature.body}</p>}
 
                 {feature.stats.length > 0 && (
-                  <dl className="mt-8 grid grid-cols-2 gap-6 sm:grid-cols-3">
+                  <dl className="mt-5 grid grid-cols-2 gap-5 sm:grid-cols-3">
                     {feature.stats.map((stat) => (
                       <div key={stat.label}>
                         <dt className="sr-only">{stat.label}</dt>

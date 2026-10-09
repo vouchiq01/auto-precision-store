@@ -5,7 +5,7 @@ import * as s from '../schema/index.ts';
 import { categoryImage, insertProduct } from './insert-product.ts';
 import { CATEGORIES, PRODUCTS } from './products.data.ts';
 import { EXTRA_CATEGORIES, EXTRA_PRODUCTS } from './products.extra.ts';
-import { HERO_SLIDES } from './slides.data.ts';
+import { HERO_SLIDES, TICKER_MESSAGES } from './slides.data.ts';
 
 /**
  * Add the second-wave catalogue (fixed tables, tubs, combos) to a database that
@@ -82,7 +82,23 @@ async function main(): Promise<void> {
     addedSlides = HERO_SLIDES.length;
   }
 
-  console.log(`\nAdded ${addedSlides} carousel slides.`);
+  /* The scrolling offers line: installed once, marker = a strip banner starting "Pan India".
+     The original single strip banner ("Free delivery across Karnataka…", which overstated the
+     free-freight rule) is switched off, not deleted. */
+  const stripBanners = await db.select({ id: s.banners.id, title: s.banners.title })
+    .from(s.banners).where(eq(s.banners.placement, 'strip'));
+  let addedMessages = 0;
+  if (!stripBanners.some((b) => b.title.startsWith('Pan India'))) {
+    for (const old of stripBanners) {
+      await db.update(s.banners).set({ isActive: false }).where(eq(s.banners.id, old.id));
+    }
+    await db.insert(s.banners).values(
+      TICKER_MESSAGES.map((m, i) => ({ ...m, imageDesktop: '/banners/strip-freight.jpg', placement: 'strip' as const, sortOrder: i, isActive: true })),
+    );
+    addedMessages = TICKER_MESSAGES.length;
+  }
+
+  console.log(`\nAdded ${addedSlides} carousel slides and ${addedMessages} offer-line messages.`);
   console.log(`Added ${addedCategories} categories and ${addedProducts} products (${EXTRA_PRODUCTS.length - addedProducts} already present). Nothing was deleted.`);
   process.exit(0);
 }

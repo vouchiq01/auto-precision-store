@@ -33,7 +33,7 @@ import { cn } from '@/lib/cn';
  */
 const DWELL_MS = 6000;
 
-export function BannerCarousel({ slides }: { slides: Banner[] }) {
+export function BannerCarousel({ slides, offsetForHeader = true }: { slides: Banner[]; offsetForHeader?: boolean }) {
   const reduced = useReducedMotion();
   const track = useRef<HTMLUListElement>(null);
   const root = useRef<HTMLElement>(null);
@@ -94,7 +94,7 @@ export function BannerCarousel({ slides }: { slides: Banner[] }) {
       aria-roledescription="carousel"
       aria-label="Featured"
       /* The fixed header covers the top of the page; the frame starts below it. */
-      className="bg-canvas pt-16 lg:pt-[6.75rem]"
+      className={cn('bg-canvas', offsetForHeader && 'pt-16 lg:pt-[6.75rem]')}
       onMouseEnter={() => setHeld(true)}
       onMouseLeave={() => setHeld(false)}
       onFocusCapture={() => setHeld(true)}

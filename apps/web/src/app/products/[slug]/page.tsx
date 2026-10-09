@@ -12,6 +12,7 @@ import { ProductStory } from '@/components/product/product-story';
 import { ProductFaq } from '@/components/product/product-faq';
 import { Reviews } from '@/components/product/reviews';
 import { StickyBar } from '@/components/product/sticky-bar';
+import { SectionTabs } from '@/components/product/section-tabs';
 import { ProductCard } from '@/components/product/product-card';
 import { Reveal } from '@/components/motion/reveal';
 import { SectionHead } from '@/components/ui/section-head';
@@ -119,9 +120,9 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {faqLd && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />}
 
-      <div className="shell pt-28 md:pt-36">
-        <nav aria-label="Breadcrumb" className="mb-8 text-xs text-faint">
-          <ol className="flex flex-wrap items-center gap-2">
+      <div className="shell pt-[4.75rem] md:pt-36">
+        <nav aria-label="Breadcrumb" className="mb-3 text-xs text-faint md:mb-6">
+          <ol className="flex items-center gap-2 overflow-hidden whitespace-nowrap">
             <li><a href="/" className="transition-colors hover:text-content">Home</a></li>
             <li aria-hidden="true">/</li>
             <li>
@@ -130,11 +131,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </a>
             </li>
             <li aria-hidden="true">/</li>
-            <li className="text-muted">{product.name}</li>
+            <li className="min-w-0 truncate text-muted">{product.name}</li>
           </ol>
         </nav>
 
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-16">
+        <div className="-mx-4 grid grid-cols-1 gap-6 sm:mx-0 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-14">
           <ProductGallery
             images={product.images}
             name={product.name}
@@ -142,29 +143,40 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             spinSlug={spinFrames ? product.slug : null}
             spinFrames={spinFrames ?? undefined}
           />
-          <BuyBox product={product} />
+          <div className="px-4 sm:px-0"><BuyBox product={product} /></div>
           <RecentlyViewedTracker slug={product.slug} name={product.name} price={product.price} image={product.images[0]?.url ?? null} />
         </div>
 
-        {product.description && (
-          <Reveal className="mx-auto mt-24 max-w-3xl md:mt-32">
-            <Eyebrow>In detail</Eyebrow>
-            <div className="mt-5 space-y-5">
-              {product.description.split('\n\n').map((paragraph, i) => (
-                <p key={i} className="text-lg leading-relaxed text-muted">{paragraph}</p>
-              ))}
-            </div>
-          </Reveal>
-        )}
+        <SectionTabs
+          tabs={[
+            ...(product.description || product.features.length > 0 ? [{ id: 'details', label: 'Details' }] : []),
+            ...(product.specs.length > 0 ? [{ id: 'specification', label: 'Specifications' }] : []),
+            ...(product.faqs.length > 0 ? [{ id: 'faq', label: 'FAQs' }] : []),
+            { id: 'reviews', label: reviews && reviews.total > 0 ? `Reviews (${reviews.total})` : 'Reviews' },
+          ]}
+        />
+
+        <div id="details" className="scroll-mt-32">
+          {product.description && (
+            <Reveal className="mx-auto mt-8 max-w-3xl md:mt-12">
+              <Eyebrow>In detail</Eyebrow>
+              <div className="mt-3 space-y-4">
+                {product.description.split('\n\n').map((paragraph, i) => (
+                  <p key={i} className="text-base leading-relaxed text-muted md:text-[1.0625rem]">{paragraph}</p>
+                ))}
+              </div>
+            </Reveal>
+          )}
+        </div>
       </div>
 
       <ProductStory features={product.features} />
       <ProductSpecs product={product} />
-      <ProductFaq faqs={product.faqs} />
+      <div id="faq" className="scroll-mt-32"><ProductFaq faqs={product.faqs} /></div>
       <Reviews reviews={reviews} />
 
       {product.related.length > 0 && (
-        <section className="shell rule py-10 md:py-16">
+        <section className="shell rule py-10 pb-28 md:py-14 md:pb-28">
           <SectionHead
             eyebrow="Also consider"
             title={`Others in ${product.category.name.toLowerCase()}.`}

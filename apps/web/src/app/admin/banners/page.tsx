@@ -26,6 +26,8 @@ const EMPTY = {
 };
 type Form = typeof EMPTY;
 
+const LINE_PLACEHOLDER = '/banners/strip-freight.jpg';
+
 const day = (iso: string | null) => (iso ? iso.slice(0, 10) : '');
 
 /** The full body the API wants, from a stored banner with some fields changed. */
@@ -47,9 +49,11 @@ export default function AdminBannersPage() {
   const [open, setOpen] = useState(false);
 
   const isCarousel = form.placement === 'hero';
+  const isLine = form.placement === 'strip';
   const items = data?.items ?? [];
   const slides = items.filter((b) => b.placement === 'hero');
-  const others = items.filter((b) => b.placement !== 'hero');
+  const lines = items.filter((b) => b.placement === 'strip');
+  const others = items.filter((b) => b.placement !== 'hero' && b.placement !== 'strip');
 
   function startNew() { setForm(EMPTY); setEditing(null); setOpen(true); }
   function startEdit(b: Banner) {
@@ -68,6 +72,8 @@ export default function AdminBannersPage() {
     event.preventDefault();
     const payload = {
       ...form,
+      /* An offer-line message has no picture; the field is required, so it carries a placeholder. */
+      imageDesktop: form.placement === 'strip' ? (form.imageDesktop || LINE_PLACEHOLDER) : form.imageDesktop,
       subtitle: form.subtitle || null, eyebrow: form.eyebrow || null,
       imageMobile: form.imageMobile || null, ctaLabel: form.ctaLabel || null, ctaUrl: form.ctaUrl || null,
       startsAt: form.startsAt || null, endsAt: form.endsAt || null,
@@ -108,14 +114,20 @@ export default function AdminBannersPage() {
     return (
       <li key={b.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-surface p-3 sm:flex-nowrap">
         <span className="numeric grid size-8 shrink-0 place-items-center rounded-full bg-sand text-xs font-semibold text-content">{label}</span>
-        <div className="relative h-14 w-24 shrink-0 overflow-hidden rounded-lg border border-line bg-canvas">
-          <Image src={b.imageDesktop} alt="" fill sizes="96px" className="object-contain" />
-        </div>
+        {b.placement === 'strip' ? (
+          <div className="grid h-14 w-24 shrink-0 place-items-center rounded-lg bg-crimson px-1 text-center text-[0.625rem] font-semibold leading-tight text-white">
+            Offer<br />line
+          </div>
+        ) : (
+          <div className="relative h-14 w-24 shrink-0 overflow-hidden rounded-lg border border-line bg-canvas">
+            <Image src={b.imageDesktop} alt="" fill sizes="96px" className="object-contain" />
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           {b.eyebrow && <span className="block text-xs text-faint">{b.eyebrow}</span>}
           <span className="block truncate text-sm font-medium text-content">{b.title}</span>
           <span className="block truncate text-xs text-muted">
-            {b.ctaLabel ? `${b.ctaLabel} → ${b.ctaUrl ?? ''}` : 'No button'}
+            {b.placement === 'strip' ? (b.ctaUrl ? `Links to ${b.ctaUrl}` : 'No link') : b.ctaLabel ? `${b.ctaLabel} → ${b.ctaUrl ?? ''}` : 'No button'}
             {(b.startsAt || b.endsAt) && ` · ${b.startsAt ? formatDate(b.startsAt) : 'now'} → ${b.endsAt ? formatDate(b.endsAt) : 'no end'}`}
           </span>
         </div>
@@ -135,7 +147,7 @@ export default function AdminBannersPage() {
     <>
       <PageHeading
         title="Banners"
-        description="The slides at the top of the homepage, and the strips between sections"
+        description="The slides at the top of the homepage, and the scrolling offer line above them"
         action={<Button onClick={open ? close : startNew}>{open ? 'Cancel' : 'New banner'}</Button>}
       />
 
@@ -153,18 +165,18 @@ export default function AdminBannersPage() {
         <Card className="mb-6">
           <h2 className="mb-4 text-base font-semibold text-content">{editing ? 'Edit banner' : 'New banner'}</h2>
           <form onSubmit={save} className="grid gap-4 sm:grid-cols-2">
-            {!isCarousel && (
+            {!isCarousel && !isLine && (
               <Field label="Small label above the headline">
                 <input value={form.eyebrow} maxLength={40} onChange={(e) => setForm({ ...form, eyebrow: e.target.value })} placeholder="Electric tables" className={inputClass} />
               </Field>
             )}
             <Field
-              label={isCarousel ? 'What the picture shows' : 'Headline'}
-              hint={isCarousel ? 'Read out by screen readers and used by Google. Not shown on the page.' : undefined}
+              label={isCarousel ? 'What the picture shows' : isLine ? 'The message' : 'Headline'}
+              hint={isCarousel ? 'Read out by screen readers and used by Google. Not shown on the page.' : isLine ? 'One short sentence, e.g. “Festival sale — 10% off all tubs”. Only say what is true.' : undefined}
             >
               <input required value={form.title} maxLength={120} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder={isCarousel ? 'Stop grooming on the floor — round rotating table' : undefined} className={inputClass} />
             </Field>
-            {!isCarousel && (
+            {!isCarousel && !isLine && (
               <Field label="Line under the headline">
                 <input value={form.subtitle} maxLength={240} onChange={(e) => setForm({ ...form, subtitle: e.target.value })} className={inputClass} />
               </Field>
@@ -172,12 +184,14 @@ export default function AdminBannersPage() {
             <Field label="Where it goes">
               <select value={form.placement} disabled={Boolean(editing)} onChange={(e) => setForm({ ...form, placement: e.target.value })} className={selectClass}>
                 <option value="hero">Homepage carousel</option>
-                <option value="strip">Strip</option>
+                <option value="strip">Scrolling offer line</option>
                 <option value="category">Category</option>
                 <option value="product">Product</option>
               </select>
             </Field>
 
+            {!isLine && (
+            <>
             <div className="sm:col-span-2">
               <span className="eyebrow mb-2 block">Banner picture</span>
               <div className="flex flex-wrap items-center gap-3">
@@ -199,12 +213,15 @@ export default function AdminBannersPage() {
               </div>
             </div>
 
-            {!isCarousel && (
+            </>
+            )}
+
+            {!isCarousel && !isLine && (
               <Field label="Button text">
                 <input value={form.ctaLabel} maxLength={40} onChange={(e) => setForm({ ...form, ctaLabel: e.target.value })} placeholder="Shop electric tables" className={inputClass} />
               </Field>
             )}
-            <Field label={isCarousel ? 'Where the picture links to' : 'Button goes to'} hint="A page on the site, e.g. /collections/electric-lifting">
+            <Field label={isCarousel ? 'Where the picture links to' : isLine ? 'Link (optional)' : 'Button goes to'} hint="A page on the site, e.g. /collections/electric-lifting">
               <input value={form.ctaUrl} onChange={(e) => setForm({ ...form, ctaUrl: e.target.value })} placeholder="/collections/electric-lifting" className={inputClass} />
             </Field>
             <Field label="Starts" hint="Leave blank to go live at once">
@@ -234,6 +251,21 @@ export default function AdminBannersPage() {
             ) : (
               <ul className="space-y-2">
                 {slides.map((b, i) => row(b, slides, i, String(i + 1)))}
+              </ul>
+            )}
+          </section>
+          <section>
+            <h2 className="mb-1 text-sm font-semibold text-content">Scrolling offer line</h2>
+            <p className="mb-3 text-xs text-muted">
+              The red line above the carousel. Each message scrolls past in this order; live coupons from Admin → Coupons are added
+              after them automatically, and so is “Up to N% off” (worked out from your real prices). Hide a message to pause it, or
+              give it dates for a festival offer. Say only what is true.
+            </p>
+            {lines.length === 0 ? (
+              <p className="text-sm text-muted">No messages. Create a banner and choose “Scrolling offer line”.</p>
+            ) : (
+              <ul className="space-y-2">
+                {lines.map((b, i) => row(b, lines, i, String(i + 1)))}
               </ul>
             )}
           </section>

@@ -699,11 +699,17 @@ forgets it. CORS exposes and allows the header and caches the pre-flight (`maxAg
 The cookie is still set for browsers that accept it. Do not "simplify" this back to
 cookie-only; `journey.test.ts` has a cookie-less phone suite that fails if you do.
 
-**Still cookie-only:** the sign-in *refresh* cookie (`aps_rt`) has the same
-third-party problem, so on a phone a signed-in customer may look signed out after a
-reload. Not fixed — it is an auth change and deserves its own care (a same-site
-proxy or a first-party API domain such as `api.<store domain>` is the proper cure,
-and the same-site API domain would also remove the need for the header).
+**The sign-in refresh cookie had the same third-party problem and is now fixed the same-site way:** on a phone a
+signed-in customer looked signed out after every reload. Browser calls to `/api/auth/*` now go to the shop's own
+domain (`/backend/api/auth/...`, a `rewrites()` entry in `next.config.ts` pointing at `NEXT_PUBLIC_API_URL`; the
+prefix and path list are `PROXY_PREFIX` / `SAME_SITE_PREFIXES` in `lib/api.ts`), so Vercel proxies them and the
+`aps_rt` cookie is set by the shop's domain — first-party, kept by every browser. **Only the auth calls** go through
+the proxy, on purpose: a Render cold start (~30s+) could 504 inside Vercel's proxy, and catalogue/cart calls must not
+risk that; they still go straight to the API (as do uploads, whose big bodies must not pass through a rewrite).
+Verified locally by a sign-in then refresh through `localhost:3001/backend/...`; **verify on a real phone after
+deploy** (sign in, reload — you should stay in). Customers who were already signed in on an old cookie simply sign in
+once more. A custom API domain such as `api.<store domain>` remains the other proper cure.
+The admin/account **invoice links** are plain anchors straight to the API (`API_URL`), not through the proxy.
 
 **Adding feels slow on a phone** because the API is a second or more per add (about
 ten sequential database round trips from Render to Supabase). So the add is

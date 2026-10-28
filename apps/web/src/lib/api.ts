@@ -13,6 +13,17 @@ import type { ApiProblem } from '@aps/shared';
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
 
 /**
+ * Sign-in calls from the BROWSER go through the shop's own domain (`/backend/...`, a rewrite to the API
+ * in next.config.ts) instead of straight to the API's domain. The refresh cookie that keeps a customer
+ * signed in is then set by the shop itself — a first-party cookie. Set by the API's own domain it is a
+ * third-party cookie, which phone browsers (Safari/iOS, many Android) block: the customer signs in, reloads,
+ * and is signed out. Only the auth calls take this route, so a slow API cold start cannot make catalogue
+ * or cart calls time out in the proxy. Server-side code and uploads keep talking to the API directly.
+ */
+const SAME_SITE_PREFIXES = ['/api/auth'];
+export const PROXY_PREFIX = '/backend';
+
+/**
  * The guest-cart token, kept in the browser and sent as `x-cart-token`.
  *
  * The cart used to be tracked by a cookie set by the API's own domain. That is a
@@ -98,7 +109,8 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
 
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${path}`, init);
+    const viaShop = inBrowser && SAME_SITE_PREFIXES.some((prefix) => path.startsWith(prefix));
+    response = await fetch(`${viaShop ? PROXY_PREFIX : API_URL}${path}`, init);
   } catch (cause) {
     /* Network-level failure: the API is asleep (Render free tier cold start),
        the device is offline, or DNS is unhappy. Presented as a 503 so callers

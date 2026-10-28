@@ -25,6 +25,12 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
   },
 
+  /* Same-site route to the API for the sign-in calls (see PROXY_PREFIX in lib/api.ts): the refresh cookie
+     it sets belongs to this site, so phones do not discard it. */
+  async rewrites() {
+    return [{ source: '/backend/:path*', destination: `${apiOrigin}/:path*` }];
+  },
+
   async headers() {
     return [{
       source: '/:path*',

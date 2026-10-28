@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { Fragment, useState } from 'react';
 import {
-  canTransition, CARRIERS, carrierTrackingUrl, formatINR, ORDER_STATUSES, ORDER_STATUS_LABELS, type OrderStatus,
+  canTransition, CARRIERS, carrierTrackingUrl, formatINR, ORDER_STATUSES, ORDER_STATUS_LABELS, orderWhatsappMessage, type OrderStatus,
 } from '@aps/shared';
 import { API_URL } from '@/lib/api';
 import { formatDate } from '@/lib/format';
@@ -11,6 +11,7 @@ import { useAdminResource } from '@/hooks/use-admin-resource';
 import { Badge, Spinner } from '@/components/ui/primitives';
 import { Button } from '@/components/ui/button';
 import { PageHeading, Table, selectClass, inputClass } from '@/components/admin/ui';
+import { RowWhatsappActions, WhatsappComposer } from '@/components/admin/order-whatsapp';
 
 interface AdminOrderRow {
   order: {
@@ -35,6 +36,8 @@ interface TrackingDraft {
 export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [draft, setDraft] = useState<TrackingDraft | null>(null);
+  /* The order whose "tell the customer" panel is open: set right after a status change succeeds. */
+  const [notify, setNotify] = useState<string | null>(null);
   const query = statusFilter ? `?status=${statusFilter}&perPage=50` : '?perPage=50';
   const { data, loading, error, busy, mutate, setError } = useAdminResource<{ items: AdminOrderRow[]; total: number }>(
     `/api/admin/orders${query}`,
@@ -42,6 +45,7 @@ export default function AdminOrdersPage() {
 
   async function changeStatus(orderId: string, status: OrderStatus) {
     await mutate('PATCH', `/api/admin/orders/${orderId}/status`, { status });
+    setNotify(orderId);
   }
 
   function openTrackingForm(row: AdminOrderRow, pendingStatus: OrderStatus | null) {
@@ -75,6 +79,7 @@ export default function AdminOrdersPage() {
     }
 
     await mutate('PATCH', `/api/admin/orders/${draft.orderId}/status`, body);
+    setNotify(draft.orderId);
     setDraft(null);
   }
 
@@ -108,6 +113,10 @@ export default function AdminOrdersPage() {
             const canHaveTracking = order.status !== 'pending_payment' && order.status !== 'cancelled';
             const row = { order, itemCount };
             const draftOpenHere = draft?.orderId === order.id;
+            const message = orderWhatsappMessage({
+              orderNumber: order.orderNumber, status: order.status, customerName: order.shippingAddress.fullName,
+              grandTotal: order.grandTotal, carrier: order.carrier, trackingNumber: order.trackingNumber, trackingUrl: order.trackingUrl,
+            });
 
             return (
               <Fragment key={order.id}>
@@ -115,7 +124,8 @@ export default function AdminOrdersPage() {
                   <td className="numeric whitespace-nowrap px-4 py-3 text-content">{order.orderNumber}</td>
                   <td className="px-4 py-3 text-muted">
                     <span className="block text-content">{order.shippingAddress.fullName}</span>
-                    <span className="numeric text-xs text-faint">{order.shippingAddress.phone}</span>
+                    <span className="numeric block text-xs text-faint">{order.shippingAddress.phone}</span>
+                    <RowWhatsappActions phone={order.shippingAddress.phone} text={message} />
                   </td>
                   <td className="numeric px-4 py-3 text-muted">{itemCount}</td>
                   <td className="numeric whitespace-nowrap px-4 py-3 text-content">{formatINR(order.grandTotal)}</td>
@@ -183,6 +193,23 @@ export default function AdminOrdersPage() {
                     )}
                   </td>
                 </tr>
+
+                {notify === order.id && !draftOpenHere && (
+                  <tr key={`${order.id}-notify`}>
+                    <td colSpan={9} className="bg-sand/50 px-4 py-4">
+                      {/* Keyed by status, so a later change rebuilds the message instead of keeping old edits. */}
+                      <WhatsappComposer
+                        key={order.status}
+                        phone={order.shippingAddress.phone}
+                        name={order.shippingAddress.fullName?.split(' ')[0] ?? ''}
+                        orderNumber={order.orderNumber}
+                        statusLabel={ORDER_STATUS_LABELS[order.status]}
+                        initialText={message}
+                        onClose={() => setNotify(null)}
+                      />
+                    </td>
+                  </tr>
+                )}
 
                 {draftOpenHere && draft && (
                   <tr key={`${order.id}-tracking`}>

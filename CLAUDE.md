@@ -953,6 +953,20 @@ bag icon with the count as a corner badge (hidden at 0); from `sm` the word "Car
 - `enquiry-cta.tsx`: a compact tinted card (advice left, two buttons right, stacked on a phone). The giant ghost "05" numeral is gone, and so are "02"/"03" on the homepage (`SectionNumber` now survives only in the unused `proof.tsx`).
 - **Footer gap:** the phone tab bar's 64px of room used to sit on `<main>` (a big empty band above the footer). It now sits under the footer, in a navy wrapper in `site-chrome.tsx`; `<main>` has no bottom padding and the footer is `mt-6 md:mt-10`.
 
+### Manual WhatsApp updates from Admin → Orders
+
+Separate from the automatic Cloud-API notifications (which need approved templates and are off until configured):
+this is the owner messaging a customer **himself**, one tap. `orderWhatsappMessage()` in
+`packages/shared/src/domain/order-message.ts` writes the text for each of the eight statuses from the order's own
+fields (name, number, total, carrier, AWB, tracking link — no delivery date, ever, because we do not have one);
+`whatsappLink()` builds `https://wa.me/<91+10 digits>?text=…` (accepts the stored `+91…` form). In
+`components/admin/order-whatsapp.tsx`: every order row has a WhatsApp icon (opens the chat with the current status's
+message typed in) and a copy icon; **right after a status change or a tracking save a "Tell <name>" panel opens under that
+row** with the message editable, **Send on WhatsApp** and **Copy message**. Nothing sends by itself — he presses Send in
+WhatsApp. Rows with no usable mobile number show a disabled icon and the panel says to copy instead. To change
+the wording, edit `order-message.ts` (tests in `order-message.test.ts` guard "no promised dates" and that every status
+has a message).
+
 ## Claims must match the data
 
 The old marquee (now the cards in `trust-cards.tsx`) said "36-month frame warranty". Two of the eighteen products have
@@ -1038,7 +1052,7 @@ release it after 45 minutes.
 
 ## Verifying
 
-`npm test` — 139 tests: 74 unit over pricing and tax, 65 integration running the
+`npm test` — 147 tests: 82 unit over pricing, tax and order messages, 65 integration running the
 real Express app against a real database over real HTTP. No mocks; they have
 caught several genuine bugs.
 

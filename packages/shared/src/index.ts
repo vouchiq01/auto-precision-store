@@ -7,6 +7,7 @@ export * from './domain/coupon.ts';
 export * from './domain/shipping.ts';
 export * from './domain/emi.ts';
 export * from './domain/pricing.ts';
+export * from './domain/order-message.ts';
 
 export * from './schemas/common.ts';
 export * from './schemas/auth.ts';
